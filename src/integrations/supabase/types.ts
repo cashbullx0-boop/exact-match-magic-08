@@ -71,6 +71,60 @@ export type Database = {
         }
         Relationships: []
       }
+      deposits: {
+        Row: {
+          amount_usd: number
+          confirmations: number
+          confirmed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          network: Database["public"]["Enums"]["deposit_network"]
+          notes: string | null
+          provider: string
+          provider_payment_id: string | null
+          status: Database["public"]["Enums"]["deposit_status"]
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          amount_usd: number
+          confirmations?: number
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          network: Database["public"]["Enums"]["deposit_network"]
+          notes?: string | null
+          provider?: string
+          provider_payment_id?: string | null
+          status?: Database["public"]["Enums"]["deposit_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          amount_usd?: number
+          confirmations?: number
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          network?: Database["public"]["Enums"]["deposit_network"]
+          notes?: string | null
+          provider?: string
+          provider_payment_id?: string | null
+          status?: Database["public"]["Enums"]["deposit_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -408,6 +462,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       completion_status: "pending" | "approved" | "rejected"
+      deposit_network: "USDT_TRC20" | "USDT_BEP20"
+      deposit_status:
+        | "pending"
+        | "confirming"
+        | "completed"
+        | "failed"
+        | "expired"
       task_category: "survey" | "video" | "app_install" | "offer"
       txn_type: "task_reward" | "referral_bonus" | "withdrawal" | "adjustment"
     }
@@ -539,6 +600,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       completion_status: ["pending", "approved", "rejected"],
+      deposit_network: ["USDT_TRC20", "USDT_BEP20"],
+      deposit_status: [
+        "pending",
+        "confirming",
+        "completed",
+        "failed",
+        "expired",
+      ],
       task_category: ["survey", "video", "app_install", "offer"],
       txn_type: ["task_reward", "referral_bonus", "withdrawal", "adjustment"],
     },
