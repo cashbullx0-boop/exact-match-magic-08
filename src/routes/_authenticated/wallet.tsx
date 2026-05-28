@@ -5,7 +5,9 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp } from "lucide-react";
+import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
@@ -75,24 +77,48 @@ function WalletPage() {
       </Card>
 
       <Card className="glass-strong border-border p-6">
-        <h2 className="font-semibold mb-4">All transactions</h2>
-        {txns.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No activity yet.</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {txns.map((t) => (
-              <li key={t.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium capitalize">{t.description ?? t.type.replace("_", " ")}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()} · {t.type.replace("_", " ")}</p>
-                </div>
-                <span className={`text-sm font-semibold ${t.amount_cents >= 0 ? "text-accent" : "text-destructive"}`}>
-                  {t.amount_cents >= 0 ? "+" : ""}{fmt(t.amount_cents)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 className="font-semibold mb-4">Transaction history</h2>
+        <Tabs defaultValue="all">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="rewards">Rewards</TabsTrigger>
+            <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
+            <TabsTrigger value="referrals">Referrals</TabsTrigger>
+          </TabsList>
+          {[
+            { v: "all", filter: () => true },
+            { v: "rewards", filter: (t: any) => t.type === "task_reward" },
+            { v: "withdrawals", filter: (t: any) => t.type === "withdrawal" },
+            { v: "referrals", filter: (t: any) => t.type === "referral_bonus" },
+          ].map(({ v, filter }) => {
+            const list = txns.filter(filter);
+            return (
+              <TabsContent key={v} value={v}>
+                {list.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">No activity in this category.</p>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {list.map((t) => (
+                      <li key={t.id} className="py-3 flex items-center gap-3">
+                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${t.amount_cents >= 0 ? "bg-accent/15" : "bg-destructive/15"}`}>
+                          {t.amount_cents >= 0 ? <ArrowDownRight className="h-4 w-4 text-accent" /> : <ArrowUpRight className="h-4 w-4 text-destructive" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium capitalize truncate">{t.description ?? t.type.replace("_", " ")}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</p>
+                        </div>
+                        <Badge variant="outline" className="capitalize hidden sm:inline-flex">{t.type.replace("_", " ")}</Badge>
+                        <span className={`text-sm font-semibold ${t.amount_cents >= 0 ? "text-accent" : "text-destructive"}`}>
+                          {t.amount_cents >= 0 ? "+" : ""}{fmt(t.amount_cents)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       </Card>
     </div>
   );

@@ -2,8 +2,11 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -12,8 +15,14 @@ export const Route = createFileRoute("/_authenticated")({
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
+  { to: "/offerwall", label: "Offerwall", icon: Sparkles },
+  { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { to: "/achievements", label: "Achievements", icon: Award },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/referrals", label: "Referrals", icon: Users },
+  { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/profile", label: "Profile", icon: UserIcon },
+  { to: "/support", label: "Support", icon: LifeBuoy },
 ] as const;
 
 function AuthedLayout() {
@@ -21,6 +30,18 @@ function AuthedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = () => supabase.from("notifications").select("*", { count: "exact", head: true })
+      .eq("user_id", user.id).eq("read", false).then(({ count }) => setUnread(count ?? 0));
+    load();
+    const ch = supabase.channel(`notif:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", replace: true });
@@ -33,13 +54,33 @@ function AuthedLayout() {
   const SidebarInner = () => (
     <>
       <Link to="/dashboard" className="text-xl font-bold brand-text px-2 py-4 block">CashBullX</Link>
-      <nav className="flex-1 space-y-1">
+      <div className="flex items-center gap-3 px-2 pb-4 mb-2 border-b border-border">
+        <Avatar className="h-10 w-10 ring-2 ring-primary/30">
+          <AvatarImage src={profile?.avatar_url ?? undefined} />
+          <AvatarFallback className="bg-primary/20 text-primary text-sm">
+            {(profile?.full_name ?? user.email ?? "U").slice(0, 1).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">{profile?.full_name ?? "User"}</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">Lv {profile?.level ?? 1}</Badge>
+            <span className="text-[10px] text-muted-foreground">{profile?.xp ?? 0} XP</span>
+          </div>
+        </div>
+      </div>
+      <nav className="flex-1 space-y-1 overflow-y-auto">
         {navItems.map((i) => {
           const active = pathname === i.to;
+          const isNotif = i.to === "/notifications";
           return (
             <Link key={i.to} to={i.to} onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
-              <i.icon className="h-4 w-4" />{i.label}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all hover:translate-x-0.5 ${active ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px] shadow-primary/20" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <i.icon className="h-4 w-4" />
+              <span className="flex-1">{i.label}</span>
+              {isNotif && unread > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground">{unread}</span>
+              )}
             </Link>
           );
         })}

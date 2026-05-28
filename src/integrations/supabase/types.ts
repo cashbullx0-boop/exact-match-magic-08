@@ -14,42 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          title: string
+          xp_reward: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          title: string
+          xp_reward?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          title?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          id: string
+          reward_cents: number
+          streak_day: number
+          user_id: string
+        }
+        Insert: {
+          checkin_date?: string
+          created_at?: string
+          id?: string
+          reward_cents?: number
+          streak_day?: number
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          id?: string
+          reward_cents?: number
+          streak_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           balance_cents: number
+          bio: string | null
           created_at: string
+          current_streak: number
           full_name: string | null
           id: string
+          last_checkin_date: string | null
+          level: number
+          longest_streak: number
           referral_code: string
           referred_by: string | null
+          status: string
           total_earned_cents: number
+          two_factor_enabled: boolean
           updated_at: string
           username: string | null
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
           balance_cents?: number
+          bio?: string | null
           created_at?: string
+          current_streak?: number
           full_name?: string | null
           id: string
+          last_checkin_date?: string | null
+          level?: number
+          longest_streak?: number
           referral_code: string
           referred_by?: string | null
+          status?: string
           total_earned_cents?: number
+          two_factor_enabled?: boolean
           updated_at?: string
           username?: string | null
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
           balance_cents?: number
+          bio?: string | null
           created_at?: string
+          current_streak?: number
           full_name?: string | null
           id?: string
+          last_checkin_date?: string | null
+          level?: number
+          longest_streak?: number
           referral_code?: string
           referred_by?: string | null
+          status?: string
           total_earned_cents?: number
+          two_factor_enabled?: boolean
           updated_at?: string
           username?: string | null
+          xp?: number
         }
         Relationships: [
           {
@@ -82,6 +196,39 @@ export type Database = {
           id?: string
           referred_id?: string
           referrer_id?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          id: string
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -194,6 +341,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

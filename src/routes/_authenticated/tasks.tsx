@@ -52,12 +52,21 @@ function TasksPage() {
       user_id: user.id, type: "task_reward", amount_cents: task.reward_cents,
       description: `Reward: ${task.title}`, related_id: task.id,
     });
-    const { data: p } = await supabase.from("profiles").select("balance_cents,total_earned_cents").eq("id", user.id).single();
+    const { data: p } = await supabase.from("profiles").select("balance_cents,total_earned_cents,xp,level").eq("id", user.id).single();
     if (p) {
+      const xpGain = Math.max(10, Math.floor(task.reward_cents / 5));
+      const newXp = p.xp + xpGain;
       await supabase.from("profiles").update({
         balance_cents: p.balance_cents + task.reward_cents,
         total_earned_cents: p.total_earned_cents + task.reward_cents,
+        xp: newXp,
+        level: Math.floor(newXp / 500) + 1,
       }).eq("id", user.id);
+      await supabase.from("notifications").insert({
+        user_id: user.id, type: "task",
+        title: "Task completed",
+        body: `+$${(task.reward_cents / 100).toFixed(2)} and +${xpGain} XP from "${task.title}"`,
+      });
     }
     toast.success(`+$${(task.reward_cents / 100).toFixed(2)} earned!`);
     refreshProfile();
