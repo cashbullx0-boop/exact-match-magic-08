@@ -4,7 +4,6 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
