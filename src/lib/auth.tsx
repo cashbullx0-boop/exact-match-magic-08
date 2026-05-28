@@ -10,6 +10,14 @@ type Profile = {
   referral_code: string;
   balance_cents: number;
   total_earned_cents: number;
+  xp: number;
+  level: number;
+  status: string;
+  two_factor_enabled: boolean;
+  bio: string | null;
+  current_streak: number;
+  longest_streak: number;
+  last_checkin_date: string | null;
 };
 
 type AuthContextValue = {
