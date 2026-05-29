@@ -227,4 +227,42 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, oklch(0.82 0.17 85 / 0.5), oklch(0.78 0.16 165 / 0.5), transparent);
   }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.82 0.17 85 / 0.55), 0 20px 60px -20px oklch(0.82 0.17 85 / 0.45); }
+    50% { box-shadow: 0 0 0 14px oklch(0.82 0.17 85 / 0), 0 28px 80px -18px oklch(0.82 0.17 85 / 0.65); }
+  }
+  .btn-glow { animation: glow-pulse 2.6s ease-in-out infinite; }
+
+  @keyframes blob {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(6%, -4%) scale(1.1); }
+    66% { transform: translate(-5%, 5%) scale(0.95); }
+  }
+  .animate-blob { animation: blob 18s ease-in-out infinite; }
+
+  @keyframes shine {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  .shine-text {
+    background: linear-gradient(90deg, oklch(0.97 0.01 250) 0%, oklch(0.82 0.17 85) 50%, oklch(0.97 0.01 250) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 4s linear infinite;
+  }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  }
 }
