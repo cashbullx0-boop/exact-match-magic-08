@@ -62,10 +62,10 @@ function TasksPage() {
         xp: newXp,
         level: Math.floor(newXp / 500) + 1,
       }).eq("id", user.id);
-      await supabase.from("notifications").insert({
-        user_id: user.id, type: "task",
-        title: "Task completed",
-        body: `+$${(task.reward_cents / 100).toFixed(2)} and +${xpGain} XP from "${task.title}"`,
+      await supabase.rpc("create_self_notification", {
+        _title: "Task completed",
+        _body: `+$${(task.reward_cents / 100).toFixed(2)} and +${xpGain} XP from "${task.title}"`,
+        _type: "task",
       });
     }
     toast.success(`+$${(task.reward_cents / 100).toFixed(2)} earned!`);
