@@ -43,10 +43,10 @@ function SignupPage() {
     if (ref && data.user) {
       // Attach referral after profile is created
       setTimeout(async () => {
-        const { data: refProfile } = await supabase.from("profiles").select("id").eq("referral_code", ref).maybeSingle();
-        if (refProfile) {
-          await supabase.from("profiles").update({ referred_by: refProfile.id }).eq("id", data.user!.id);
-          await supabase.from("referrals").insert({ referrer_id: refProfile.id, referred_id: data.user!.id, bonus_cents: 100 });
+        const { data: refId } = await supabase.rpc("get_referrer_id_by_code", { _code: ref });
+        if (refId) {
+          await supabase.from("profiles").update({ referred_by: refId }).eq("id", data.user!.id);
+          await supabase.from("referrals").insert({ referrer_id: refId, referred_id: data.user!.id, bonus_cents: 100 });
         }
       }, 800);
     }

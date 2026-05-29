@@ -56,10 +56,10 @@ function DashboardPage() {
       xp: profile.xp + xpGain,
       level: Math.floor((profile.xp + xpGain) / 500) + 1,
     }).eq("id", user.id);
-    await supabase.from("notifications").insert({
-      user_id: user.id, type: "reward",
-      title: `Day ${newStreak} streak claimed!`,
-      body: `+$${(reward / 100).toFixed(2)} and +${xpGain} XP added to your wallet.`,
+    await supabase.rpc("create_self_notification", {
+      _title: `Day ${newStreak} streak claimed!`,
+      _body: `+$${(reward / 100).toFixed(2)} and +${xpGain} XP added to your wallet.`,
+      _type: "reward",
     });
     setClaiming(false);
     toast.success(`+$${(reward / 100).toFixed(2)} · +${xpGain} XP`);

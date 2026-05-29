@@ -451,6 +451,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_self_notification: {
+        Args: { _body: string; _link?: string; _title: string; _type?: string }
+        Returns: string
+      }
+      get_referrer_id_by_code: { Args: { _code: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
