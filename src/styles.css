@@ -194,4 +194,37 @@
     to { opacity: 1; transform: translateY(0); }
   }
   .animate-float-up { animation: float-up 0.5s ease forwards; }
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-ticker { animation: ticker-scroll 40s linear infinite; }
+  .ticker-mask {
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0) rotate(var(--tw-rotate, 0deg)); }
+    50% { transform: translateY(-14px) rotate(var(--tw-rotate, 0deg)); }
+  }
+  .animate-float-y { animation: float-y 6s ease-in-out infinite; }
+
+  @keyframes aurora {
+    0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.55; }
+    50% { transform: translate3d(4%, -3%, 0) scale(1.08); opacity: 0.8; }
+  }
+  .animate-aurora { animation: aurora 14s ease-in-out infinite; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+  .animate-pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+  .neon-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(0.82 0.17 85 / 0.5), oklch(0.78 0.16 165 / 0.5), transparent);
+  }
 }
