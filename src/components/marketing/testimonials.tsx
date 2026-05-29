@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const TESTIMONIALS = [
   { name: "Aiden Walker", handle: "@aidenw", flag: "🇺🇸", earned: "$842", stars: 5,
@@ -56,9 +57,17 @@ export function Testimonials() {
           Hear what members are saying about CashBullX after cashing out.
         </p>
       </div>
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {TESTIMONIALS.map((t) => <Card key={t.name} t={t} />)}
-      </div>
+      <Carousel opts={{ align: "start", loop: true }} className="px-2 md:px-12">
+        <CarouselContent>
+          {TESTIMONIALS.map((t) => (
+            <CarouselItem key={t.name} className="md:basis-1/2 lg:basis-1/3">
+              <Card t={t} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="hidden md:flex" />
+        <CarouselNext className="hidden md:flex" />
+      </Carousel>
     </section>
   );
 }

@@ -6,6 +6,10 @@ import { LiveTicker } from "@/components/marketing/live-ticker";
 import { Testimonials } from "@/components/marketing/testimonials";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
+import { AnimatedCounter } from "@/components/marketing/animated-counter";
+import { Reveal } from "@/components/marketing/reveal";
+import { TrustStrip } from "@/components/marketing/trust-strip";
+import { FAQSection } from "@/components/marketing/faq";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,11 +30,11 @@ function Index() {
     { icon: Smartphone, label: "App installs", desc: "Try new apps for rewards.", reward: "$1 – $15" },
     { icon: Gift, label: "Offers", desc: "Exclusive deals & bonuses.", reward: "$5 – $50" },
   ];
-  const stats = [
-    { label: "Active earners", value: "120K+" },
-    { label: "Paid out to users", value: "$4.2M" },
-    { label: "Tasks completed", value: "8.1M" },
-    { label: "Countries", value: "140+" },
+  const stats: { label: string; value: number; prefix?: string; suffix?: string }[] = [
+    { label: "Active earners", value: 120000, suffix: "+" },
+    { label: "Paid out to users", value: 4200000, prefix: "$", suffix: "+" },
+    { label: "Tasks completed", value: 8100000, suffix: "+" },
+    { label: "Countries", value: 140, suffix: "+" },
   ];
   const trust = [
     { icon: Shield, label: "SSL secured" },
@@ -39,17 +43,20 @@ function Index() {
     { icon: Globe, label: "Global access" },
   ];
   return (
-    <div className="min-h-screen text-foreground relative overflow-x-hidden">
+    <div className="min-h-screen text-foreground relative overflow-x-hidden scroll-smooth">
       <LiveTicker />
       <SiteHeader />
 
       <main className="container mx-auto px-6">
         {/* HERO */}
         <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
-          {/* aurora glows */}
+          {/* aurora + floating gradient blobs */}
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute inset-0 grid-bg opacity-60" />
             <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-aurora" />
             <div className="absolute top-20 right-10 h-80 w-80 rounded-full bg-accent/30 blur-3xl animate-aurora" style={{ animationDelay: "2s" }} />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[28rem] w-[28rem] rounded-full bg-fuchsia-500/20 blur-[120px] animate-blob" />
+            <div className="absolute top-10 left-0 h-72 w-72 rounded-full bg-cyan-500/15 blur-[100px] animate-blob" style={{ animationDelay: "5s" }} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -60,13 +67,13 @@ function Index() {
               </div>
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
                 Get paid to <br className="hidden sm:inline" />
-                <span className="brand-text">complete tasks</span>
+                <span className="shine-text">complete tasks</span>
               </h1>
               <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 Surveys, videos, app installs and exclusive offers. Earn real rewards and cash out in <span className="text-foreground font-medium">USDT</span> — all in one beautifully simple dashboard.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
-                <Link to="/signup"><Button size="lg" className="btn-primary-gradient h-12 px-6 text-base">Start earning <ArrowRight className="ml-1 h-4 w-4" /></Button></Link>
+                <Link to="/signup"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-7 text-base rounded-xl">Start earning <ArrowRight className="ml-1 h-4 w-4" /></Button></Link>
                 <Link to="/login"><Button size="lg" variant="outline" className="h-12 px-6 text-base">I have an account</Button></Link>
               </div>
               <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-xs text-muted-foreground">
@@ -95,17 +102,24 @@ function Index() {
         </section>
 
         {/* STATS */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-20">
-          {stats.map((s) => (
-            <div key={s.label} className="glass rounded-2xl p-6 text-center">
-              <div className="text-3xl md:text-4xl font-bold brand-text">{s.value}</div>
-              <div className="text-xs text-muted-foreground mt-2 uppercase tracking-wider">{s.label}</div>
-            </div>
-          ))}
-        </section>
+        <Reveal>
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-20">
+            {stats.map((s) => (
+              <div key={s.label} className="glass rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform">
+                <div className="text-3xl md:text-4xl font-bold brand-text">
+                  <AnimatedCounter value={s.value} prefix={s.prefix} suffix={s.suffix} />
+                </div>
+                <div className="text-xs text-muted-foreground mt-2 uppercase tracking-wider">{s.label}</div>
+              </div>
+            ))}
+          </section>
+        </Reveal>
+
+        {/* TRUST */}
+        <Reveal><TrustStrip /></Reveal>
 
         {/* CATEGORIES */}
-        <section id="tasks" className="pb-24">
+        <section id="tasks" className="pt-20 pb-24">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
               Four ways to <span className="brand-text">earn daily</span>
@@ -113,8 +127,9 @@ function Index() {
             <p className="mt-4 text-muted-foreground">Pick a category and start earning in seconds. New tasks added every hour.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {categories.map((c) => (
-              <div key={c.label} className="glass rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group">
+            {categories.map((c, i) => (
+              <Reveal key={c.label} delay={i * 80}>
+              <div className="glass rounded-2xl p-6 hover:-translate-y-1 transition-transform duration-300 group h-full">
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/25 to-accent/15 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <c.icon className="h-6 w-6 text-primary" />
                 </div>
@@ -124,17 +139,20 @@ function Index() {
                   {c.reward}
                 </div>
               </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
         {/* FEATURES */}
         <section id="features" className="pb-24">
-          <div className="grid gap-5 md:grid-cols-3">
-            <Feature icon={Wallet} title="Real wallet" body="Track every earning. Cash out to USDT (TRC20/BEP20) when you're ready." />
-            <Feature icon={Users} title="Referral bonuses" body="Invite friends with your code. Earn lifetime bonuses on every task they complete." />
-            <Feature icon={Coins} title="Transparent rewards" body="Clear payouts on every task. No hidden surprises, no fine print." />
-          </div>
+          <Reveal>
+            <div className="grid gap-5 md:grid-cols-3">
+              <Feature icon={Wallet} title="Real wallet" body="Track every earning. Cash out to USDT (TRC20/BEP20) when you're ready." />
+              <Feature icon={Users} title="Referral bonuses" body="Invite friends with your code. Earn lifetime bonuses on every task they complete." />
+              <Feature icon={Coins} title="Transparent rewards" body="Clear payouts on every task. No hidden surprises, no fine print." />
+            </div>
+          </Reveal>
         </section>
 
         {/* TESTIMONIALS */}
@@ -142,10 +160,14 @@ function Index() {
           <Testimonials />
         </div>
 
+        {/* FAQ */}
+        <FAQSection />
+
         {/* CTA */}
         <section className="pb-24">
           <div className="relative overflow-hidden rounded-3xl glass-strong p-10 md:p-16 text-center">
             <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-aurora" />
+            <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-accent/25 blur-3xl animate-blob" />
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight relative">
               Start earning in <span className="brand-text">under 60 seconds</span>
             </h2>
@@ -153,7 +175,7 @@ function Index() {
               Join 120,000+ members earning daily rewards. Sign up free — no credit card, no commitment.
             </p>
             <div className="mt-8 flex items-center justify-center gap-3 relative">
-              <Link to="/signup"><Button size="lg" className="btn-primary-gradient h-12 px-8 text-base">Create free account</Button></Link>
+              <Link to="/signup"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-8 text-base rounded-xl">Create free account</Button></Link>
               <Link to="/faq"><Button size="lg" variant="outline" className="h-12 px-6 text-base">Learn more</Button></Link>
             </div>
           </div>
