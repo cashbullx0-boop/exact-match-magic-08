@@ -44,9 +44,9 @@ export function SiteFooter() {
   return (
     <footer className="relative mt-24 border-t border-border/60 bg-black/30 backdrop-blur-xl">
       <div className="neon-divider" />
-      <div className="container mx-auto px-6 py-14">
-        <div className="grid gap-10 lg:grid-cols-6">
-          <div className="lg:col-span-2 space-y-4">
+      <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-14 max-w-full">
+        <div className="grid gap-8 sm:gap-10 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-2 space-y-4">
             <Link to="/" className="text-2xl font-bold brand-text">CashBullX</Link>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
               A modern task-based rewards platform. Complete surveys, watch videos, install apps and unlock offers to earn real rewards — paid out to your wallet.

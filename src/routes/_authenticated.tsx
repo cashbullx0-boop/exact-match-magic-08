@@ -105,14 +105,14 @@ function AuthedLayout() {
   );
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex w-full max-w-full overflow-x-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 flex-col p-4 glass-strong border-r border-border">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col p-4 glass-strong border-r border-border">
         <SidebarInner />
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 glass-strong border-b border-border px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 glass-strong border-b border-border px-4 py-3 flex items-center justify-between max-w-full">
         <Link to="/dashboard" className="text-lg font-bold brand-text">CashBullX</Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
       </div>
@@ -120,14 +120,14 @@ function AuthedLayout() {
       {open && (
         <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 p-4 glass-strong border-r border-border flex flex-col">
+          <aside className="absolute left-0 top-0 bottom-0 w-[85vw] max-w-xs p-4 glass-strong border-r border-border flex flex-col overflow-y-auto animate-float-up">
             <div className="flex justify-end"><Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-5 w-5" /></Button></div>
             <SidebarInner />
           </aside>
         </div>
       )}
 
-      <main className="flex-1 px-4 md:px-8 py-6 md:py-10 pt-20 md:pt-10">
+      <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10">
         <Outlet />
       </main>
     </div>

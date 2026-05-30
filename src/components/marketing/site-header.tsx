@@ -23,8 +23,8 @@ export function SiteHeader() {
 
   return (
     <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-black/60 backdrop-blur-2xl border-b border-border/60" : "bg-transparent"}`}>
-      <div className="container mx-auto flex items-center justify-between px-6 py-4">
-        <Link to="/" className="text-2xl font-bold brand-text">CashBullX</Link>
+      <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-full">
+        <Link to="/" className="text-xl sm:text-2xl font-bold brand-text">CashBullX</Link>
         <nav className="hidden md:flex items-center gap-1">
           {NAV.map((n) => (
             n.to ? (

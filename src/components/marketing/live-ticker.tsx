@@ -30,12 +30,12 @@ function Item({ e }: { e: (typeof EVENTS)[number] }) {
 export function LiveTicker() {
   const row = [...EVENTS, ...EVENTS];
   return (
-    <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl">
-      <div className="container mx-auto flex items-center gap-3 px-4 py-2">
-        <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400 border border-emerald-500/20">
+    <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
+      <div className="container mx-auto flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 max-w-full">
+        <div className="hidden sm:inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400 border border-emerald-500/20">
           <TrendingUp className="h-3 w-3" /> Live
         </div>
-        <div className="relative flex-1 overflow-hidden ticker-mask">
+        <div className="relative flex-1 min-w-0 overflow-hidden ticker-mask">
           <div className="flex w-max animate-ticker">
             {row.map((e, i) => <Item key={i} e={e} />)}
           </div>
