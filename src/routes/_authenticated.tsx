@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, Crown } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/offerwall", label: "Offerwall", icon: Sparkles },
+  { to: "/levels", label: "Levels", icon: Crown },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/achievements", label: "Achievements", icon: Award },
   { to: "/wallet", label: "Wallet", icon: Wallet },
@@ -127,9 +128,29 @@ function AuthedLayout() {
         </div>
       )}
 
-      <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10">
+      <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10 pb-24 md:pb-10">
         <Outlet />
       </main>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border px-2 py-2 flex items-center justify-around max-w-full">
+        {[
+          { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+          { to: "/tasks", label: "Tasks", icon: ListChecks },
+          { to: "/levels", label: "Levels", icon: Crown },
+          { to: "/wallet", label: "Wallet", icon: Wallet },
+          { to: "/profile", label: "Me", icon: UserIcon },
+        ].map((i) => {
+          const active = pathname === i.to;
+          return (
+            <Link key={i.to} to={i.to}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <i.icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
+              <span>{i.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
