@@ -83,6 +83,8 @@ export type Database = {
           notes: string | null
           provider: string
           provider_payment_id: string | null
+          rejection_reason: string | null
+          slip_path: string | null
           status: Database["public"]["Enums"]["deposit_status"]
           tx_hash: string | null
           updated_at: string
@@ -100,6 +102,8 @@ export type Database = {
           notes?: string | null
           provider?: string
           provider_payment_id?: string | null
+          rejection_reason?: string | null
+          slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
           tx_hash?: string | null
           updated_at?: string
@@ -117,6 +121,8 @@ export type Database = {
           notes?: string | null
           provider?: string
           provider_payment_id?: string | null
+          rejection_reason?: string | null
+          slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
           tx_hash?: string | null
           updated_at?: string
@@ -511,6 +517,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_deposit: {
+        Args: { _deposit_id: string }
+        Returns: undefined
+      }
+      admin_reject_deposit: {
+        Args: { _deposit_id: string; _reason: string }
+        Returns: undefined
+      }
       create_self_notification: {
         Args: { _body: string; _link?: string; _title: string; _type?: string }
         Returns: string
