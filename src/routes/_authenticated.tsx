@@ -6,7 +6,6 @@ import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Tr
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { FloatingSupport } from "@/components/dashboard/floating-support";
 import { LiveNotificationPopup } from "@/components/dashboard/live-notification-popup";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
