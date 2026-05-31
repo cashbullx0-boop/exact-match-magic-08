@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap, Crown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { levelFromTotalCents, nextLevel } from "@/lib/levels";
