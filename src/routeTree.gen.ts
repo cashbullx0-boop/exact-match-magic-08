@@ -25,6 +25,7 @@ import { Route as AuthenticatedOfferwallRouteImport } from './routes/_authentica
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedLevelsRouteImport } from './routes/_authenticated/levels'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
+import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -111,6 +112,11 @@ const AuthenticatedLeaderboardRoute =
     path: '/leaderboard',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDepositRoute = AuthenticatedDepositRouteImport.update({
   id: '/deposit',
   path: '/deposit',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/kyc': typeof AuthenticatedKycRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/kyc': typeof AuthenticatedKycRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
+  '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/levels': typeof AuthenticatedLevelsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/deposit'
+    | '/kyc'
     | '/leaderboard'
     | '/levels'
     | '/notifications'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/deposit'
+    | '/kyc'
     | '/leaderboard'
     | '/levels'
     | '/notifications'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/deposit'
+    | '/_authenticated/kyc'
     | '/_authenticated/leaderboard'
     | '/_authenticated/levels'
     | '/_authenticated/notifications'
@@ -389,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/kyc': {
+      id: '/_authenticated/kyc'
+      path: '/kyc'
+      fullPath: '/kyc'
+      preLoaderRoute: typeof AuthenticatedKycRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/deposit': {
       id: '/_authenticated/deposit'
       path: '/deposit'
@@ -425,6 +444,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
+  AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLevelsRoute: typeof AuthenticatedLevelsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -441,6 +461,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
+  AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLevelsRoute: AuthenticatedLevelsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
