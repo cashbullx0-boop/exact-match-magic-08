@@ -60,7 +60,10 @@ function LoginPage() {
             <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1 h-11" />
           </div>
           <div>
-            <Label htmlFor="pwd" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="pwd" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+              <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot?</Link>
+            </div>
             <Input id="pwd" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
           </div>
           <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
