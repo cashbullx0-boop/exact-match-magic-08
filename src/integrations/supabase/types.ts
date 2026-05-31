@@ -530,6 +530,18 @@ export type Database = {
         Returns: string
       }
       get_referrer_id_by_code: { Args: { _code: string }; Returns: string }
+      get_referrer_id_by_username_or_code: {
+        Args: { _value: string }
+        Returns: string
+      }
+      get_referrer_public_info: {
+        Args: { _value: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          username: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
