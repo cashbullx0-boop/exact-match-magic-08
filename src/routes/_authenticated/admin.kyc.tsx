@@ -258,7 +258,7 @@ function DocImage({ label, url }: { label: string; url?: string }) {
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
       {url ? (
         <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-          <img src={url} alt={label} className="w-full h-40 object-cover rounded-md border border-border/50 hover:border-primary/60 transition" />
+          <img src={url} alt={label} loading="lazy" decoding="async" className="w-full h-40 object-cover rounded-md border border-border/50 hover:border-primary/60 transition" />
         </a>
       ) : (
         <div className="w-full h-40 rounded-md border border-dashed border-border/40 flex items-center justify-center text-xs text-muted-foreground bg-muted/20">Not provided</div>
