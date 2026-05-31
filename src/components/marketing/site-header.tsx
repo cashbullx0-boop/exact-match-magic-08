@@ -42,7 +42,7 @@ export function SiteHeader() {
           <Link to="/login"><Button variant="ghost" size="sm">Sign in</Button></Link>
           <Link to="/signup"><Button size="sm" className="btn-primary-gradient">Get started →</Button></Link>
         </div>
-        <button onClick={() => setOpen(!open)} className="md:hidden p-2 rounded-md hover:bg-white/5">
+        <button onClick={() => setOpen(!open)} aria-label="Toggle menu" className="md:hidden inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-white/5">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
