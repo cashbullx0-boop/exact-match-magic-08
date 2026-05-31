@@ -2,11 +2,14 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, Crown } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { FloatingSupport } from "@/components/dashboard/floating-support";
+import { LiveNotificationPopup } from "@/components/dashboard/live-notification-popup";
+import { DotsLoader } from "@/components/dashboard/dots-loader";
+import { VipBadge } from "@/components/dashboard/vip-badge";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -16,6 +19,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/offerwall", label: "Offerwall", icon: Sparkles },
+  { to: "/levels", label: "Levels", icon: Crown },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/achievements", label: "Achievements", icon: Award },
   { to: "/wallet", label: "Wallet", icon: Wallet },
@@ -49,7 +53,11 @@ function AuthedLayout() {
   }, [user, loading, navigate]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <DotsLoader label="Loading your dashboard" />
+      </div>
+    );
   }
 
   const SidebarInner = () => (
@@ -64,8 +72,8 @@ function AuthedLayout() {
         </Avatar>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium truncate">{profile?.full_name ?? "User"}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">Lv {profile?.level ?? 1}</Badge>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            <VipBadge totalCents={profile?.total_earned_cents ?? 0} />
             <span className="text-[10px] text-muted-foreground">{profile?.xp ?? 0} XP</span>
           </div>
         </div>
@@ -105,14 +113,14 @@ function AuthedLayout() {
   );
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex w-full max-w-full overflow-x-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 flex-col p-4 glass-strong border-r border-border">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col p-4 glass-strong border-r border-border">
         <SidebarInner />
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-40 glass-strong border-b border-border px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 glass-strong border-b border-border px-4 py-3 flex items-center justify-between max-w-full">
         <Link to="/dashboard" className="text-lg font-bold brand-text">CashBullX</Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
       </div>
@@ -120,16 +128,39 @@ function AuthedLayout() {
       {open && (
         <div className="md:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 p-4 glass-strong border-r border-border flex flex-col">
+          <aside className="absolute left-0 top-0 bottom-0 w-[85vw] max-w-xs p-4 glass-strong border-r border-border flex flex-col overflow-y-auto animate-float-up">
             <div className="flex justify-end"><Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-5 w-5" /></Button></div>
             <SidebarInner />
           </aside>
         </div>
       )}
 
-      <main className="flex-1 px-4 md:px-8 py-6 md:py-10 pt-20 md:pt-10">
+      <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10 pb-24 md:pb-10">
         <Outlet />
       </main>
+
+      <LiveNotificationPopup />
+      <FloatingSupport />
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border px-2 py-2 flex items-center justify-around max-w-full">
+        {[
+          { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+          { to: "/tasks", label: "Tasks", icon: ListChecks },
+          { to: "/levels", label: "Levels", icon: Crown },
+          { to: "/wallet", label: "Wallet", icon: Wallet },
+          { to: "/profile", label: "Me", icon: UserIcon },
+        ].map((i) => {
+          const active = pathname === i.to;
+          return (
+            <Link key={i.to} to={i.to}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <i.icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
+              <span>{i.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

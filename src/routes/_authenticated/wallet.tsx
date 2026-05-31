@@ -70,16 +70,16 @@ function WalletPage() {
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold flex items-center gap-2"><ArrowDownToLine className="h-4 w-4" /> Request withdrawal</h2>
         <p className="text-sm text-muted-foreground mt-1">Minimum $5.00. Processed within 1–3 business days.</p>
-        <div className="flex gap-2 mt-4 max-w-md">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4 max-w-md">
           <Input type="number" min="5" step="0.01" placeholder="Amount in USD" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-11" />
-          <Button disabled={loading} onClick={withdraw} className="btn-primary-gradient h-11">Withdraw</Button>
+          <Button disabled={loading} onClick={withdraw} className="btn-primary-gradient h-11 sm:w-auto w-full">Withdraw</Button>
         </div>
       </Card>
 
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold mb-4">Transaction history</h2>
         <Tabs defaultValue="all">
-          <TabsList>
+          <TabsList className="w-full overflow-x-auto flex justify-start">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="rewards">Rewards</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>

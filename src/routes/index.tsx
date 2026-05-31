@@ -47,9 +47,9 @@ function Index() {
       <LiveTicker />
       <SiteHeader />
 
-      <main className="container mx-auto px-6">
+      <main className="container mx-auto px-4 sm:px-6 max-w-full">
         {/* HERO */}
-        <section className="relative pt-16 pb-24 md:pt-24 md:pb-32">
+        <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 md:pt-24 md:pb-32">
           {/* aurora + floating gradient blobs */}
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute inset-0 grid-bg opacity-60" />
@@ -59,22 +59,22 @@ function Index() {
             <div className="absolute top-10 left-0 h-72 w-72 rounded-full bg-cyan-500/15 blur-[100px] animate-blob" style={{ animationDelay: "5s" }} />
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
             <div className="text-center lg:text-left animate-float-up">
-              <div className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs text-muted-foreground mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full glass px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs text-muted-foreground mb-5 sm:mb-6 max-w-full">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
-                Task-based rewards · No investment, ever
+                <span className="truncate">Task-based rewards · No investment, ever</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] sm:leading-[1.05] break-words">
                 Get paid to <br className="hidden sm:inline" />
                 <span className="shine-text">complete tasks</span>
               </h1>
-              <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+              <p className="mt-5 sm:mt-6 text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 Surveys, videos, app installs and exclusive offers. Earn real rewards and cash out in <span className="text-foreground font-medium">USDT</span> — all in one beautifully simple dashboard.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
-                <Link to="/signup"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-7 text-base rounded-xl">Start earning <ArrowRight className="ml-1 h-4 w-4" /></Button></Link>
-                <Link to="/login"><Button size="lg" variant="outline" className="h-12 px-6 text-base">I have an account</Button></Link>
+              <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center lg:items-start justify-center lg:justify-start gap-3 w-full sm:w-auto">
+                <Link to="/signup" className="w-full sm:w-auto"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-7 text-base rounded-xl w-full sm:w-auto">Start earning <ArrowRight className="ml-1 h-4 w-4" /></Button></Link>
+                <Link to="/login" className="w-full sm:w-auto"><Button size="lg" variant="outline" className="h-12 px-6 text-base w-full sm:w-auto">I have an account</Button></Link>
               </div>
               <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-xs text-muted-foreground">
                 {trust.map((t) => (
@@ -103,13 +103,13 @@ function Index() {
 
         {/* STATS */}
         <Reveal>
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-20">
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pb-16 sm:pb-20">
             {stats.map((s) => (
-              <div key={s.label} className="glass rounded-2xl p-6 text-center hover:-translate-y-1 transition-transform">
-                <div className="text-3xl md:text-4xl font-bold brand-text">
+              <div key={s.label} className="glass rounded-2xl p-4 sm:p-6 text-center hover:-translate-y-1 transition-transform">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold brand-text break-words">
                   <AnimatedCounter value={s.value} prefix={s.prefix} suffix={s.suffix} />
                 </div>
-                <div className="text-xs text-muted-foreground mt-2 uppercase tracking-wider">{s.label}</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground mt-2 uppercase tracking-wider">{s.label}</div>
               </div>
             ))}
           </section>
@@ -165,18 +165,18 @@ function Index() {
 
         {/* CTA */}
         <section className="pb-24">
-          <div className="relative overflow-hidden rounded-3xl glass-strong p-10 md:p-16 text-center">
+          <div className="relative overflow-hidden rounded-3xl glass-strong p-6 sm:p-10 md:p-16 text-center">
             <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-aurora" />
             <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-accent/25 blur-3xl animate-blob" />
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight relative">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight relative">
               Start earning in <span className="brand-text">under 60 seconds</span>
             </h2>
-            <p className="mt-4 text-muted-foreground max-w-xl mx-auto relative">
+            <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto relative">
               Join 120,000+ members earning daily rewards. Sign up free — no credit card, no commitment.
             </p>
-            <div className="mt-8 flex items-center justify-center gap-3 relative">
-              <Link to="/signup"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-8 text-base rounded-xl">Create free account</Button></Link>
-              <Link to="/faq"><Button size="lg" variant="outline" className="h-12 px-6 text-base">Learn more</Button></Link>
+            <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 relative">
+              <Link to="/signup" className="w-full sm:w-auto"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-8 text-base rounded-xl w-full sm:w-auto">Create free account</Button></Link>
+              <Link to="/faq" className="w-full sm:w-auto"><Button size="lg" variant="outline" className="h-12 px-6 text-base w-full sm:w-auto">Learn more</Button></Link>
             </div>
           </div>
         </section>

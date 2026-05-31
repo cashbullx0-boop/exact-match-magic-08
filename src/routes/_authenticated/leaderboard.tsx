@@ -80,7 +80,7 @@ function LeaderboardPage() {
       </header>
 
       <Tabs defaultValue="all-time">
-        <TabsList className="glass-strong">
+        <TabsList className="glass-strong w-full overflow-x-auto flex justify-start">
           <TabsTrigger value="all-time">All-time</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>

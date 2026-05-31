@@ -126,15 +126,15 @@ function DepositPage() {
   return (
     <div className="space-y-6 animate-float-up">
       <header className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Deposit USDT</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Deposit USDT</h1>
         <p className="text-sm text-muted-foreground">
           Fund your CashBullX wallet using USDT on TRC20 or BEP20 networks.
         </p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT: New deposit */}
-        <Card className="glass p-6 space-y-5">
+        <Card className="glass p-4 sm:p-6 space-y-5">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-primary/15 text-primary">
               <ArrowDownToLine className="h-5 w-5" />
@@ -188,7 +188,7 @@ function DepositPage() {
                 USDT
               </span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {[25, 50, 100, 250].map((v) => (
                 <button key={v} type="button" onClick={() => setAmount(String(v))}
                   className="text-xs px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-border text-muted-foreground hover:text-foreground transition">
@@ -215,7 +215,7 @@ function DepositPage() {
         </Card>
 
         {/* RIGHT: Instructions */}
-        <Card className="glass p-6 space-y-4">
+        <Card className="glass p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-accent/15 text-accent">
               <Wallet className="h-5 w-5" />
@@ -250,8 +250,8 @@ function DepositPage() {
       </div>
 
       {/* History */}
-      <Card className="glass p-6">
-        <div className="flex items-center justify-between mb-4">
+      <Card className="glass p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div>
             <h2 className="font-semibold">Deposit history</h2>
             <p className="text-xs text-muted-foreground">Track all your funding transactions</p>
@@ -260,7 +260,7 @@ function DepositPage() {
         </div>
 
         <Tabs defaultValue="all">
-          <TabsList>
+          <TabsList className="w-full overflow-x-auto flex justify-start">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
@@ -281,11 +281,11 @@ function DepositPage() {
                       <span>Date</span><span>Amount</span><span>Network</span><span>Tx hash</span><span>Address</span><span>Status</span>
                     </div>
                     {rows.map((d) => (
-                      <div key={d.id} className="grid md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-3 items-center rounded-lg border border-border p-3 text-sm hover:bg-white/[0.02] transition">
-                        <div className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleString()}</div>
+                      <div key={d.id} className="grid grid-cols-2 md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-2 md:gap-3 items-start md:items-center rounded-lg border border-border p-3 text-sm hover:bg-white/[0.02] transition">
+                        <div className="text-xs text-muted-foreground col-span-2 md:col-span-1">{new Date(d.created_at).toLocaleString()}</div>
                         <div className="font-medium">{Number(d.amount_usd).toFixed(2)} USDT</div>
                         <div className="text-xs"><Badge variant="secondary" className="text-[10px]">{NETWORKS[d.network].label}</Badge></div>
-                        <div className="font-mono text-xs flex items-center gap-1.5 min-w-0">
+                        <div className="font-mono text-xs flex items-center gap-1.5 min-w-0 col-span-2 md:col-span-1">
                           {d.tx_hash ? (
                             <>
                               <span className="truncate">{shortHash(d.tx_hash)}</span>
@@ -300,7 +300,7 @@ function DepositPage() {
                           )}
                         </div>
                         <div className="font-mono text-xs text-muted-foreground truncate">{shortHash(d.wallet_address, 4)}</div>
-                        <div><StatusBadge status={d.status} /></div>
+                        <div className="justify-self-end md:justify-self-auto"><StatusBadge status={d.status} /></div>
                       </div>
                     ))}
                   </div>

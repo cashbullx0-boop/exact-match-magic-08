@@ -1,14 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap } from "lucide-react";
+import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap, Crown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { levelFromTotalCents, nextLevel } from "@/lib/levels";
+import { AnimatedNumber } from "@/components/dashboard/animated-number";
+import { VipBadge } from "@/components/dashboard/vip-badge";
+import { DotsLoader } from "@/components/dashboard/dots-loader";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -29,6 +32,13 @@ function DashboardPage() {
   const alreadyCheckedIn = profile?.last_checkin_date === today;
   const streak = profile?.current_streak ?? 0;
   const nextRewardCents = Math.min(50 + streak * 10, 200);
+
+  const totalUsd = (profile?.total_earned_cents ?? 0) / 100;
+  const memLevel = levelFromTotalCents(profile?.total_earned_cents ?? 0);
+  const memNext = nextLevel(memLevel);
+  const memProgress = memNext
+    ? Math.min(100, ((totalUsd - memLevel.requiredUsd) / (memNext.requiredUsd - memLevel.requiredUsd)) * 100)
+    : 100;
 
   const claimCheckin = async () => {
     if (!user || !profile || alreadyCheckedIn) return;
@@ -97,9 +107,12 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-float-up">
-      <header>
-        <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {profile?.full_name?.split(" ")[0] ?? "earner"} 👋</h1>
-        <p className="text-muted-foreground mt-1">Here's how your earnings are going.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {profile?.full_name?.split(" ")[0] ?? "earner"} 👋</h1>
+          <p className="text-muted-foreground mt-1">Here's how your earnings are going.</p>
+        </div>
+        <VipBadge totalCents={profile?.total_earned_cents ?? 0} />
       </header>
 
       {/* Daily check-in + level */}
@@ -138,11 +151,44 @@ function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard icon={Wallet} label="Wallet balance" value={fmt(profile?.balance_cents ?? 0)} accent="primary" />
-        <StatCard icon={TrendingUp} label="Total earned" value={fmt(profile?.total_earned_cents ?? 0)} accent="accent" />
+        <AnimatedStatCard icon={Wallet} label="Wallet balance" cents={profile?.balance_cents ?? 0} accent="primary" />
+        <AnimatedStatCard icon={TrendingUp} label="Total earned" cents={profile?.total_earned_cents ?? 0} accent="accent" />
         <StatCard icon={ListChecks} label="Tasks completed" value={String(stats.completed)} />
         <StatCard icon={Users} label="Referrals" value={String(stats.referrals)} />
       </div>
+
+      {/* Membership level tracker */}
+      <Card className="glass-strong border-border p-6 relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full opacity-25 blur-3xl pointer-events-none"
+             style={{ background: memLevel.tier.gradient }} />
+        <div className="relative flex flex-col md:flex-row md:items-center gap-5">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-xl flex items-center justify-center shadow-lg ring-1 ring-white/10 shrink-0"
+                 style={{ background: memLevel.tier.gradient }}>
+              <memLevel.icon className="h-6 w-6 text-black/80" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">Membership</span>
+              </div>
+              <p className="text-xl font-bold mt-0.5">Lv {memLevel.level} · {memLevel.tier.name}</p>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between text-xs mb-1.5 text-muted-foreground">
+              <span>${totalUsd.toFixed(2)} earned</span>
+              {memNext ? <span>Next: Lv {memNext.level} · ${memNext.requiredUsd.toLocaleString()}</span> : <span>Max level 👑</span>}
+            </div>
+            <Progress value={memProgress} className="h-2" />
+          </div>
+          <Link to="/levels" className="shrink-0">
+            <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
+              All 44 levels <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+      </Card>
 
       <Card className="glass-strong border-border p-6">
         <div className="flex items-center justify-between mb-4">
@@ -170,7 +216,7 @@ function DashboardPage() {
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold mb-4">Recent transactions</h2>
         {loadingData ? (
-          <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          <DotsLoader label="Loading transactions" />
         ) : recent.length === 0 ? (
           <p className="text-sm text-muted-foreground">No transactions yet — complete a task to start earning.</p>
         ) : (
@@ -201,6 +247,20 @@ function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: stri
         <Icon className={`h-4 w-4 ${accent === "primary" ? "text-primary" : accent === "accent" ? "text-accent" : "text-muted-foreground"}`} />
       </div>
       <p className="text-2xl font-bold mt-3">{value}</p>
+    </Card>
+  );
+}
+
+function AnimatedStatCard({ icon: Icon, label, cents, accent }: { icon: any; label: string; cents: number; accent?: "primary" | "accent" }) {
+  return (
+    <Card className="glass-strong border-border p-5 relative overflow-hidden hover:-translate-y-0.5 transition-transform">
+      <div className="flex items-center justify-between">
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+        <Icon className={`h-4 w-4 ${accent === "primary" ? "text-primary" : accent === "accent" ? "text-accent" : "text-muted-foreground"}`} />
+      </div>
+      <p className={`text-2xl font-bold mt-3 ${accent === "accent" ? "brand-text" : ""}`}>
+        <AnimatedNumber value={cents / 100} prefix="$" />
+      </p>
     </Card>
   );
 }
