@@ -529,6 +529,22 @@ export type Database = {
         Args: { _body: string; _link?: string; _title: string; _type?: string }
         Returns: string
       }
+      get_my_downline: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          balance_cents: number
+          bonus_cents: number
+          country: string
+          full_name: string
+          joined_at: string
+          referred_id: string
+          slot: number
+          status: string
+          total_deposit_cents: number
+          username: string
+        }[]
+      }
       get_referrer_id_by_code: { Args: { _code: string }; Returns: string }
       get_referrer_id_by_username_or_code: {
         Args: { _value: string }
