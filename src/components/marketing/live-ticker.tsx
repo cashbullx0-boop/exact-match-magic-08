@@ -32,14 +32,14 @@ const EVENTS = [
 
 function Item({ e }: { e: (typeof EVENTS)[number] }) {
   return (
-    <span className="inline-flex items-center gap-2 px-5 py-1.5 text-xs md:text-sm whitespace-nowrap">
-      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
+    <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-5 py-1 sm:py-1.5 text-[11px] sm:text-xs md:text-sm whitespace-nowrap">
+      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot shrink-0" />
       <span className="text-foreground/90 font-medium">{e.name}</span>
       <span className="text-muted-foreground">{e.country}</span>
-      <span className="text-muted-foreground">{e.action}</span>
+      <span className="text-muted-foreground hidden sm:inline">{e.action}</span>
       <span className="text-emerald-400 font-semibold">{e.amount}</span>
-      <span className="text-muted-foreground">· {e.kind}</span>
-      <span className="mx-3 text-border">•</span>
+      <span className="text-muted-foreground hidden sm:inline">· {e.kind}</span>
+      <span className="mx-1.5 sm:mx-2 md:mx-3 text-border">•</span>
     </span>
   );
 }
@@ -48,14 +48,14 @@ function AssetItem({ a }: { a: AssetPrice }) {
   const m = META[a.symbol] ?? { emoji: "•", label: a.name, color: "text-foreground/90" };
   const up = a.change >= 0;
   return (
-    <span className="inline-flex items-center gap-2 px-5 py-1.5 text-xs md:text-sm whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-5 py-1 sm:py-1.5 text-[11px] sm:text-xs md:text-sm whitespace-nowrap">
       <span aria-hidden>{m.emoji}</span>
       <span className={`font-semibold ${m.color}`}>{m.label}</span>
       <span className={`font-bold ${m.color}`}>${fmt(a.price)}</span>
       <span className={`font-medium ${up ? "text-emerald-400" : "text-rose-400"}`}>
         {up ? "▲" : "▼"} {Math.abs(a.change).toFixed(2)}%
       </span>
-      <span className="mx-3 text-border">•</span>
+      <span className="mx-1.5 sm:mx-2 md:mx-3 text-border">•</span>
     </span>
   );
 }
