@@ -270,7 +270,7 @@ function FileDrop({ label, file, onChange }: { label: string; file: File | null;
       <span className="text-sm font-medium">{label}</span>
       <div className="mt-1 relative border border-dashed border-border/60 rounded-lg p-3 hover:border-primary/60 transition cursor-pointer min-h-32 flex items-center justify-center overflow-hidden bg-muted/20">
         {preview ? (
-          <img src={preview} alt="" className="max-h-32 object-contain" />
+          <img src={preview} alt="" loading="lazy" decoding="async" className="max-h-32 object-contain" />
         ) : (
           <div className="text-center text-muted-foreground">
             <Upload className="h-5 w-5 mx-auto" />
