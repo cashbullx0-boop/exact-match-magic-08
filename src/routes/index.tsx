@@ -88,8 +88,8 @@ function Index() {
             {/* Floating crypto cards */}
             <div className="relative h-[420px] hidden lg:block">
               <FloatCard className="top-4 left-8 w-56 -rotate-6" symbol="USDT" name="Tether" price="$1.00" change="+0.02%" color="from-emerald-400/30 to-teal-400/10" />
-              <FloatCard className="top-32 right-4 w-60 rotate-3" symbol="BTC" name="Bitcoin" price="$71,240" change="+2.41%" color="from-amber-400/30 to-orange-400/10" delay="1.5s" />
-              <FloatCard className="bottom-8 left-16 w-64 rotate-2" symbol="BNB" name="BNB" price="$612.18" change="+1.05%" color="from-yellow-400/30 to-amber-400/10" delay="3s" />
+              <FloatCard className="top-32 right-4 w-60 rotate-3" symbol="XAU" name="Gold (oz)" price="$3,320.40" change="+0.84%" color="from-yellow-300/40 to-amber-500/10" delay="1.5s" priceClassName="text-yellow-300" />
+              <FloatCard className="bottom-8 left-16 w-64 rotate-2" symbol="USDC" name="USD Coin" price="$1.00" change="+0.01%" color="from-sky-400/30 to-blue-400/10" delay="3s" />
               <div className="absolute top-1/2 right-1/3 -translate-y-1/2 glass-strong rounded-2xl p-4 w-44 animate-float-y" style={{ animationDelay: "0.5s" }}>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-400" /> Today's earnings
@@ -199,8 +199,8 @@ function Feature({ icon: Icon, title, body }: { icon: typeof Wallet; title: stri
   );
 }
 
-function FloatCard({ className = "", symbol, name, price, change, color, delay = "0s" }: {
-  className?: string; symbol: string; name: string; price: string; change: string; color: string; delay?: string;
+function FloatCard({ className = "", symbol, name, price, change, color, delay = "0s", priceClassName = "" }: {
+  className?: string; symbol: string; name: string; price: string; change: string; color: string; delay?: string; priceClassName?: string;
 }) {
   return (
     <div className={`absolute glass-strong rounded-2xl p-4 animate-float-y ${className}`} style={{ animationDelay: delay }}>
@@ -208,7 +208,7 @@ function FloatCard({ className = "", symbol, name, price, change, color, delay =
         {symbol.slice(0, 3)}
       </div>
       <div className="text-xs text-muted-foreground">{name}</div>
-      <div className="text-lg font-bold">{price}</div>
+      <div className={`text-lg font-bold ${priceClassName}`}>{price}</div>
       <div className="text-xs text-emerald-400 font-medium">{change}</div>
     </div>
   );
