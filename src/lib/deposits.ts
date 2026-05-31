@@ -89,6 +89,21 @@ export async function attachTxHash(depositId: string, txHash: string) {
   if (error) throw error;
 }
 
+export async function uploadDepositSlip(userId: string, depositId: string, file: File) {
+  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+  const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
+  const { error: upErr } = await supabase.storage
+    .from("deposit-slips")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (upErr) throw upErr;
+  const { error } = await supabase
+    .from("deposits")
+    .update({ slip_path: path })
+    .eq("id", depositId);
+  if (error) throw error;
+  return path;
+}
+
 export async function listUserDeposits(userId: string) {
   const { data, error } = await supabase
     .from("deposits")
