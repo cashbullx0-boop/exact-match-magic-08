@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhoneField } from "@/components/auth/phone-field";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
@@ -18,17 +21,38 @@ function SignupPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { ref } = Route.useSearch();
+  const [mode, setMode] = useState<"email" | "phone">("email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
+  const phoneValid = useMemo(() => phone && isValidPhoneNumber(phone), [phone]);
+  const pwdError = password.length > 0 && password.length < 6 ? "At least 6 characters" : "";
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
 
+  const attachReferral = (uid: string) => {
+    if (!ref) return;
+    setTimeout(async () => {
+      const { data: refId } = await supabase.rpc("get_referrer_id_by_code", { _code: ref });
+      if (refId) {
+        await supabase.from("profiles").update({ referred_by: refId }).eq("id", uid);
+        await supabase.from("referrals").insert({ referrer_id: refId, referred_id: uid, bonus_cents: 100 });
+      }
+    }, 800);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) { toast.error("Enter your full name"); return; }
+    if (!emailValid) { toast.error("Enter a valid email"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
@@ -40,17 +64,35 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
-    if (ref && data.user) {
-      // Attach referral after profile is created
-      setTimeout(async () => {
-        const { data: refId } = await supabase.rpc("get_referrer_id_by_code", { _code: ref });
-        if (refId) {
-          await supabase.from("profiles").update({ referred_by: refId }).eq("id", data.user!.id);
-          await supabase.from("referrals").insert({ referrer_id: refId, referred_id: data.user!.id, bonus_cents: 100 });
-        }
-      }, 800);
-    }
+    if (data.user) attachReferral(data.user.id);
     toast.success("Account created — check your email if confirmation is required.");
+    navigate({ to: "/dashboard", replace: true });
+  };
+
+  const sendPhoneOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim()) { toast.error("Enter your full name"); return; }
+    if (!phoneValid) { toast.error("Enter a valid phone number"); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+      options: { data: { full_name: fullName, referral_code: ref ?? null } },
+    });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setOtpSent(true);
+    toast.success("Verification code sent");
+  };
+
+  const verifyPhoneOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length < 4) { toast.error("Enter the code"); return; }
+    setLoading(true);
+    const { data, error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    if (data.user) attachReferral(data.user.id);
+    toast.success("Phone verified");
     navigate({ to: "/dashboard", replace: true });
   };
 
@@ -73,26 +115,68 @@ function SignupPage() {
         </Button>
 
         <div className="flex items-center gap-3 my-6 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> or with email <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1 bg-border" /> or sign up with <div className="h-px flex-1 bg-border" />
         </div>
 
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
-            <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-11" placeholder="you@example.com" />
-          </div>
-          <div>
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
-            <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
-          </div>
-          <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
-            {loading ? "Creating..." : "Create account →"}
-          </Button>
-        </form>
+        <Tabs value={mode} onValueChange={(v) => setMode(v as "email" | "phone")}>
+          <TabsList className="grid grid-cols-2 w-full">
+            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="phone">Phone</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="email" className="mt-5">
+            <form onSubmit={submit} className="space-y-4">
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
+                <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-11" placeholder="you@example.com" />
+                {email && !emailValid && <p className="text-xs text-destructive mt-1">Enter a valid email</p>}
+              </div>
+              <div>
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+                <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
+                {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
+              </div>
+              <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
+                {loading ? "Creating..." : "Create account →"}
+              </Button>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="phone" className="mt-5">
+            {!otpSent ? (
+              <form onSubmit={sendPhoneOtp} className="space-y-4">
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
+                  <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
+                </div>
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number</Label>
+                  <div className="mt-1"><PhoneField value={phone} onChange={setPhone} /></div>
+                  {phone && !phoneValid && <p className="text-xs text-destructive mt-1">Enter a valid phone number</p>}
+                </div>
+                <Button type="submit" disabled={loading || !phoneValid} className="w-full h-11 btn-primary-gradient">
+                  {loading ? "Sending..." : "Send verification code →"}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={verifyPhoneOtp} className="space-y-4">
+                <p className="text-sm text-muted-foreground">We sent a code to <span className="text-foreground font-medium">{phone}</span></p>
+                <div>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Verification code</Label>
+                  <Input required inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} className="mt-1 h-11 tracking-[0.4em] text-center" placeholder="000000" maxLength={6} />
+                </div>
+                <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
+                  {loading ? "Verifying..." : "Verify & continue →"}
+                </Button>
+                <button type="button" onClick={() => setOtpSent(false)} className="text-xs text-muted-foreground hover:text-foreground w-full">Use a different number</button>
+              </form>
+            )}
+          </TabsContent>
+        </Tabs>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
