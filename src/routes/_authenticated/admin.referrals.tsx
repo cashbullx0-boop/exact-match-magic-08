@@ -87,7 +87,24 @@ function AdminReferralsPage() {
         {filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">No referrals match.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile cards */}
+          <ul className="sm:hidden divide-y divide-border">
+            {filtered.map((r) => (
+              <li key={r.id} className="py-3 flex flex-col gap-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium truncate">{label(r.referrer_id)}</span>
+                  <span className="text-sm font-semibold text-accent shrink-0">+${((r.bonus_cents ?? 0) / 100).toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="truncate">→ {label(r.referred_id)}</span>
+                  <span className="shrink-0">{new Date(r.created_at).toLocaleDateString()}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs uppercase tracking-wider text-muted-foreground">
                 <tr className="border-b border-border">
@@ -109,6 +126,7 @@ function AdminReferralsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
     </div>
