@@ -16,6 +16,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RefUsernameRouteImport } from './routes/ref.$username'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
@@ -65,6 +66,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefUsernameRoute = RefUsernameRouteImport.update({
+  id: '/ref/$username',
+  path: '/ref/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
 }
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
 }
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/ref/$username': typeof RefUsernameRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
 }
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tasks'
     | '/wallet'
+    | '/ref/$username'
     | '/admin/deposits'
     | '/admin/kyc'
   fileRoutesByTo: FileRoutesByTo
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/tasks'
     | '/wallet'
+    | '/ref/$username'
     | '/admin/deposits'
     | '/admin/kyc'
   id:
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated/support'
     | '/_authenticated/tasks'
     | '/_authenticated/wallet'
+    | '/ref/$username'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/kyc'
   fileRoutesById: FileRoutesById
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  RefUsernameRoute: typeof RefUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -361,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ref/$username': {
+      id: '/ref/$username'
+      path: '/ref/$username'
+      fullPath: '/ref/$username'
+      preLoaderRoute: typeof RefUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/wallet': {
@@ -537,6 +557,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  RefUsernameRoute: RefUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
