@@ -197,7 +197,7 @@ function AdminDepositsPage() {
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Deposit slip</div>
                 {slipUrl ? (
                   <a href={slipUrl} target="_blank" rel="noopener noreferrer">
-                    <img src={slipUrl} alt="slip" className="w-full max-h-80 object-contain rounded-md border border-border/50 bg-black/30" />
+                    <img src={slipUrl} alt="slip" loading="lazy" decoding="async" className="w-full max-h-80 object-contain rounded-md border border-border/50 bg-black/30" />
                   </a>
                 ) : (
                   <div className="w-full h-32 rounded-md border border-dashed border-border/40 flex items-center justify-center text-xs text-muted-foreground bg-muted/20">No slip uploaded</div>
