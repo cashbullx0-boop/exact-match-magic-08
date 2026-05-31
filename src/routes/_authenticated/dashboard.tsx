@@ -6,10 +6,12 @@ import { Card } from "@/components/ui/card";
 import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap, Crown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { levelFromTotalCents, nextLevel } from "@/lib/levels";
+import { AnimatedNumber } from "@/components/dashboard/animated-number";
+import { VipBadge } from "@/components/dashboard/vip-badge";
+import { DotsLoader } from "@/components/dashboard/dots-loader";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -105,9 +107,12 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-float-up">
-      <header>
-        <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {profile?.full_name?.split(" ")[0] ?? "earner"} 👋</h1>
-        <p className="text-muted-foreground mt-1">Here's how your earnings are going.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {profile?.full_name?.split(" ")[0] ?? "earner"} 👋</h1>
+          <p className="text-muted-foreground mt-1">Here's how your earnings are going.</p>
+        </div>
+        <VipBadge totalCents={profile?.total_earned_cents ?? 0} />
       </header>
 
       {/* Daily check-in + level */}
@@ -146,8 +151,8 @@ function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard icon={Wallet} label="Wallet balance" value={fmt(profile?.balance_cents ?? 0)} accent="primary" />
-        <StatCard icon={TrendingUp} label="Total earned" value={fmt(profile?.total_earned_cents ?? 0)} accent="accent" />
+        <AnimatedStatCard icon={Wallet} label="Wallet balance" cents={profile?.balance_cents ?? 0} accent="primary" />
+        <AnimatedStatCard icon={TrendingUp} label="Total earned" cents={profile?.total_earned_cents ?? 0} accent="accent" />
         <StatCard icon={ListChecks} label="Tasks completed" value={String(stats.completed)} />
         <StatCard icon={Users} label="Referrals" value={String(stats.referrals)} />
       </div>
@@ -211,7 +216,7 @@ function DashboardPage() {
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold mb-4">Recent transactions</h2>
         {loadingData ? (
-          <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          <DotsLoader label="Loading transactions" />
         ) : recent.length === 0 ? (
           <p className="text-sm text-muted-foreground">No transactions yet — complete a task to start earning.</p>
         ) : (
@@ -242,6 +247,20 @@ function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: stri
         <Icon className={`h-4 w-4 ${accent === "primary" ? "text-primary" : accent === "accent" ? "text-accent" : "text-muted-foreground"}`} />
       </div>
       <p className="text-2xl font-bold mt-3">{value}</p>
+    </Card>
+  );
+}
+
+function AnimatedStatCard({ icon: Icon, label, cents, accent }: { icon: any; label: string; cents: number; accent?: "primary" | "accent" }) {
+  return (
+    <Card className="glass-strong border-border p-5 relative overflow-hidden hover:-translate-y-0.5 transition-transform">
+      <div className="flex items-center justify-between">
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+        <Icon className={`h-4 w-4 ${accent === "primary" ? "text-primary" : accent === "accent" ? "text-accent" : "text-muted-foreground"}`} />
+      </div>
+      <p className={`text-2xl font-bold mt-3 ${accent === "accent" ? "brand-text" : ""}`}>
+        <AnimatedNumber value={cents / 100} prefix="$" />
+      </p>
     </Card>
   );
 }

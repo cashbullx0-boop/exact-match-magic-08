@@ -6,7 +6,10 @@ import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Tr
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { FloatingSupport } from "@/components/dashboard/floating-support";
+import { LiveNotificationPopup } from "@/components/dashboard/live-notification-popup";
+import { DotsLoader } from "@/components/dashboard/dots-loader";
+import { VipBadge } from "@/components/dashboard/vip-badge";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -50,7 +53,11 @@ function AuthedLayout() {
   }, [user, loading, navigate]);
 
   if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <DotsLoader label="Loading your dashboard" />
+      </div>
+    );
   }
 
   const SidebarInner = () => (
@@ -65,8 +72,8 @@ function AuthedLayout() {
         </Avatar>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium truncate">{profile?.full_name ?? "User"}</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">Lv {profile?.level ?? 1}</Badge>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            <VipBadge totalCents={profile?.total_earned_cents ?? 0} />
             <span className="text-[10px] text-muted-foreground">{profile?.xp ?? 0} XP</span>
           </div>
         </div>
@@ -131,6 +138,9 @@ function AuthedLayout() {
       <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10 pb-24 md:pb-10">
         <Outlet />
       </main>
+
+      <LiveNotificationPopup />
+      <FloatingSupport />
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border px-2 py-2 flex items-center justify-around max-w-full">
