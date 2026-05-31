@@ -7,16 +7,14 @@ const ASSETS: { symbol: string; name: string; price: string; change: string; gol
 ];
 
 const EVENTS = [
-  { name: "John", country: "🇺🇸 USA", action: "earned", amount: "$12.40", kind: "Survey" },
-  { name: "Ali", country: "🇦🇪 UAE", action: "completed", amount: "$8.10", kind: "Offer" },
-  { name: "Sarah", country: "🇨🇦 Canada", action: "withdrew", amount: "$25.00", kind: "Wallet" },
-  { name: "Priya", country: "🇮🇳 India", action: "earned", amount: "$5.30", kind: "Video" },
-  { name: "Leo", country: "🇧🇷 Brazil", action: "completed", amount: "$14.75", kind: "App install" },
-  { name: "Emma", country: "🇬🇧 UK", action: "earned", amount: "$9.20", kind: "Survey" },
-  { name: "Yusuf", country: "🇹🇷 Türkiye", action: "earned", amount: "$6.50", kind: "Offer" },
-  { name: "Mia", country: "🇦🇺 Australia", action: "withdrew", amount: "$40.00", kind: "Wallet" },
-  { name: "Hiro", country: "🇯🇵 Japan", action: "completed", amount: "$11.00", kind: "Survey" },
-  { name: "Noah", country: "🇩🇪 Germany", action: "earned", amount: "$3.80", kind: "Video" },
+  { name: "Sarah", country: "🇺🇸", action: "earned", amount: "$47.50", kind: "Survey" },
+  { name: "Ahmed", country: "🇵🇰", action: "earned", amount: "$125.00", kind: "App Install" },
+  { name: "Maria", country: "🇧🇷", action: "earned", amount: "$89.75", kind: "Video" },
+  { name: "James", country: "🇬🇧", action: "earned", amount: "$210.00", kind: "Offer" },
+  { name: "Fatima", country: "🇦🇪", action: "earned", amount: "$65.25", kind: "Survey" },
+  { name: "Chen", country: "🇨🇳", action: "earned", amount: "$175.50", kind: "App Install" },
+  { name: "Anna", country: "🇩🇪", action: "earned", amount: "$95.00", kind: "Special Offer" },
+  { name: "Mohammed", country: "🇸🇦", action: "earned", amount: "$150.75", kind: "Survey" },
 ];
 
 function Item({ e }: { e: (typeof EVENTS)[number] }) {
