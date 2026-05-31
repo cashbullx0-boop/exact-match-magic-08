@@ -169,7 +169,7 @@ function AuthedLayout() {
           const active = pathname === i.to;
           return (
             <Link key={i.to} to={i.to}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+              className={`flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] py-2 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
               <i.icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
               <span>{i.label}</span>
             </Link>

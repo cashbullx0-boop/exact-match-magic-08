@@ -164,7 +164,30 @@ function AdminKycPage() {
         ) : filtered.length === 0 ? (
           <p className="text-center text-muted-foreground py-12">No submissions found</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile cards */}
+          <ul className="md:hidden divide-y divide-border/40">
+            {filtered.map((r) => (
+              <li key={r.id} className="p-4 flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">{r.full_legal_name}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono truncate">{r.user_id.slice(0, 12)}…</p>
+                  </div>
+                  <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 ${STATUS_STYLES[r.status]}`}>{r.status}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{r.country} · {r.id_type}</span>
+                  <span>{new Date(r.submitted_at).toLocaleDateString()}</span>
+                </div>
+                <Button size="sm" variant="outline" className="h-11 mt-1" onClick={() => openDetail(r)}>
+                  <Eye className="h-4 w-4 mr-1" /> Review
+                </Button>
+              </li>
+            ))}
+          </ul>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -197,6 +220,7 @@ function AdminKycPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
 
