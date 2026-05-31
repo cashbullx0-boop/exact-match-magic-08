@@ -125,6 +125,66 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_submissions: {
+        Row: {
+          country: string
+          created_at: string
+          date_of_birth: string
+          full_legal_name: string
+          id: string
+          id_back_path: string | null
+          id_front_path: string
+          id_number: string
+          id_type: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string
+          status: Database["public"]["Enums"]["kyc_status"]
+          submitted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          date_of_birth: string
+          full_legal_name: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path: string
+          id_number: string
+          id_type: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path: string
+          status?: Database["public"]["Enums"]["kyc_status"]
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          date_of_birth?: string
+          full_legal_name?: string
+          id?: string
+          id_back_path?: string | null
+          id_front_path?: string
+          id_number?: string
+          id_type?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string
+          status?: Database["public"]["Enums"]["kyc_status"]
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -474,6 +534,7 @@ export type Database = {
         | "completed"
         | "failed"
         | "expired"
+      kyc_status: "unverified" | "pending" | "verified" | "rejected"
       task_category: "survey" | "video" | "app_install" | "offer"
       txn_type: "task_reward" | "referral_bonus" | "withdrawal" | "adjustment"
     }
@@ -613,6 +674,7 @@ export const Constants = {
         "failed",
         "expired",
       ],
+      kyc_status: ["unverified", "pending", "verified", "rejected"],
       task_category: ["survey", "video", "app_install", "offer"],
       txn_type: ["task_reward", "referral_bonus", "withdrawal", "adjustment"],
     },
