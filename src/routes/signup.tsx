@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhoneField } from "@/components/auth/phone-field";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { toast } from "sonner";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Mail } from "lucide-react";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (s) => ({ ref: typeof s.ref === "string" ? s.ref : undefined }),
@@ -34,6 +36,15 @@ function SignupPage() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setInterval(() => setResendIn((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [resendIn]);
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
   const phoneValid = useMemo(() => phone && isValidPhoneNumber(phone), [phone]);
@@ -61,7 +72,7 @@ function SignupPage() {
     if (!emailValid) { toast.error("Enter a valid email"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin + "/dashboard",
@@ -70,9 +81,31 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
+    setEmailOtpSent(true);
+    setResendIn(60);
+    toast.success("We sent a 6-digit code to your email");
+  };
+
+  const verifyEmailOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (emailOtp.length !== 6) { toast.error("Enter the 6-digit code"); return; }
+    setLoading(true);
+    const { data, error } = await supabase.auth.verifyOtp({ email, token: emailOtp, type: "signup" });
+    setLoading(false);
+    if (error) { toast.error(error.message || "Invalid code, try again"); return; }
     if (data.user) attachReferral(data.user.id);
-    toast.success("Account created — check your email if confirmation is required.");
+    toast.success("Email verified — welcome!");
     navigate({ to: "/dashboard", replace: true });
+  };
+
+  const resendEmailOtp = async () => {
+    if (resendIn > 0) return;
+    setLoading(true);
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setResendIn(60);
+    toast.success("New code sent");
   };
 
   const sendPhoneOtp = async (e: React.FormEvent) => {
@@ -131,6 +164,7 @@ function SignupPage() {
           </TabsList>
 
           <TabsContent value="email" className="mt-5">
+            {!emailOtpSent ? (
             <form onSubmit={submit} className="space-y-4">
               <div>
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
@@ -150,6 +184,36 @@ function SignupPage() {
                 {loading ? "Creating..." : "Create account →"}
               </Button>
             </form>
+            ) : (
+              <form onSubmit={verifyEmailOtp} className="space-y-5">
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0"><Mail className="h-4 w-4" /></div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Verify your email</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">We sent a 6-digit code to <span className="text-foreground font-medium break-all">{email}</span>. The code expires in 10 minutes.</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center gap-3">
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Enter verification code</Label>
+                  <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp} inputMode="numeric" pattern="^[0-9]*$">
+                    <InputOTPGroup>
+                      {[0,1,2,3,4,5].map((i) => (
+                        <InputOTPSlot key={i} index={i} className="h-12 w-10 text-lg bg-white/[0.04] border-border" />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <Button type="submit" disabled={loading || emailOtp.length !== 6} className="w-full h-11 btn-primary-gradient">
+                  {loading ? "Verifying..." : "Verify & continue →"}
+                </Button>
+                <div className="flex items-center justify-between text-xs">
+                  <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); }} className="text-muted-foreground hover:text-foreground">Use a different email</button>
+                  <button type="button" onClick={resendEmailOtp} disabled={resendIn > 0 || loading} className="text-primary disabled:text-muted-foreground disabled:cursor-not-allowed hover:underline">
+                    {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                  </button>
+                </div>
+              </form>
+            )}
           </TabsContent>
 
           <TabsContent value="phone" className="mt-5">
