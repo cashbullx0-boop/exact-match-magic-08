@@ -1,5 +1,11 @@
 import { TrendingUp } from "lucide-react";
 
+const ASSETS: { symbol: string; name: string; price: string; change: string; gold?: boolean }[] = [
+  { symbol: "XAU", name: "Gold (oz)", price: "$3,320.40", change: "+0.84%", gold: true },
+  { symbol: "USDT", name: "Tether", price: "$1.00", change: "+0.02%" },
+  { symbol: "USDC", name: "USD Coin", price: "$1.00", change: "+0.01%" },
+];
+
 const EVENTS = [
   { name: "John", country: "🇺🇸 USA", action: "earned", amount: "$12.40", kind: "Survey" },
   { name: "Ali", country: "🇦🇪 UAE", action: "completed", amount: "$8.10", kind: "Offer" },
@@ -27,8 +33,27 @@ function Item({ e }: { e: (typeof EVENTS)[number] }) {
   );
 }
 
+function AssetItem({ a }: { a: (typeof ASSETS)[number] }) {
+  return (
+    <span className="inline-flex items-center gap-2 px-5 py-1.5 text-xs md:text-sm whitespace-nowrap">
+      <span className={`inline-flex h-1.5 w-1.5 rounded-full animate-pulse-dot ${a.gold ? "bg-yellow-300" : "bg-sky-400"}`} />
+      <span className={`font-semibold ${a.gold ? "text-yellow-300" : "text-foreground/90"}`}>{a.symbol}</span>
+      <span className="text-muted-foreground">{a.name}</span>
+      <span className={`font-bold ${a.gold ? "text-yellow-300" : "text-foreground/90"}`}>{a.price}</span>
+      <span className="text-emerald-400 font-medium">{a.change}</span>
+      <span className="mx-3 text-border">•</span>
+    </span>
+  );
+}
+
 export function LiveTicker() {
-  const row = [...EVENTS, ...EVENTS];
+  // Interleave assets between events so prices appear regularly across the ticker
+  const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: (typeof ASSETS)[number] }> = [];
+  EVENTS.forEach((e, i) => {
+    mixed.push({ kind: "event", data: e });
+    if (i % 3 === 0) mixed.push({ kind: "asset", data: ASSETS[(i / 3) % ASSETS.length] });
+  });
+  const row = [...mixed, ...mixed];
   return (
     <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
       <div className="container mx-auto flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 max-w-full">
@@ -37,7 +62,9 @@ export function LiveTicker() {
         </div>
         <div className="relative flex-1 min-w-0 overflow-hidden ticker-mask">
           <div className="flex w-max animate-ticker">
-            {row.map((e, i) => <Item key={i} e={e} />)}
+            {row.map((item, i) =>
+              item.kind === "asset" ? <AssetItem key={i} a={item.data} /> : <Item key={i} e={item.data} />
+            )}
           </div>
         </div>
       </div>
