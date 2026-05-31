@@ -308,3 +308,55 @@
     -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
   }
 }
+
+/* react-phone-number-input — dark theme overrides */
+.PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: hsl(var(--input, 0 0% 100% / 0.06));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 0 0.75rem;
+  height: 2.75rem;
+}
+.PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+}
+.PhoneInputCountrySelect {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.PhoneInputCountrySelect option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 0.25rem 0.5rem;
+}
+.PhoneInputCountrySelectArrow {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-style: solid;
+  border-color: currentColor;
+  border-width: 0 1px 1px 0;
+  transform: rotate(45deg);
+  opacity: 0.6;
+  margin-left: 0.15rem;
+}
+.PhoneInputInput {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: hsl(var(--foreground));
+  font-size: 0.95rem;
+  min-width: 0;
+}
+.PhoneInputInput::placeholder { color: hsl(var(--muted-foreground)); }
+.PhoneInputCountryIcon { box-shadow: none; }
