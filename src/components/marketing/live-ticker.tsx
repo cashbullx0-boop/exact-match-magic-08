@@ -1,10 +1,23 @@
 import { TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getLivePrices, type AssetPrice } from "@/lib/prices.functions";
 
-const ASSETS: { symbol: string; name: string; price: string; change: string; gold?: boolean }[] = [
-  { symbol: "XAU", name: "Gold (oz)", price: "$3,320.40", change: "+0.84%", gold: true },
-  { symbol: "USDT", name: "Tether", price: "$1.00", change: "+0.02%" },
-  { symbol: "USDC", name: "USD Coin", price: "$1.00", change: "+0.01%" },
+const FALLBACK: AssetPrice[] = [
+  { symbol: "XAU", name: "Gold", price: 3320.5, change: 0.45 },
+  { symbol: "USDT", name: "Tether", price: 1.0, change: 0.01 },
+  { symbol: "WTI", name: "Crude Oil", price: 78.25, change: -0.32 },
 ];
+
+const META: Record<string, { emoji: string; label: string; color: string }> = {
+  XAU: { emoji: "🥇", label: "Gold", color: "text-yellow-300" },
+  USDT: { emoji: "💵", label: "USDT", color: "text-emerald-400" },
+  WTI: { emoji: "🛢️", label: "Oil", color: "text-zinc-300" },
+};
+
+function fmt(n: number) {
+  return n >= 100 ? n.toFixed(2) : n.toFixed(2);
+}
 
 const EVENTS = [
   { name: "Sarah", country: "🇺🇸", action: "earned", amount: "$47.50", kind: "Survey" },
@@ -31,25 +44,37 @@ function Item({ e }: { e: (typeof EVENTS)[number] }) {
   );
 }
 
-function AssetItem({ a }: { a: (typeof ASSETS)[number] }) {
+function AssetItem({ a }: { a: AssetPrice }) {
+  const m = META[a.symbol] ?? { emoji: "•", label: a.name, color: "text-foreground/90" };
+  const up = a.change >= 0;
   return (
     <span className="inline-flex items-center gap-2 px-5 py-1.5 text-xs md:text-sm whitespace-nowrap">
-      <span className={`inline-flex h-1.5 w-1.5 rounded-full animate-pulse-dot ${a.gold ? "bg-yellow-300" : "bg-sky-400"}`} />
-      <span className={`font-semibold ${a.gold ? "text-yellow-300" : "text-foreground/90"}`}>{a.symbol}</span>
-      <span className="text-muted-foreground">{a.name}</span>
-      <span className={`font-bold ${a.gold ? "text-yellow-300" : "text-foreground/90"}`}>{a.price}</span>
-      <span className="text-emerald-400 font-medium">{a.change}</span>
+      <span aria-hidden>{m.emoji}</span>
+      <span className={`font-semibold ${m.color}`}>{m.label}</span>
+      <span className={`font-bold ${m.color}`}>${fmt(a.price)}</span>
+      <span className={`font-medium ${up ? "text-emerald-400" : "text-rose-400"}`}>
+        {up ? "▲" : "▼"} {Math.abs(a.change).toFixed(2)}%
+      </span>
       <span className="mx-3 text-border">•</span>
     </span>
   );
 }
 
 export function LiveTicker() {
+  const fetchPrices = useServerFn(getLivePrices);
+  const { data } = useQuery({
+    queryKey: ["live-prices"],
+    queryFn: () => fetchPrices(),
+    refetchInterval: 60_000,
+    staleTime: 55_000,
+  });
+  const assets: AssetPrice[] = data?.assets ?? FALLBACK;
+
   // Interleave assets between events so prices appear regularly across the ticker
-  const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: (typeof ASSETS)[number] }> = [];
+  const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: AssetPrice }> = [];
   EVENTS.forEach((e, i) => {
     mixed.push({ kind: "event", data: e });
-    if (i % 3 === 0) mixed.push({ kind: "asset", data: ASSETS[(i / 3) % ASSETS.length] });
+    if (i % 3 === 0) mixed.push({ kind: "asset", data: assets[(i / 3) % assets.length] });
   });
   const row = [...mixed, ...mixed];
   return (
