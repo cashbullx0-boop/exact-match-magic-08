@@ -20,7 +20,12 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { ref } = Route.useSearch();
+  const { ref: refSearch } = Route.useSearch();
+  const [ref, setRef] = useState<string | undefined>(refSearch);
+  useEffect(() => {
+    if (refSearch) { setRef(refSearch); try { sessionStorage.setItem("cbx_ref", refSearch); } catch {} return; }
+    try { const v = sessionStorage.getItem("cbx_ref"); if (v) setRef(v); } catch {}
+  }, [refSearch]);
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,10 +46,11 @@ function SignupPage() {
   const attachReferral = (uid: string) => {
     if (!ref) return;
     setTimeout(async () => {
-      const { data: refId } = await supabase.rpc("get_referrer_id_by_code", { _code: ref });
+      const { data: refId } = await supabase.rpc("get_referrer_id_by_username_or_code", { _value: ref });
       if (refId) {
         await supabase.from("profiles").update({ referred_by: refId }).eq("id", uid);
         await supabase.from("referrals").insert({ referrer_id: refId, referred_id: uid, bonus_cents: 100 });
+        try { sessionStorage.removeItem("cbx_ref"); } catch {}
       }
     }, 800);
   };
