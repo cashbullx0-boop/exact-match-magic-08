@@ -1,4 +1,5 @@
 import { TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLivePrices, type AssetPrice } from "@/lib/prices.functions";
@@ -67,16 +68,20 @@ export function LiveTicker() {
     queryFn: () => fetchPrices(),
     refetchInterval: 60_000,
     staleTime: 55_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
   const assets: AssetPrice[] = data?.assets ?? FALLBACK;
 
   // Interleave assets between events so prices appear regularly across the ticker
-  const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: AssetPrice }> = [];
-  EVENTS.forEach((e, i) => {
-    mixed.push({ kind: "event", data: e });
-    if (i % 3 === 0) mixed.push({ kind: "asset", data: assets[(i / 3) % assets.length] });
-  });
-  const row = [...mixed, ...mixed];
+  const row = useMemo(() => {
+    const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: AssetPrice }> = [];
+    EVENTS.forEach((e, i) => {
+      mixed.push({ kind: "event", data: e });
+      if (i % 3 === 0) mixed.push({ kind: "asset", data: assets[(i / 3) % assets.length] });
+    });
+    return [...mixed, ...mixed];
+  }, [assets]);
   return (
     <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
       <div className="container mx-auto flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 max-w-full">
