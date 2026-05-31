@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
-  createDepositRequest, attachTxHash, listUserDeposits,
+  createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
 } from "@/lib/deposits";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
@@ -67,6 +67,8 @@ function DepositPage() {
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [active, setActive] = useState<DepositRow | null>(null);
   const [txHash, setTxHash] = useState("");
+  const [slipFile, setSlipFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const net = NETWORKS[network];
@@ -111,15 +113,23 @@ function DepositPage() {
   };
 
   const handleSubmitHash = async () => {
-    if (!active || !txHash.trim()) return toast.error("Enter the transaction hash");
+    if (!active || !user) return;
+    if (!txHash.trim()) return toast.error("Enter the transaction hash");
+    setSubmitting(true);
     try {
+      if (slipFile) {
+        await uploadDepositSlip(user.id, active.id, slipFile);
+      }
       await attachTxHash(active.id, txHash);
-      toast.success("Transaction submitted — awaiting confirmations");
+      toast.success("Deposit submitted — pending admin review");
       setActive(null);
       setTxHash("");
+      setSlipFile(null);
       refresh();
     } catch (e: any) {
-      toast.error(e.message ?? "Failed to submit hash");
+      toast.error(e.message ?? "Failed to submit deposit");
+    } finally {
+      setSubmitting(false);
     }
   };
 
