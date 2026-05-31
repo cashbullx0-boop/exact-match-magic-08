@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
-  createDepositRequest, attachTxHash, listUserDeposits,
+  createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
 } from "@/lib/deposits";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
@@ -67,6 +67,8 @@ function DepositPage() {
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [active, setActive] = useState<DepositRow | null>(null);
   const [txHash, setTxHash] = useState("");
+  const [slipFile, setSlipFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const net = NETWORKS[network];
@@ -111,15 +113,23 @@ function DepositPage() {
   };
 
   const handleSubmitHash = async () => {
-    if (!active || !txHash.trim()) return toast.error("Enter the transaction hash");
+    if (!active || !user) return;
+    if (!txHash.trim()) return toast.error("Enter the transaction hash");
+    setSubmitting(true);
     try {
+      if (slipFile) {
+        await uploadDepositSlip(user.id, active.id, slipFile);
+      }
       await attachTxHash(active.id, txHash);
-      toast.success("Transaction submitted — awaiting confirmations");
+      toast.success("Deposit submitted — pending admin review");
       setActive(null);
       setTxHash("");
+      setSlipFile(null);
       refresh();
     } catch (e: any) {
-      toast.error(e.message ?? "Failed to submit hash");
+      toast.error(e.message ?? "Failed to submit deposit");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -356,12 +366,25 @@ function DepositPage() {
                   <Input id="txhash" placeholder="0x... or T..." value={txHash}
                     onChange={(e) => setTxHash(e.target.value)} className="mt-1 font-mono text-xs" />
                 </div>
+
+                <div>
+                  <Label htmlFor="slip" className="text-xs">Deposit slip / screenshot (optional)</Label>
+                  <Input
+                    id="slip"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSlipFile(e.target.files?.[0] ?? null)}
+                    className="mt-1 text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
+                  />
+                  {slipFile && <p className="text-[11px] text-muted-foreground mt-1">Selected: {slipFile.name}</p>}
+                </div>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button variant="outline" onClick={() => setActive(null)}>Close</Button>
-                <Button onClick={handleSubmitHash} disabled={!txHash.trim()}>
-                  <Check className="h-4 w-4 mr-2" />Submit hash
+                <Button onClick={handleSubmitHash} disabled={submitting || !txHash.trim()}>
+                  {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+                  Submit for review
                 </Button>
               </DialogFooter>
             </>
