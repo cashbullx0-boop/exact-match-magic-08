@@ -87,19 +87,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         supabase.auth.signOut();
       }, INACTIVITY_MS);
     };
-    const events: (keyof WindowEventMap)[] = [
-      "mousemove",
-      "mousedown",
-      "keydown",
-      "touchstart",
-      "scroll",
-      "visibilitychange",
-    ];
+    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"] as const;
     events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    document.addEventListener("visibilitychange", reset);
     reset();
     return () => {
       clearTimeout(timer);
       events.forEach((e) => window.removeEventListener(e, reset));
+      document.removeEventListener("visibilitychange", reset);
     };
   }, [user]);
 
