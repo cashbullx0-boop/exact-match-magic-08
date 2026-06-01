@@ -38,7 +38,7 @@ export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
     chain: "BNB Smart Chain",
     symbol: "USDT",
     address: "0xAbCdEf0123456789AbCdEf0123456789AbCdEf01",
-    minAmount: 10,
+    minAmount: 50,
     confirmations: 15,
     estTime: "~1 min",
     fee: "~0.3 USDT",
