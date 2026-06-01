@@ -131,6 +131,48 @@ export type Database = {
         }
         Relationships: []
       }
+      investments: {
+        Row: {
+          amount_cents: number
+          asset: string
+          asset_name: string
+          completed_at: string | null
+          created_at: string
+          entry_price: number
+          id: string
+          return_percent: number
+          status: Database["public"]["Enums"]["investment_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          asset: string
+          asset_name: string
+          completed_at?: string | null
+          created_at?: string
+          entry_price?: number
+          id?: string
+          return_percent?: number
+          status?: Database["public"]["Enums"]["investment_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          asset?: string
+          asset_name?: string
+          completed_at?: string | null
+          created_at?: string
+          entry_price?: number
+          id?: string
+          return_percent?: number
+          status?: Database["public"]["Enums"]["investment_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kyc_submissions: {
         Row: {
           country: string
@@ -521,9 +563,26 @@ export type Database = {
         Args: { _deposit_id: string }
         Returns: undefined
       }
+      admin_cancel_investment: {
+        Args: { _id: string; _reason: string }
+        Returns: undefined
+      }
+      admin_complete_investment: {
+        Args: { _id: string; _return_percent: number }
+        Returns: undefined
+      }
       admin_reject_deposit: {
         Args: { _deposit_id: string; _reason: string }
         Returns: undefined
+      }
+      create_investment: {
+        Args: {
+          _amount_cents: number
+          _asset: string
+          _asset_name: string
+          _entry_price: number
+        }
+        Returns: string
       }
       create_self_notification: {
         Args: { _body: string; _link?: string; _title: string; _type?: string }
@@ -577,6 +636,7 @@ export type Database = {
         | "completed"
         | "failed"
         | "expired"
+      investment_status: "active" | "completed" | "cancelled"
       kyc_status: "unverified" | "pending" | "verified" | "rejected"
       task_category: "survey" | "video" | "app_install" | "offer"
       txn_type:
@@ -723,6 +783,7 @@ export const Constants = {
         "failed",
         "expired",
       ],
+      investment_status: ["active", "completed", "cancelled"],
       kyc_status: ["unverified", "pending", "verified", "rejected"],
       task_category: ["survey", "video", "app_install", "offer"],
       txn_type: [
