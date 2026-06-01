@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Coins, Gift, PlayCircle, Smartphone, Sparkles, Users, Wallet, Shield, Zap, Lock, Globe, ArrowRight, TrendingUp } from "lucide-react";
 import { LiveTicker } from "@/components/marketing/live-ticker";
 import { Testimonials } from "@/components/marketing/testimonials";
+import { TrustBadges } from "@/components/marketing/trust-badges";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { AnimatedCounter } from "@/components/marketing/animated-counter";
