@@ -12,6 +12,11 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Force Nitro on with the Vercel preset so `vite build` on Vercel produces
+  // a deployable SSR bundle (`.vercel/output`) instead of the Cloudflare default.
+  nitro: {
+    preset: "vercel",
+  },
   vite: {
     esbuild: {
       // Strip console.* and debugger statements from production builds only
