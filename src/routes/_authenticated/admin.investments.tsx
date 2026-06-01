@@ -31,7 +31,7 @@ function AdminInvestmentsPage() {
 
   const load = async () => {
     const { data } = await (supabase as any).from("investments")
-      .select("*, profiles:user_id(full_name, username)")
+      .select("*")
       .order("created_at", { ascending: false });
     setRows(data ?? []);
   };
@@ -83,9 +83,7 @@ function AdminInvestmentsPage() {
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-xs">
-                    {r.profiles?.full_name ?? r.profiles?.username ?? r.user_id.slice(0, 8)}
-                  </TableCell>
+                  <TableCell className="text-xs font-mono">{r.user_id.slice(0, 8)}</TableCell>
                   <TableCell>{r.asset_name} <span className="text-xs text-muted-foreground">({r.asset})</span></TableCell>
                   <TableCell>${(r.amount_cents / 100).toFixed(2)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</TableCell>

@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
+import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin.investments'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin.deposits'
 
 const SignupRoute = SignupRouteImport.update({
@@ -164,6 +165,12 @@ const AuthenticatedAdminKycRoute = AuthenticatedAdminKycRouteImport.update({
   path: '/kyc',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminInvestmentsRoute =
+  AuthenticatedAdminInvestmentsRouteImport.update({
+    id: '/investments',
+    path: '/investments',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminDepositsRoute =
   AuthenticatedAdminDepositsRouteImport.update({
     id: '/deposits',
@@ -195,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/wallet': typeof AuthenticatedWalletRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
 }
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/wallet': typeof AuthenticatedWalletRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
 }
@@ -251,6 +260,7 @@ export interface FileRoutesById {
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/ref/$username': typeof RefUsernameRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
+  '/_authenticated/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
 }
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/ref/$username'
     | '/admin/deposits'
+    | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
   fileRoutesByTo: FileRoutesByTo
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/ref/$username'
     | '/admin/deposits'
+    | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
   id:
@@ -335,6 +347,7 @@ export interface FileRouteTypes {
     | '/_authenticated/wallet'
     | '/ref/$username'
     | '/_authenticated/admin/deposits'
+    | '/_authenticated/admin/investments'
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/referrals'
   fileRoutesById: FileRoutesById
@@ -527,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminKycRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/investments': {
+      id: '/_authenticated/admin/investments'
+      path: '/investments'
+      fullPath: '/admin/investments'
+      preLoaderRoute: typeof AuthenticatedAdminInvestmentsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/deposits': {
       id: '/_authenticated/admin/deposits'
       path: '/deposits'
@@ -539,12 +559,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
+  AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
+  AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
   AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
 }
