@@ -1,19 +1,55 @@
-import { Star } from "lucide-react";
+import { Star, BadgeCheck } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const TESTIMONIALS = [
-  { name: "Aiden Walker", handle: "@aidenw", flag: "🇺🇸", earned: "$842", stars: 5,
-    quote: "Withdrawals are fast and the dashboard is clean. Best rewards platform UI I've used." },
-  { name: "Layla Hassan", handle: "@laylah", flag: "🇦🇪", earned: "$1,205", stars: 5,
-    quote: "Daily check-ins plus surveys add up quickly. Streak system keeps me coming back." },
-  { name: "Sofía Marín", handle: "@sofiam", flag: "🇲🇽", earned: "$417", stars: 5,
-    quote: "Referral bonuses are the easiest passive earnings I've found. Super smooth UX." },
-  { name: "Tomás Pereira", handle: "@tomasp", flag: "🇧🇷", earned: "$623", stars: 5,
-    quote: "Tasks load instantly and payouts hit my wallet without drama. Highly recommend." },
-  { name: "Anika Patel", handle: "@anikap", flag: "🇮🇳", earned: "$298", stars: 5,
-    quote: "Beautiful design, transparent rewards. Feels like a premium SaaS, not a survey site." },
-  { name: "Marcus Müller", handle: "@marcusm", flag: "🇩🇪", earned: "$1,011", stars: 5,
-    quote: "USDT withdrawal arrived in minutes. The achievements layer makes it fun." },
+  {
+    name: "Ahmed Khan",
+    handle: "@ahmedk",
+    flag: "🇵🇰",
+    earned: "$342",
+    stars: 5,
+    quote: "Withdrew my first $50 after just 2 weeks, process was smooth. Video tasks are the easiest way to earn daily.",
+  },
+  {
+    name: "Fatima Al-Rashid",
+    handle: "@fatimaar",
+    flag: "🇸🇦",
+    earned: "$815",
+    stars: 5,
+    quote: "Referral system is great, my team is growing fast. The dashboard makes tracking everything so simple.",
+  },
+  {
+    name: "Rohan Sharma",
+    handle: "@rohans",
+    flag: "🇮🇳",
+    earned: "$267",
+    stars: 4,
+    quote: "Video tasks are easy, earning daily without any issues. USDT payouts arrive within minutes every time.",
+  },
+  {
+    name: "Emily Wilson",
+    handle: "@emilyw",
+    flag: "🇬🇧",
+    earned: "$1,120",
+    stars: 5,
+    quote: "Best rewards platform I've used. The surveys pay well and the app install tasks are genuinely worth doing.",
+  },
+  {
+    name: "Hassan Ali",
+    handle: "@hassana",
+    flag: "🇦🇪",
+    earned: "$498",
+    stars: 5,
+    quote: "Love the instant payouts to my wallet. Customer support is responsive and the tasks refresh every hour.",
+  },
+  {
+    name: "Aisyah Ibrahim",
+    handle: "@aisyahi",
+    flag: "🇲🇾",
+    earned: "$189",
+    stars: 4,
+    quote: "Started last month and already cashed out twice. Great variety of tasks and the platform feels premium.",
+  },
 ];
 
 function Card({ t }: { t: (typeof TESTIMONIALS)[number] }) {
@@ -26,6 +62,7 @@ function Card({ t }: { t: (typeof TESTIMONIALS)[number] }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 font-semibold text-sm">
             {t.name} <span>{t.flag}</span>
+            <BadgeCheck className="h-3.5 w-3.5 text-sky-400 fill-sky-400/20" />
           </div>
           <div className="text-xs text-muted-foreground">{t.handle}</div>
         </div>
@@ -34,27 +71,37 @@ function Card({ t }: { t: (typeof TESTIMONIALS)[number] }) {
         </span>
       </div>
       <div className="flex gap-0.5">
-        {Array.from({ length: t.stars }).map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${
+              i < t.stars ? "fill-primary text-primary" : "fill-muted text-muted"
+            }`}
+          />
         ))}
       </div>
-      <p className="text-sm text-muted-foreground leading-relaxed">"{t.quote}"</p>
+      <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
+      <div className="mt-auto pt-2 flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/15">
+          <BadgeCheck className="h-3 w-3" /> Verified User
+        </span>
+      </div>
     </div>
   );
 }
 
 export function Testimonials() {
   return (
-    <section className="py-20 md:py-28">
+    <section id="reviews" className="py-20 md:py-28">
       <div className="text-center max-w-2xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs text-muted-foreground mb-4">
           ⭐ Loved by 120,000+ earners worldwide
         </div>
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-          Real users. <span className="brand-text">Real payouts.</span>
+          What Our <span className="brand-text">Members Say</span>
         </h2>
         <p className="mt-4 text-muted-foreground">
-          Hear what members are saying about CashBullX after cashing out.
+          Hear what real users are saying about earning on CashBullX every day.
         </p>
       </div>
       <Carousel opts={{ align: "start", loop: true }} className="px-2 md:px-12">
