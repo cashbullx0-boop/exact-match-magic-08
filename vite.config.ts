@@ -6,12 +6,18 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // NOTE: Cloudflare Pages' build system inspects this file looking for a top-level
 // `plugins` array. The Lovable wrapper resolves plugins internally, so we expose
 // an empty `plugins: []` at the top level to satisfy that check. The TanStack
 // Start + Nitro (cloudflare preset) plugins are still injected by the wrapper.
 export default defineConfig({
-  plugins: [],
+  plugins: [cloudflare({
+    viteEnvironment: {
+      name: "ssr"
+    }
+  })],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     server: { entry: "server" },
