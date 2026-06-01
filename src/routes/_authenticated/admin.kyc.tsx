@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, ShieldCheck, ShieldX, Clock, Eye, Loader2 } from "lucide-react";
+import { Search, ShieldCheck, ShieldX, Eye, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { listKycSubmissions } from "@/lib/admin-kyc.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/kyc")({
   head: () => ({ meta: [{ title: "KYC Review — Admin" }] }),
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/kyc")({
 type Row = {
   id: string;
   user_id: string;
+  email?: string | null;
   full_legal_name: string;
   date_of_birth: string;
   country: string;
@@ -62,10 +64,14 @@ function AdminKycPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("kyc_submissions").select("*").order("submitted_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setRows((data as Row[]) ?? []);
-    setLoading(false);
+    try {
+      const data = await listKycSubmissions();
+      setRows((data as Row[]) ?? []);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to load submissions");
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
@@ -75,6 +81,7 @@ function AdminKycPage() {
       if (search) {
         const s = search.toLowerCase();
         return r.full_legal_name.toLowerCase().includes(s)
+          || (r.email ?? "").toLowerCase().includes(s)
           || r.country.toLowerCase().includes(s)
           || r.id_number.toLowerCase().includes(s)
           || r.user_id.includes(s);
@@ -172,13 +179,13 @@ function AdminKycPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold truncate">{r.full_legal_name}</p>
-                    <p className="text-[11px] text-muted-foreground font-mono truncate">{r.user_id.slice(0, 12)}…</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{r.email ?? r.user_id.slice(0, 12) + "…"}</p>
                   </div>
                   <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 ${STATUS_STYLES[r.status]}`}>{r.status}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{r.country} · {r.id_type}</span>
-                  <span>{new Date(r.submitted_at).toLocaleDateString()}</span>
+                  <span>{new Date(r.submitted_at).toLocaleString()}</span>
                 </div>
                 <Button size="sm" variant="outline" className="h-11 mt-1" onClick={() => openDetail(r)}>
                   <Eye className="h-4 w-4 mr-1" /> Review
@@ -192,6 +199,7 @@ function AdminKycPage() {
               <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="text-left px-4 py-3">User</th>
+                  <th className="text-left px-4 py-3 hidden lg:table-cell">Email</th>
                   <th className="text-left px-4 py-3 hidden md:table-cell">Country</th>
                   <th className="text-left px-4 py-3 hidden lg:table-cell">ID Type</th>
                   <th className="text-left px-4 py-3 hidden sm:table-cell">Submitted</th>
@@ -206,9 +214,10 @@ function AdminKycPage() {
                       <div className="font-medium">{r.full_legal_name}</div>
                       <div className="text-xs text-muted-foreground font-mono">{r.user_id.slice(0, 8)}…</div>
                     </td>
+                    <td className="px-4 py-3 hidden lg:table-cell text-muted-foreground">{r.email ?? "—"}</td>
                     <td className="px-4 py-3 hidden md:table-cell">{r.country}</td>
                     <td className="px-4 py-3 hidden lg:table-cell">{r.id_type}</td>
-                    <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{new Date(r.submitted_at).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground whitespace-nowrap">{new Date(r.submitted_at).toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[r.status]}`}>{r.status}</span>
                     </td>
@@ -231,11 +240,12 @@ function AdminKycPage() {
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2 text-sm">
                 <Field label="Full legal name" value={selected.full_legal_name} />
+                <Field label="Email" value={selected.email ?? "—"} />
                 <Field label="Date of birth" value={selected.date_of_birth} />
                 <Field label="Country" value={selected.country} />
                 <Field label="ID type" value={selected.id_type} />
                 <Field label="ID number" value={selected.id_number} />
-                <Field label="Submitted" value={new Date(selected.submitted_at).toLocaleString()} />
+                <Field label="Uploaded at" value={new Date(selected.submitted_at).toLocaleString()} />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
@@ -281,9 +291,14 @@ function DocImage({ label, url }: { label: string; url?: string }) {
     <div>
       <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
       {url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-          <img src={url} alt={label} loading="lazy" decoding="async" className="w-full h-40 object-cover rounded-md border border-border/50 hover:border-primary/60 transition" />
-        </a>
+        <div className="space-y-1">
+          <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+            <img src={url} alt={label} loading="lazy" decoding="async" className="w-full h-40 object-cover rounded-md border border-border/50 hover:border-primary/60 transition" />
+          </a>
+          <a href={url} download target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <Download className="h-3 w-3" /> Download
+          </a>
+        </div>
       ) : (
         <div className="w-full h-40 rounded-md border border-dashed border-border/40 flex items-center justify-center text-xs text-muted-foreground bg-muted/20">Not provided</div>
       )}
