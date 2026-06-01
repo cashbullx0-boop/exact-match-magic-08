@@ -81,14 +81,16 @@ function WalletPage() {
         <Tabs defaultValue="all">
           <TabsList className="w-full overflow-x-auto flex justify-start">
             <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="investments">Investments</TabsTrigger>
             <TabsTrigger value="rewards">Rewards</TabsTrigger>
             <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
             <TabsTrigger value="referrals">Referrals</TabsTrigger>
           </TabsList>
           {[
             { v: "all", filter: () => true },
+            { v: "investments", filter: (t: any) => t.description?.toLowerCase().includes("investment") },
             { v: "rewards", filter: (t: any) => t.type === "task_reward" },
-            { v: "withdrawals", filter: (t: any) => t.type === "withdrawal" },
+            { v: "withdrawals", filter: (t: any) => t.type === "withdrawal" && !t.description?.toLowerCase().includes("investment") },
             { v: "referrals", filter: (t: any) => t.type === "referral_bonus" },
           ].map(({ v, filter }) => {
             const list = txns.filter(filter);
