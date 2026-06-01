@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight, FileDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -45,6 +45,25 @@ function WalletPage() {
     refreshProfile();
     load();
   };
+
+  function downloadCSV(filename: string, rows: any[]) {
+    if (!rows.length) return;
+    const headers = ["Date", "Description", "Type", "Amount (USD)"];
+    const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const lines = rows.map((t) => [
+      new Date(t.created_at).toLocaleString(),
+      t.description ?? t.type.replace("_", " "),
+      t.type,
+      (t.amount_cents / 100).toFixed(2),
+    ].map(String).map(escape).join(","));
+    const blob = new Blob(["\ufeff" + headers.map(escape).join(",") + "\n" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="space-y-6 animate-float-up">
@@ -96,6 +115,13 @@ function WalletPage() {
             const list = txns.filter(filter);
             return (
               <TabsContent key={v} value={v}>
+                {v === "investments" && list.length > 0 && (
+                  <div className="flex justify-end mb-3">
+                    <Button variant="outline" size="sm" onClick={() => downloadCSV("investment-ledger.csv", list)}>
+                      <FileDown className="h-4 w-4 mr-2" /> Export CSV
+                    </Button>
+                  </div>
+                )}
                 {list.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-6 text-center">No activity in this category.</p>
                 ) : (
