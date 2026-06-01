@@ -44,6 +44,22 @@ async function fetchUsdt(): Promise<AssetPrice | null> {
   }
 }
 
+async function fetchCoin(id: string, symbol: string, name: string): Promise<AssetPrice | null> {
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`
+    );
+    if (!res.ok) return null;
+    const j: any = await res.json();
+    const price = j?.[id]?.usd;
+    const change = j?.[id]?.usd_24h_change ?? 0;
+    if (typeof price !== "number") return null;
+    return { symbol, name, price, change };
+  } catch {
+    return null;
+  }
+}
+
 export const getLivePrices = createServerFn({ method: "GET" }).handler(async () => {
   const [gold, oil, usdt] = await Promise.all([
     fetchStooq("xauusd"),
@@ -61,5 +77,25 @@ export const getLivePrices = createServerFn({ method: "GET" }).handler(async () 
       : { symbol: "WTI", name: "Crude Oil", price: 78.25, change: -0.32 },
   ];
 
+  return { assets, fetchedAt: Date.now() };
+});
+
+export const getInvestPrices = createServerFn({ method: "GET" }).handler(async () => {
+  const [gold, oil, btc, eth] = await Promise.all([
+    fetchStooq("xauusd"),
+    fetchStooq("cl.f"),
+    fetchCoin("bitcoin", "BTC", "Bitcoin"),
+    fetchCoin("ethereum", "ETH", "Ethereum"),
+  ]);
+  const assets: AssetPrice[] = [
+    { symbol: "XAU", name: "Gold",
+      price: gold?.close ?? 3320.5,
+      change: gold ? ((gold.close - gold.open) / gold.open) * 100 : 0.45 },
+    btc ?? { symbol: "BTC", name: "Bitcoin", price: 68000, change: 1.2 },
+    eth ?? { symbol: "ETH", name: "Ethereum", price: 3500, change: 0.8 },
+    { symbol: "WTI", name: "Crude Oil",
+      price: oil?.close ?? 78.25,
+      change: oil ? ((oil.close - oil.open) / oil.open) * 100 : -0.32 },
+  ];
   return { assets, fetchedAt: Date.now() };
 });
