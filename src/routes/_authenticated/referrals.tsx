@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, Users, Gift, Download, TrendingUp, UserPlus, Wallet as WalletIcon, ArrowDownToLine } from "lucide-react";
 import { toast } from "sonner";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 
 const BONUS_PERCENT = 10;
 
@@ -44,9 +44,12 @@ function ReferralsPage() {
   const [downline, setDownline] = useState<DownlineRow[]>([]);
   const qrRef = useRef<HTMLDivElement | null>(null);
 
-  const slug = profile?.username || profile?.referral_code || "";
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const link = useMemo(() => (slug ? `${origin}/ref/${slug}` : ""), [origin, slug]);
+  const slug = profile?.username || profile?.referral_code || user?.id || "";
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+  const link = useMemo(() => (slug && origin ? `${origin}/ref/${slug}` : ""), [origin, slug]);
 
   useEffect(() => {
     if (!user) return;
@@ -143,11 +146,31 @@ function ReferralsPage() {
 
         <Card className="glass-strong border-border p-6 flex flex-col items-center text-center">
           <h2 className="font-semibold mb-3">Scan to join</h2>
-          <div ref={qrRef} className="rounded-xl bg-white p-3">
+          <div ref={qrRef} className="rounded-xl bg-white p-4 inline-block">
             {link ? (
-              <QRCodeCanvas value={link} size={160} bgColor="#ffffff" fgColor="#0a0a0a" level="M" includeMargin={false} />
+              <>
+                {/* Visible SVG QR — reliable rendering across browsers */}
+                <QRCodeSVG
+                  value={link}
+                  size={180}
+                  bgColor="#ffffff"
+                  fgColor="#0a0a0a"
+                  level="M"
+                  marginSize={2}
+                />
+                {/* Hidden canvas used for PNG download */}
+                <QRCodeCanvas
+                  value={link}
+                  size={512}
+                  bgColor="#ffffff"
+                  fgColor="#0a0a0a"
+                  level="M"
+                  marginSize={2}
+                  style={{ display: "none" }}
+                />
+              </>
             ) : (
-              <div className="h-[160px] w-[160px] grid place-items-center text-xs text-muted-foreground">—</div>
+              <div className="h-[180px] w-[180px] grid place-items-center text-xs text-muted-foreground">Loading…</div>
             )}
           </div>
           <Button onClick={downloadQR} variant="outline" size="sm" className="mt-4" disabled={!link}>
