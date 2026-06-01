@@ -1,1 +1,6 @@
-[build]`n  command = "npm run build"`n  publish = "dist"`n`n[[redirects]]`n  from = "/*"`n  to = "/index.html"`n  status = 200
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Nitro's `netlify` preset emits the SSR function and its own redirects under
+# `.netlify/`. No manual functions or redirects config is needed here.
