@@ -5,8 +5,6 @@ import app from "@tanstack/react-start/server-entry";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
-type WorkerContext = { waitUntil?: (promise: Promise<unknown>) => void; passThroughOnException?: () => void };
-
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
@@ -27,11 +25,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 export default {
-  async fetch(request: Request, env: unknown, ctx: WorkerContext) {
+  async fetch(request: Request) {
     try {
-      const response = await app.fetch(request, {
-        context: { cloudflare: { env, ctx } },
-      });
+      const response = await app.fetch(request);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
