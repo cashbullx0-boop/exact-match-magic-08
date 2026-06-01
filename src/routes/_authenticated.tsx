@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, Crown, ShieldCheck, TrendingUp } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ const navItems = [
   { to: "/achievements", label: "Achievements", icon: Award },
   { to: "/wallet", label: "Wallet", icon: Wallet },
   { to: "/deposit", label: "Deposit", icon: ArrowDownToLine },
+  { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { to: "/invest", label: "Invest", icon: TrendingUp },
   { to: "/referrals", label: "Referrals", icon: Users },
   { to: "/notifications", label: "Notifications", icon: Bell },
@@ -112,6 +113,10 @@ function AuthedLayout() {
             <Link to="/admin/investments" onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/investments" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <TrendingUp className="h-4 w-4" />Investments
+            </Link>
+            <Link to="/admin/withdrawals" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/withdrawals" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <ArrowUpFromLine className="h-4 w-4" />Withdrawals
             </Link>
             <Link to="/admin/referrals" onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/referrals" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>

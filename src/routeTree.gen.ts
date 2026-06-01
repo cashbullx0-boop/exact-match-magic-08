@@ -17,6 +17,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RefUsernameRouteImport } from './routes/ref.$username'
+import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
+import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
 import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin.investments'
@@ -75,6 +77,11 @@ const RefUsernameRoute = RefUsernameRouteImport.update({
   id: '/ref/$username',
   path: '/ref/$username',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
@@ -154,6 +161,12 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminWithdrawalsRoute =
+  AuthenticatedAdminWithdrawalsRouteImport.update({
+    id: '/withdrawals',
+    path: '/withdrawals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReferralsRoute =
   AuthenticatedAdminReferralsRouteImport.update({
     id: '/referrals',
@@ -200,11 +213,13 @@ export interface FileRoutesByFullPath {
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -228,11 +243,13 @@ export interface FileRoutesByTo {
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -258,11 +275,13 @@ export interface FileRoutesById {
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
   '/_authenticated/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -288,11 +307,13 @@ export interface FileRouteTypes {
     | '/support'
     | '/tasks'
     | '/wallet'
+    | '/withdraw'
     | '/ref/$username'
     | '/admin/deposits'
     | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
+    | '/admin/withdrawals'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -316,11 +337,13 @@ export interface FileRouteTypes {
     | '/support'
     | '/tasks'
     | '/wallet'
+    | '/withdraw'
     | '/ref/$username'
     | '/admin/deposits'
     | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
+    | '/admin/withdrawals'
   id:
     | '__root__'
     | '/'
@@ -345,11 +368,13 @@ export interface FileRouteTypes {
     | '/_authenticated/support'
     | '/_authenticated/tasks'
     | '/_authenticated/wallet'
+    | '/_authenticated/withdraw'
     | '/ref/$username'
     | '/_authenticated/admin/deposits'
     | '/_authenticated/admin/investments'
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/referrals'
+    | '/_authenticated/admin/withdrawals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -421,11 +446,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/withdraw': {
+      id: '/_authenticated/withdraw'
+      path: '/withdraw'
+      fullPath: '/withdraw'
+      preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/wallet': {
       id: '/_authenticated/wallet'
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/withdraw': {
+      id: '/_authenticated/withdraw'
+      path: '/withdraw'
+      fullPath: '/withdraw'
+      preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/tasks': {
@@ -526,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/withdrawals': {
+      id: '/_authenticated/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/referrals': {
       id: '/_authenticated/admin/referrals'
       path: '/referrals'
@@ -554,6 +600,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/withdrawals': {
+      id: '/_authenticated/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -562,6 +615,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
+  AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -569,6 +623,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
   AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
+  AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -590,6 +645,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -608,6 +664,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -627,13 +684,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

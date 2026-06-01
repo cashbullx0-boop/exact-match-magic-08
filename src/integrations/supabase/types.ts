@@ -554,6 +554,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          admin_notes: string | null
+          amount_cents: number
+          created_at: string
+          id: string
+          network: Database["public"]["Enums"]["withdrawal_network"]
+          processed_at: string | null
+          rejection_reason: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          tx_hash: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount_cents: number
+          created_at?: string
+          id?: string
+          network: Database["public"]["Enums"]["withdrawal_network"]
+          processed_at?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          network?: Database["public"]["Enums"]["withdrawal_network"]
+          processed_at?: string | null
+          rejection_reason?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          tx_hash?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -561,6 +606,10 @@ export type Database = {
     Functions: {
       admin_approve_deposit: {
         Args: { _deposit_id: string }
+        Returns: undefined
+      }
+      admin_approve_withdrawal: {
+        Args: { _id: string; _notes?: string }
         Returns: undefined
       }
       admin_cancel_investment: {
@@ -571,8 +620,16 @@ export type Database = {
         Args: { _id: string; _return_percent: number }
         Returns: undefined
       }
+      admin_mark_withdrawal_paid: {
+        Args: { _id: string; _tx_hash: string }
+        Returns: undefined
+      }
       admin_reject_deposit: {
         Args: { _deposit_id: string; _reason: string }
+        Returns: undefined
+      }
+      admin_reject_withdrawal: {
+        Args: { _id: string; _reason: string }
         Returns: undefined
       }
       create_investment: {
@@ -586,6 +643,14 @@ export type Database = {
       }
       create_self_notification: {
         Args: { _body: string; _link?: string; _title: string; _type?: string }
+        Returns: string
+      }
+      create_withdrawal: {
+        Args: {
+          _amount_cents: number
+          _network: string
+          _wallet_address: string
+        }
         Returns: string
       }
       get_my_downline: {
@@ -645,6 +710,13 @@ export type Database = {
         | "withdrawal"
         | "adjustment"
         | "deposit"
+      withdrawal_network: "TRC20" | "BEP20" | "ERC20"
+      withdrawal_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "paid"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -792,6 +864,14 @@ export const Constants = {
         "withdrawal",
         "adjustment",
         "deposit",
+      ],
+      withdrawal_network: ["TRC20", "BEP20", "ERC20"],
+      withdrawal_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "paid",
+        "cancelled",
       ],
     },
   },
