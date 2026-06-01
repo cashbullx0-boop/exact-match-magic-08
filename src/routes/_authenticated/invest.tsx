@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,7 +88,7 @@ function InvestPage() {
     if (!cents || cents < 5000) { toast.error("Minimum investment is $50"); return; }
     if (cents > balance) { toast.error("Insufficient balance"); return; }
     setSubmitting(true);
-    const { error } = await supabase.rpc("create_investment", {
+    const { error } = await (supabase.rpc as any)("create_investment", {
       _asset: modalAsset.symbol,
       _asset_name: modalAsset.name,
       _amount_cents: cents,
