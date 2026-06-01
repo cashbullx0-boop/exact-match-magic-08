@@ -292,7 +292,8 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function FileDrop({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const isImage = !!file && file.type.startsWith("image/");
+  const preview = useMemo(() => (file && isImage ? URL.createObjectURL(file) : null), [file, isImage]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   return (
     <label className="block">
@@ -300,10 +301,16 @@ function FileDrop({ label, file, onChange }: { label: string; file: File | null;
       <div className="mt-1 relative border border-dashed border-border/60 rounded-lg p-3 hover:border-primary/60 transition cursor-pointer min-h-32 flex items-center justify-center overflow-hidden bg-muted/20">
         {preview ? (
           <img src={preview} alt="" loading="lazy" decoding="async" className="max-h-32 object-contain" />
+        ) : file ? (
+          <div className="text-center text-muted-foreground px-2">
+            <Upload className="h-5 w-5 mx-auto" />
+            <p className="text-xs mt-1 break-all">{file.name}</p>
+            <p className="text-[10px] mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          </div>
         ) : (
           <div className="text-center text-muted-foreground">
             <Upload className="h-5 w-5 mx-auto" />
-            <p className="text-xs mt-1">Click to upload</p>
+            <p className="text-xs mt-1">JPG, PNG, or PDF · max 5 MB</p>
           </div>
         )}
         <input
