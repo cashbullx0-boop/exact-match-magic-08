@@ -32,7 +32,7 @@ function AdminWithdrawals() {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(200);
-    if (tab !== "all") q = q.eq("status", tab);
+    if (tab !== "all") q = q.eq("status", tab as any);
     const { data } = await q;
     setRows(data ?? []);
   };
@@ -42,7 +42,7 @@ function AdminWithdrawals() {
   }, [tab]);
 
   const approve = async (id: string) => {
-    const { error } = await supabase.rpc("admin_approve_withdrawal", { _id: id, _notes: null });
+    const { error } = await supabase.rpc("admin_approve_withdrawal", { _id: id });
     if (error) return toast.error(error.message);
     toast.success("Approved");
     load();
