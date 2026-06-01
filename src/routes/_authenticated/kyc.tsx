@@ -33,6 +33,24 @@ type Submission = {
 
 const ID_TYPES = ["Passport", "National ID", "Driving License"];
 
+const MAX_KYC_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_KYC_TYPES = ["image/jpeg", "image/jpg", "image/png", "application/pdf"] as const;
+const ALLOWED_KYC_EXT = ["jpg", "jpeg", "png", "pdf"] as const;
+
+function validateKycFile(file: File, label: string): string | null {
+  if (file.size > MAX_KYC_FILE_BYTES) {
+    return `${label}: file is larger than 5 MB`;
+  }
+  const ext = (file.name.split(".").pop() ?? "").toLowerCase();
+  const mime = file.type.toLowerCase();
+  const okMime = (ALLOWED_KYC_TYPES as readonly string[]).includes(mime);
+  const okExt = (ALLOWED_KYC_EXT as readonly string[]).includes(ext);
+  if (!okMime || !okExt) {
+    return `${label}: only JPG, PNG, or PDF files are allowed`;
+  }
+  return null;
+}
+
 function StatusBadge({ status }: { status: Submission["status"] | "unverified" }) {
   const map = {
     unverified: { label: "Unverified", Icon: ShieldAlert, cls: "bg-muted text-muted-foreground" },
@@ -86,7 +104,9 @@ function KycPage() {
   }, [form]);
 
   const uploadFile = async (file: File, label: string) => {
-    const ext = file.name.split(".").pop() || "jpg";
+    const err = validateKycFile(file, label);
+    if (err) throw new Error(err);
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
     const path = `${user!.id}/${label}-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("kyc-documents").upload(path, file, { upsert: true, contentType: file.type });
     if (error) throw error;
@@ -101,6 +121,15 @@ function KycPage() {
     }
     if (Object.keys(errors).length) { toast.error("Fix validation errors"); return; }
     if (!frontFile || !selfieFile) { toast.error("Upload ID front and selfie"); return; }
+    for (const [f, label] of [
+      [frontFile, "ID front"],
+      [backFile, "ID back"],
+      [selfieFile, "Selfie"],
+    ] as const) {
+      if (!f) continue;
+      const fileErr = validateKycFile(f, label);
+      if (fileErr) { toast.error(fileErr); return; }
+    }
     setSubmitting(true);
     try {
       const [frontPath, backPath, selfiePath] = await Promise.all([
@@ -263,7 +292,8 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function FileDrop({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
-  const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  const isImage = !!file && file.type.startsWith("image/");
+  const preview = useMemo(() => (file && isImage ? URL.createObjectURL(file) : null), [file, isImage]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   return (
     <label className="block">
@@ -271,13 +301,31 @@ function FileDrop({ label, file, onChange }: { label: string; file: File | null;
       <div className="mt-1 relative border border-dashed border-border/60 rounded-lg p-3 hover:border-primary/60 transition cursor-pointer min-h-32 flex items-center justify-center overflow-hidden bg-muted/20">
         {preview ? (
           <img src={preview} alt="" loading="lazy" decoding="async" className="max-h-32 object-contain" />
+        ) : file ? (
+          <div className="text-center text-muted-foreground px-2">
+            <Upload className="h-5 w-5 mx-auto" />
+            <p className="text-xs mt-1 break-all">{file.name}</p>
+            <p className="text-[10px] mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+          </div>
         ) : (
           <div className="text-center text-muted-foreground">
             <Upload className="h-5 w-5 mx-auto" />
-            <p className="text-xs mt-1">Click to upload</p>
+            <p className="text-xs mt-1">JPG, PNG, or PDF · max 5 MB</p>
           </div>
         )}
-        <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+        <input
+          type="file"
+          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+          className="absolute inset-0 opacity-0 cursor-pointer"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            if (f) {
+              const err = validateKycFile(f, label);
+              if (err) { toast.error(err); e.target.value = ""; return; }
+            }
+            onChange(f);
+          }}
+        />
       </div>
     </label>
   );

@@ -77,6 +77,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Lovable App" },
       { name: "description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { name: "author", content: "CashBullX" },
+      {
+        httpEquiv: "Content-Security-Policy",
+        content:
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.lovable.app https://*.lovable.dev; " +
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+          "font-src 'self' data: https://fonts.gstatic.com; " +
+          "img-src 'self' data: blob: https:; " +
+          "media-src 'self' data: blob: https:; " +
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.lovable.app https://*.lovable.dev https://*.lovableproject.com; " +
+          "frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev https://*.lovableproject.com; " +
+          "base-uri 'self'; " +
+          "form-action 'self'; " +
+          "object-src 'none'",
+      },
+      { name: "referrer", content: "strict-origin-when-cross-origin" },
       { property: "og:title", content: "Lovable App" },
       { property: "og:description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { property: "og:type", content: "website" },
