@@ -90,18 +90,11 @@ export function LiveTicker() {
       mixed.push({ kind: "event", data: e });
       if (i % 3 === 0) mixed.push({ kind: "asset", data: assets[(i / 3) % assets.length] });
     });
-    if (mixed.length === 0) {
-      // No real earnings yet — show only asset prices so the ticker isn't empty.
-      assets.forEach((a) => mixed.push({ kind: "asset", data: a }));
-    }
     return [...mixed, ...mixed];
   }, [assets, events]);
 
-  // Hide ticker entirely if no real earnings AND no asset prices loaded.
-  if (events.length === 0 && (!earningsData || !data)) {
-    // Still loading — render nothing to avoid showing fake data.
-    if (!earningsData) return null;
-  }
+  // Hide ticker entirely when there are no real earnings yet.
+  if (!earningsData || events.length === 0) return null;
 
   return (
     <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
