@@ -46,6 +46,25 @@ function WalletPage() {
     load();
   };
 
+  function downloadCSV(filename: string, rows: any[]) {
+    if (!rows.length) return;
+    const headers = ["Date", "Description", "Type", "Amount (USD)"];
+    const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const lines = rows.map((t) => [
+      new Date(t.created_at).toLocaleString(),
+      t.description ?? t.type.replace("_", " "),
+      t.type,
+      (t.amount_cents / 100).toFixed(2),
+    ].map(String).map(escape).join(","));
+    const blob = new Blob(["\ufeff" + headers.map(escape).join(",") + "\n" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6 animate-float-up">
       <header>
