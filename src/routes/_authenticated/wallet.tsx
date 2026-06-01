@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowDownToLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight, FileDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
