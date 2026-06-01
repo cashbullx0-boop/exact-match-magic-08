@@ -460,13 +460,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/withdraw': {
-      id: '/_authenticated/withdraw'
-      path: '/withdraw'
-      fullPath: '/withdraw'
-      preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -598,13 +591,6 @@ declare module '@tanstack/react-router' {
       path: '/deposits'
       fullPath: '/admin/deposits'
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/withdrawals': {
-      id: '/_authenticated/admin/withdrawals'
-      path: '/withdrawals'
-      fullPath: '/admin/withdrawals'
-      preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
   }
