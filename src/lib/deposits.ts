@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type DepositNetwork = "USDT_TRC20" | "USDT_BEP20";
 
-export type DepositStatus = "pending" | "confirming" | "completed" | "failed" | "expired";
+export type DepositStatus = "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
 
 export interface NetworkConfig {
   id: DepositNetwork;
@@ -144,7 +144,7 @@ export async function createGatewayInvoice(_args: {
  *   - Verifies the gateway's HMAC signature (NOWPayments: x-nowpayments-sig,
  *     CoinPayments: HMAC header) using the shared secret.
  *   - Looks up the deposit by provider_payment_id.
- *   - On 'finished'/'confirmed' status, atomically marks it completed and
+ *   - On 'finished'/'confirmed' status, atomically marks it approved and
  *     credits the user's balance via supabaseAdmin.
  */
 export async function verifyDepositWebhook(_payload: unknown, _signature: string): Promise<boolean> {

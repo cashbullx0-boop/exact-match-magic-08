@@ -39,6 +39,7 @@ type DepositRow = {
 const statusMeta: Record<DepositStatus, { label: string; icon: typeof Clock; cls: string }> = {
   pending:    { label: "Pending",     icon: Clock,        cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
   confirming: { label: "Confirming",  icon: Loader2,      cls: "bg-blue-500/15 text-blue-300 border-blue-500/30" },
+  approved:   { label: "Approved",    icon: CheckCircle2, cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
   completed:  { label: "Completed",   icon: CheckCircle2, cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
   failed:     { label: "Failed",      icon: XCircle,      cls: "bg-destructive/15 text-destructive border-destructive/30" },
   expired:    { label: "Expired",     icon: AlertCircle,  cls: "bg-muted text-muted-foreground border-border" },
@@ -273,11 +274,11 @@ function DepositPage() {
           <TabsList className="w-full overflow-x-auto flex justify-start">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="completed">Approved</TabsTrigger>
           </TabsList>
           {(["all", "pending", "completed"] as const).map((tab) => {
             const rows = deposits.filter((d) =>
-              tab === "all" ? true : tab === "pending" ? d.status === "pending" || d.status === "confirming" : d.status === "completed"
+              tab === "all" ? true : tab === "pending" ? d.status === "pending" || d.status === "confirming" : d.status === "approved" || d.status === "completed"
             );
             return (
               <TabsContent key={tab} value={tab} className="mt-4">
