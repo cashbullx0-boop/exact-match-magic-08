@@ -283,6 +283,36 @@
   }
   .animate-blob { animation: blob 18s ease-in-out infinite; }
 
+  /* Perf: hint the compositor for continuously animated layers */
+  .animate-aurora, .animate-blob, .animate-float-y, .animate-ticker {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Perf: huge blurred decorative blobs are very expensive on mobile GPUs.
+     Disable the costly infinite animations on small screens and respect
+     users who request reduced motion. Visual look is preserved (blobs stay,
+     they just stop moving). */
+  @media (max-width: 768px) {
+    .animate-aurora,
+    .animate-blob,
+    .animate-float-y,
+    .btn-glow {
+      animation: none !important;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-aurora,
+    .animate-blob,
+    .animate-float-y,
+    .animate-ticker,
+    .btn-glow,
+    .shine-text {
+      animation: none !important;
+    }
+  }
+
   @keyframes shine {
     from { background-position: -200% 0; }
     to { background-position: 200% 0; }

@@ -53,10 +53,14 @@ function Index() {
           {/* aurora + floating gradient blobs */}
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute inset-0 grid-bg opacity-60" />
-            <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-aurora" />
-            <div className="absolute top-20 right-10 h-80 w-80 rounded-full bg-accent/30 blur-3xl animate-aurora" style={{ animationDelay: "2s" }} />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[28rem] w-[28rem] rounded-full bg-fuchsia-500/20 blur-[120px] animate-blob" />
-            <div className="absolute top-10 left-0 h-72 w-72 rounded-full bg-cyan-500/15 blur-[100px] animate-blob" style={{ animationDelay: "5s" }} />
+            {/* Heavy blurred blobs only on md+ where GPUs handle it well */}
+            <div className="hidden md:block absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-primary/30 blur-3xl animate-aurora" />
+            <div className="hidden md:block absolute top-20 right-10 h-80 w-80 rounded-full bg-accent/30 blur-3xl animate-aurora" style={{ animationDelay: "2s" }} />
+            <div className="hidden md:block absolute bottom-0 left-1/2 -translate-x-1/2 h-[28rem] w-[28rem] rounded-full bg-fuchsia-500/20 blur-[120px] animate-blob" />
+            <div className="hidden md:block absolute top-10 left-0 h-72 w-72 rounded-full bg-cyan-500/15 blur-[100px] animate-blob" style={{ animationDelay: "5s" }} />
+            {/* Lightweight static glow for mobile */}
+            <div className="md:hidden absolute -top-20 left-1/4 h-64 w-64 rounded-full bg-primary/20 blur-2xl" />
+            <div className="md:hidden absolute bottom-0 right-0 h-64 w-64 rounded-full bg-accent/15 blur-2xl" />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
@@ -156,18 +160,20 @@ function Index() {
         </section>
 
         {/* TESTIMONIALS */}
-        <div id="reviews">
+        <div id="reviews" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 800px" }}>
           <Testimonials />
         </div>
 
         {/* FAQ */}
-        <FAQSection />
+        <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
+          <FAQSection />
+        </div>
 
         {/* CTA */}
         <section className="pb-24">
           <div className="relative overflow-hidden rounded-3xl glass-strong p-6 sm:p-10 md:p-16 text-center">
-            <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-aurora" />
-            <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-accent/25 blur-3xl animate-blob" />
+            <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-aurora hidden md:block" />
+            <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-accent/25 blur-3xl animate-blob hidden md:block" />
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight relative">
               Start earning in <span className="brand-text">under 60 seconds</span>
             </h2>
