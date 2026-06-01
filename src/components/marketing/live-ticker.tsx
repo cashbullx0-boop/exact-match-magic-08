@@ -1,9 +1,55 @@
 import { TrendingUp } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLivePrices, type AssetPrice } from "@/lib/prices.functions";
-import { getRecentEarnings, type TickerEvent } from "@/lib/ticker.functions";
+import type { TickerEvent } from "@/lib/ticker.functions";
+
+// TODO: When the platform has enough real activity, swap the simulated pool
+// below for live data from `getRecentEarnings` (src/lib/ticker.functions.ts).
+// The component contract (TickerEvent[]) is already aligned for that switch.
+const NAMES: { name: string; country: string }[] = [
+  { name: "Ali Raza", country: "PK" },
+  { name: "Ahmed Khan", country: "PK" },
+  { name: "Hassan Sheikh", country: "PK" },
+  { name: "Sara Malik", country: "PK" },
+  { name: "Fatima Noor", country: "PK" },
+  { name: "Bilal Iqbal", country: "PK" },
+  { name: "Rohan Sharma", country: "IN" },
+  { name: "Priya Patel", country: "IN" },
+  { name: "Arjun Kumar", country: "IN" },
+  { name: "Ananya Singh", country: "IN" },
+  { name: "Omar Al Farsi", country: "AE" },
+  { name: "Layla Hassan", country: "AE" },
+  { name: "Mohammed Saeed", country: "SA" },
+  { name: "Noura Alotaibi", country: "SA" },
+  { name: "James Carter", country: "US" },
+  { name: "Emily Johnson", country: "US" },
+  { name: "Michael Brown", country: "US" },
+  { name: "Olivia Wilson", country: "GB" },
+  { name: "Liam Walker", country: "GB" },
+  { name: "Rakib Hossain", country: "BD" },
+  { name: "Nusrat Jahan", country: "BD" },
+  { name: "Mehmet Yilmaz", country: "TR" },
+  { name: "Elif Demir", country: "TR" },
+  { name: "Budi Santoso", country: "ID" },
+  { name: "Siti Rahayu", country: "ID" },
+  { name: "Aiman Tan", country: "MY" },
+  { name: "Nurul Aziz", country: "MY" },
+];
+
+const TASK_TYPES = ["Video Watch", "Referral Bonus", "Survey Complete", "App Install"];
+
+function randomEvent(): TickerEvent {
+  const p = NAMES[Math.floor(Math.random() * NAMES.length)];
+  const amount = Math.round((0.5 + Math.random() * 24.5) * 100) / 100;
+  const type = TASK_TYPES[Math.floor(Math.random() * TASK_TYPES.length)];
+  return { username: p.name, country: p.country, amount, type, description: null };
+}
+
+function makePool(): TickerEvent[] {
+  return Array.from({ length: 14 }, randomEvent);
+}
 
 const FALLBACK: AssetPrice[] = [
   { symbol: "XAU", name: "Gold", price: 3320.5, change: 0.45 },
@@ -64,7 +110,6 @@ function AssetItem({ a }: { a: AssetPrice }) {
 
 export function LiveTicker() {
   const fetchPrices = useServerFn(getLivePrices);
-  const fetchEarnings = useServerFn(getRecentEarnings);
   const { data } = useQuery({
     queryKey: ["live-prices"],
     queryFn: () => fetchPrices(),
@@ -73,16 +118,16 @@ export function LiveTicker() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
-  const { data: earningsData } = useQuery({
-    queryKey: ["live-earnings"],
-    queryFn: () => fetchEarnings(),
-    refetchInterval: 30_000,
-    staleTime: 25_000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
   const assets: AssetPrice[] = data?.assets ?? FALLBACK;
-  const events: TickerEvent[] = earningsData?.events ?? [];
+
+  // Simulated activity pool — refreshes every 3.5s so the ticker feels live.
+  const [events, setEvents] = useState<TickerEvent[]>(() => makePool());
+  useEffect(() => {
+    const id = setInterval(() => {
+      setEvents((prev) => [randomEvent(), ...prev.slice(0, 13)]);
+    }, 3500);
+    return () => clearInterval(id);
+  }, []);
 
   const row = useMemo(() => {
     const mixed: Array<{ kind: "event"; data: TickerEvent } | { kind: "asset"; data: AssetPrice }> = [];
@@ -92,9 +137,6 @@ export function LiveTicker() {
     });
     return [...mixed, ...mixed];
   }, [assets, events]);
-
-  // Hide ticker entirely when there are no real earnings yet.
-  if (!earningsData || events.length === 0) return null;
 
   return (
     <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
