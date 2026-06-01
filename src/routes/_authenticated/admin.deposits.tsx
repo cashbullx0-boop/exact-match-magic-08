@@ -25,7 +25,7 @@ type Row = {
   wallet_address: string;
   tx_hash: string | null;
   slip_path: string | null;
-  status: "pending" | "confirming" | "completed" | "failed" | "expired";
+  status: "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
   rejection_reason: string | null;
   created_at: string;
 };
@@ -33,6 +33,7 @@ type Row = {
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
   confirming: "bg-blue-500/15 text-blue-400 border border-blue-500/30",
+  approved: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
   completed: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
   failed: "bg-rose-500/15 text-rose-400 border border-rose-500/30",
   expired: "bg-muted text-muted-foreground",
@@ -131,7 +132,7 @@ function AdminDepositsPage() {
               <SelectItem value="all">All status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="confirming">Confirming</SelectItem>
-              <SelectItem value="completed">Approved</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="failed">Rejected</SelectItem>
             </SelectContent>
           </Select>
@@ -227,7 +228,7 @@ function AdminDepositsPage() {
                 )}
               </div>
 
-              {selected.status !== "completed" && (
+              {selected.status !== "approved" && selected.status !== "completed" && (
                 <div>
                   <Label>Rejection reason (required to reject)</Label>
                   <Textarea className="mt-1" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Tx hash not found on blockchain" />
@@ -235,10 +236,10 @@ function AdminDepositsPage() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                <Button variant="outline" onClick={reject} disabled={busy || selected.status === "completed"} className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
+                <Button variant="outline" onClick={reject} disabled={busy || selected.status === "approved" || selected.status === "completed"} className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10">
                   <ShieldX className="h-4 w-4" /> Reject
                 </Button>
-                <Button onClick={approve} disabled={busy || selected.status === "completed"} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                <Button onClick={approve} disabled={busy || selected.status === "approved" || selected.status === "completed"} className="bg-emerald-500 hover:bg-emerald-600 text-white">
                   <ShieldCheck className="h-4 w-4" /> Approve & credit
                 </Button>
               </div>
