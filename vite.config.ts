@@ -12,10 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // Force Nitro on with the Vercel preset so `vite build` on Vercel produces
-  // a deployable SSR bundle (`.vercel/output`) instead of the Cloudflare default.
+  // Force Nitro on with the Netlify preset so `vite build` on Netlify produces
+  // a deployable SSR bundle (`.netlify/`) instead of the Cloudflare default.
   nitro: {
-    preset: "vercel",
+    preset: "netlify",
   },
   vite: {
     esbuild: {
