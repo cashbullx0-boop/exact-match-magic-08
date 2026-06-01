@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    esbuild: {
+      // Strip console.* and debugger statements from production builds only
+      drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+    },
+  },
 });
