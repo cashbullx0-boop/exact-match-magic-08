@@ -115,6 +115,13 @@ function WalletPage() {
             const list = txns.filter(filter);
             return (
               <TabsContent key={v} value={v}>
+                {v === "investments" && list.length > 0 && (
+                  <div className="flex justify-end mb-3">
+                    <Button variant="outline" size="sm" onClick={() => downloadCSV("investment-ledger.csv", list)}>
+                      <FileDown className="h-4 w-4 mr-2" /> Export CSV
+                    </Button>
+                  </div>
+                )}
                 {list.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-6 text-center">No activity in this category.</p>
                 ) : (
