@@ -106,6 +106,8 @@ function Index() {
           </div>
         </section>
 
+        <Reveal><TrustBadges /></Reveal>
+
         {/* STATS */}
         <Reveal>
           <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pb-16 sm:pb-20">
