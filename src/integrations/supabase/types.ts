@@ -573,6 +573,7 @@ export type Database = {
       deposit_status:
         | "pending"
         | "confirming"
+        | "approved"
         | "completed"
         | "failed"
         | "expired"
@@ -712,6 +713,7 @@ export const Constants = {
       deposit_status: [
         "pending",
         "confirming",
+        "approved",
         "completed",
         "failed",
         "expired",
