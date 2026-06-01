@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getLivePrices, type AssetPrice } from "@/lib/prices.functions";
+import { getRecentEarnings, type TickerEvent } from "@/lib/ticker.functions";
 
 const FALLBACK: AssetPrice[] = [
   { symbol: "XAU", name: "Gold", price: 3320.5, change: 0.45 },
@@ -20,26 +21,26 @@ function fmt(n: number) {
   return n >= 100 ? n.toFixed(2) : n.toFixed(2);
 }
 
-const EVENTS = [
-  { name: "Sarah", country: "🇺🇸", action: "earned", amount: "$47.50", kind: "Survey" },
-  { name: "Ahmed", country: "🇵🇰", action: "earned", amount: "$125.00", kind: "App Install" },
-  { name: "Maria", country: "🇧🇷", action: "earned", amount: "$89.75", kind: "Video" },
-  { name: "James", country: "🇬🇧", action: "earned", amount: "$210.00", kind: "Offer" },
-  { name: "Fatima", country: "🇦🇪", action: "earned", amount: "$65.25", kind: "Survey" },
-  { name: "Chen", country: "🇨🇳", action: "earned", amount: "$175.50", kind: "App Install" },
-  { name: "Anna", country: "🇩🇪", action: "earned", amount: "$95.00", kind: "Special Offer" },
-  { name: "Mohammed", country: "🇸🇦", action: "earned", amount: "$150.75", kind: "Survey" },
-];
+function countryToFlag(input: string | null): string {
+  if (!input) return "";
+  const trimmed = input.trim();
+  if (trimmed.length === 2 && /^[a-zA-Z]{2}$/.test(trimmed)) {
+    const code = trimmed.toUpperCase();
+    return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  }
+  return "";
+}
 
-function Item({ e }: { e: (typeof EVENTS)[number] }) {
+function Item({ e }: { e: TickerEvent }) {
+  const flag = countryToFlag(e.country);
   return (
     <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-5 py-1 sm:py-1.5 text-[11px] sm:text-xs md:text-sm whitespace-nowrap">
       <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot shrink-0" />
-      <span className="text-foreground/90 font-medium">{e.name}</span>
-      <span className="text-muted-foreground">{e.country}</span>
-      <span className="text-muted-foreground hidden sm:inline">{e.action}</span>
-      <span className="text-emerald-400 font-semibold">{e.amount}</span>
-      <span className="text-muted-foreground hidden sm:inline">· {e.kind}</span>
+      <span className="text-foreground/90 font-medium">{e.username}</span>
+      {flag && <span className="text-muted-foreground">{flag}</span>}
+      <span className="text-muted-foreground hidden sm:inline">earned</span>
+      <span className="text-emerald-400 font-semibold">${e.amount.toFixed(2)}</span>
+      <span className="text-muted-foreground hidden sm:inline">· {e.type}</span>
       <span className="mx-1.5 sm:mx-2 md:mx-3 text-border">•</span>
     </span>
   );
@@ -63,6 +64,7 @@ function AssetItem({ a }: { a: AssetPrice }) {
 
 export function LiveTicker() {
   const fetchPrices = useServerFn(getLivePrices);
+  const fetchEarnings = useServerFn(getRecentEarnings);
   const { data } = useQuery({
     queryKey: ["live-prices"],
     queryFn: () => fetchPrices(),
@@ -71,17 +73,36 @@ export function LiveTicker() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+  const { data: earningsData } = useQuery({
+    queryKey: ["live-earnings"],
+    queryFn: () => fetchEarnings(),
+    refetchInterval: 30_000,
+    staleTime: 25_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
   const assets: AssetPrice[] = data?.assets ?? FALLBACK;
+  const events: TickerEvent[] = earningsData?.events ?? [];
 
-  // Interleave assets between events so prices appear regularly across the ticker
   const row = useMemo(() => {
-    const mixed: Array<{ kind: "event"; data: (typeof EVENTS)[number] } | { kind: "asset"; data: AssetPrice }> = [];
-    EVENTS.forEach((e, i) => {
+    const mixed: Array<{ kind: "event"; data: TickerEvent } | { kind: "asset"; data: AssetPrice }> = [];
+    events.forEach((e, i) => {
       mixed.push({ kind: "event", data: e });
       if (i % 3 === 0) mixed.push({ kind: "asset", data: assets[(i / 3) % assets.length] });
     });
+    if (mixed.length === 0) {
+      // No real earnings yet — show only asset prices so the ticker isn't empty.
+      assets.forEach((a) => mixed.push({ kind: "asset", data: a }));
+    }
     return [...mixed, ...mixed];
-  }, [assets]);
+  }, [assets, events]);
+
+  // Hide ticker entirely if no real earnings AND no asset prices loaded.
+  if (events.length === 0 && (!earningsData || !data)) {
+    // Still loading — render nothing to avoid showing fake data.
+    if (!earningsData) return null;
+  }
+
   return (
     <div className="border-b border-border/60 bg-black/40 backdrop-blur-xl overflow-hidden">
       <div className="container mx-auto flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 max-w-full">
