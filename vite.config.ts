@@ -6,17 +6,17 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// NOTE: Cloudflare Pages' build system inspects this file looking for a top-level
+// `plugins` array. The Lovable wrapper resolves plugins internally, so we expose
+// an empty `plugins: []` at the top level to satisfy that check. The TanStack
+// Start + Nitro (cloudflare preset) plugins are still injected by the wrapper.
 export default defineConfig({
+  plugins: [],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // Force Nitro on with the Netlify preset so `vite build` on Netlify produces
-  // a deployable SSR bundle (`.netlify/`) instead of the Cloudflare default.
-  nitro: {
-    preset: "netlify",
-  },
+  // Default Nitro preset is `cloudflare` — correct for Cloudflare Pages.
   vite: {
     esbuild: {
       // Strip console.* and debugger statements from production builds only
