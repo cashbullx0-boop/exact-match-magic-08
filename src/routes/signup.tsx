@@ -6,9 +6,6 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PhoneField } from "@/components/auth/phone-field";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Mail } from "lucide-react";
@@ -28,13 +25,9 @@ function SignupPage() {
     if (refSearch) { setRef(refSearch); try { sessionStorage.setItem("cbx_ref", refSearch); } catch {} return; }
     try { const v = sessionStorage.getItem("cbx_ref"); if (v) setRef(v); } catch {}
   }, [refSearch]);
-  const [mode, setMode] = useState<"email" | "phone">("email");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
@@ -47,7 +40,6 @@ function SignupPage() {
   }, [resendIn]);
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
-  const phoneValid = useMemo(() => phone && isValidPhoneNumber(phone), [phone]);
   const pwdError = password.length > 0 && password.length < 6 ? "At least 6 characters" : "";
 
   useEffect(() => {
@@ -108,33 +100,6 @@ function SignupPage() {
     toast.success("New code sent");
   };
 
-  const sendPhoneOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim()) { toast.error("Enter your full name"); return; }
-    if (!phoneValid) { toast.error("Enter a valid phone number"); return; }
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-      options: { data: { full_name: fullName, referral_code: ref ?? null } },
-    });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    setOtpSent(true);
-    toast.success("Verification code sent");
-  };
-
-  const verifyPhoneOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (otp.length < 4) { toast.error("Enter the code"); return; }
-    setLoading(true);
-    const { data, error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    if (data.user) attachReferral(data.user.id);
-    toast.success("Phone verified");
-    navigate({ to: "/dashboard", replace: true });
-  };
-
   const google = async () => {
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/dashboard" });
     if (res.error) toast.error(res.error.message);
@@ -154,99 +119,59 @@ function SignupPage() {
         </Button>
 
         <div className="flex items-center gap-3 my-6 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> or sign up with <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1 bg-border" /> or sign up with email <div className="h-px flex-1 bg-border" />
         </div>
 
-        <Tabs value={mode} onValueChange={(v) => setMode(v as "email" | "phone")}>
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="email">Email</TabsTrigger>
-            <TabsTrigger value="phone">Phone</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="email" className="mt-5">
-            {!emailOtpSent ? (
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
-                <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
+        {!emailOtpSent ? (
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
+              <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-11" placeholder="you@example.com" />
+              {email && !emailValid && <p className="text-xs text-destructive mt-1">Enter a valid email</p>}
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+              <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
+              {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
+            </div>
+            <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
+              {loading ? "Creating..." : "Create account →"}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={verifyEmailOtp} className="space-y-5">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0"><Mail className="h-4 w-4" /></div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Verify your email</p>
+                <p className="text-xs text-muted-foreground mt-0.5">We sent a 6-digit code to <span className="text-foreground font-medium break-all">{email}</span>. The code expires in 10 minutes.</p>
               </div>
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
-                <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-11" placeholder="you@example.com" />
-                {email && !emailValid && <p className="text-xs text-destructive mt-1">Enter a valid email</p>}
-              </div>
-              <div>
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
-                <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
-                {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
-              </div>
-              <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
-                {loading ? "Creating..." : "Create account →"}
-              </Button>
-            </form>
-            ) : (
-              <form onSubmit={verifyEmailOtp} className="space-y-5">
-                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0"><Mail className="h-4 w-4" /></div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">Verify your email</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">We sent a 6-digit code to <span className="text-foreground font-medium break-all">{email}</span>. The code expires in 10 minutes.</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-3">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Enter verification code</Label>
-                  <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp} inputMode="numeric" pattern="^[0-9]*$">
-                    <InputOTPGroup>
-                      {[0,1,2,3,4,5].map((i) => (
-                        <InputOTPSlot key={i} index={i} className="h-12 w-10 text-lg bg-white/[0.04] border-border" />
-                      ))}
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-                <Button type="submit" disabled={loading || emailOtp.length !== 6} className="w-full h-11 btn-primary-gradient">
-                  {loading ? "Verifying..." : "Verify & continue →"}
-                </Button>
-                <div className="flex items-center justify-between text-xs">
-                  <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); }} className="text-muted-foreground hover:text-foreground">Use a different email</button>
-                  <button type="button" onClick={resendEmailOtp} disabled={resendIn > 0 || loading} className="text-primary disabled:text-muted-foreground disabled:cursor-not-allowed hover:underline">
-                    {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </TabsContent>
-
-          <TabsContent value="phone" className="mt-5">
-            {!otpSent ? (
-              <form onSubmit={sendPhoneOtp} className="space-y-4">
-                <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Full name</Label>
-                  <Input required value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1 h-11" placeholder="Alex Morgan" />
-                </div>
-                <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number</Label>
-                  <div className="mt-1"><PhoneField value={phone} onChange={setPhone} /></div>
-                  {phone && !phoneValid && <p className="text-xs text-destructive mt-1">Enter a valid phone number</p>}
-                </div>
-                <Button type="submit" disabled={loading || !phoneValid} className="w-full h-11 btn-primary-gradient">
-                  {loading ? "Sending..." : "Send verification code →"}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={verifyPhoneOtp} className="space-y-4">
-                <p className="text-sm text-muted-foreground">We sent a code to <span className="text-foreground font-medium">{phone}</span></p>
-                <div>
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground">Verification code</Label>
-                  <Input required inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} className="mt-1 h-11 tracking-[0.4em] text-center" placeholder="000000" maxLength={6} />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
-                  {loading ? "Verifying..." : "Verify & continue →"}
-                </Button>
-                <button type="button" onClick={() => setOtpSent(false)} className="text-xs text-muted-foreground hover:text-foreground w-full">Use a different number</button>
-              </form>
-            )}
-          </TabsContent>
-        </Tabs>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Enter verification code</Label>
+              <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp} inputMode="numeric" pattern="^[0-9]*$">
+                <InputOTPGroup>
+                  {[0,1,2,3,4,5].map((i) => (
+                    <InputOTPSlot key={i} index={i} className="h-12 w-10 text-lg bg-white/[0.04] border-border" />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button type="submit" disabled={loading || emailOtp.length !== 6} className="w-full h-11 btn-primary-gradient">
+              {loading ? "Verifying..." : "Verify & continue →"}
+            </Button>
+            <div className="flex items-center justify-between text-xs">
+              <button type="button" onClick={() => { setEmailOtpSent(false); setEmailOtp(""); }} className="text-muted-foreground hover:text-foreground">Use a different email</button>
+              <button type="button" onClick={resendEmailOtp} disabled={resendIn > 0 || loading} className="text-primary disabled:text-muted-foreground disabled:cursor-not-allowed hover:underline">
+                {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+              </button>
+            </div>
+          </form>
+        )}
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
