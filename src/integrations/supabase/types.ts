@@ -579,7 +579,12 @@ export type Database = {
         | "expired"
       kyc_status: "unverified" | "pending" | "verified" | "rejected"
       task_category: "survey" | "video" | "app_install" | "offer"
-      txn_type: "task_reward" | "referral_bonus" | "withdrawal" | "adjustment"
+      txn_type:
+        | "task_reward"
+        | "referral_bonus"
+        | "withdrawal"
+        | "adjustment"
+        | "deposit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -720,7 +725,13 @@ export const Constants = {
       ],
       kyc_status: ["unverified", "pending", "verified", "rejected"],
       task_category: ["survey", "video", "app_install", "offer"],
-      txn_type: ["task_reward", "referral_bonus", "withdrawal", "adjustment"],
+      txn_type: [
+        "task_reward",
+        "referral_bonus",
+        "withdrawal",
+        "adjustment",
+        "deposit",
+      ],
     },
   },
 } as const
