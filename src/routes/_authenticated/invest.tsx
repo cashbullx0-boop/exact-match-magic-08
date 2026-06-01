@@ -65,7 +65,7 @@ function InvestPage() {
 
   const loadInvestments = async () => {
     if (!user) return;
-    const { data } = await supabase.from("investments").select("*")
+    const { data } = await (supabase as any).from("investments").select("*")
       .eq("user_id", user.id).order("created_at", { ascending: false });
     setInvestments(data ?? []);
   };
