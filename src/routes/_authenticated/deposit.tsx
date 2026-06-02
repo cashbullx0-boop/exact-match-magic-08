@@ -200,7 +200,7 @@ function DepositPage() {
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {[25, 50, 100, 250].map((v) => (
+              {[50, 100, 250].map((v) => (
                 <button key={v} type="button" onClick={() => setAmount(String(v))}
                   className="text-xs px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-border text-muted-foreground hover:text-foreground transition">
                   ${v}
