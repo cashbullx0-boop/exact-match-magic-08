@@ -9,11 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as AmlRouteImport } from './routes/aml'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RefUsernameRouteImport } from './routes/ref.$username'
@@ -39,6 +43,11 @@ import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin.investments'
 import { Route as AuthenticatedAdminDepositsRouteImport } from './routes/_authenticated/admin.deposits'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -47,6 +56,16 @@ const SignupRoute = SignupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -62,6 +81,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AmlRoute = AmlRouteImport.update({
+  id: '/aml',
+  path: '/aml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -193,11 +217,15 @@ const AuthenticatedAdminDepositsRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aml': typeof AmlRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -223,11 +251,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aml': typeof AmlRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -255,11 +287,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/aml': typeof AmlRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -287,11 +323,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aml'
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/terms'
     | '/achievements'
     | '/admin'
     | '/dashboard'
@@ -317,11 +357,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aml'
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/terms'
     | '/achievements'
     | '/admin'
     | '/dashboard'
@@ -348,11 +392,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/aml'
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/privacy'
+    | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/terms'
     | '/_authenticated/achievements'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
@@ -380,16 +428,27 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AmlRoute: typeof AmlRoute
   FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
   RefUsernameRoute: typeof RefUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -402,6 +461,20 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -423,6 +496,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aml': {
+      id: '/aml'
+      path: '/aml'
+      fullPath: '/aml'
+      preLoaderRoute: typeof AmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -660,11 +740,15 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AmlRoute: AmlRoute,
   FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
+  RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
   RefUsernameRoute: RefUsernameRoute,
 }
 export const routeTree = rootRouteImport
