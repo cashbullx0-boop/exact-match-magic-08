@@ -32,10 +32,10 @@ const COLS = [
   {
     title: "Legal",
     links: [
-      { label: "Privacy Policy", to: "/" as const },
-      { label: "Terms of Service", to: "/" as const },
-      { label: "Cookies", to: "/" as const },
-      { label: "Disclaimer", to: "/" as const },
+      { label: "Terms of Service", to: "/terms" as const },
+      { label: "Privacy Policy", to: "/privacy" as const },
+      { label: "Refund Policy", to: "/refund" as const },
+      { label: "AML Policy", to: "/aml" as const },
     ],
   },
 ];
