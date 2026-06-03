@@ -38,6 +38,7 @@ import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
+import { Route as ApiPublicCpxPostbackRouteImport } from './routes/api/public/cpx-postback'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
@@ -191,6 +192,11 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicCpxPostbackRoute = ApiPublicCpxPostbackRouteImport.update({
+  id: '/api/public/cpx-postback',
+  path: '/api/public/cpx-postback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminWithdrawalsRoute =
   AuthenticatedAdminWithdrawalsRouteImport.update({
     id: '/withdrawals',
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/referrals'
     | '/admin/withdrawals'
+    | '/api/public/cpx-postback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/referrals'
     | '/admin/withdrawals'
+    | '/api/public/cpx-postback'
   id:
     | '__root__'
     | '/'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/withdrawals'
+    | '/api/public/cpx-postback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -450,6 +462,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   RefUsernameRoute: typeof RefUsernameRoute
+  ApiPublicCpxPostbackRoute: typeof ApiPublicCpxPostbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -657,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/cpx-postback': {
+      id: '/api/public/cpx-postback'
+      path: '/api/public/cpx-postback'
+      fullPath: '/api/public/cpx-postback'
+      preLoaderRoute: typeof ApiPublicCpxPostbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/withdrawals': {
       id: '/_authenticated/admin/withdrawals'
       path: '/withdrawals'
@@ -771,7 +791,18 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   RefUsernameRoute: RefUsernameRoute,
+  ApiPublicCpxPostbackRoute: ApiPublicCpxPostbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
