@@ -33,10 +33,12 @@ import { Route as AuthenticatedLevelsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedInvestRouteImport } from './routes/_authenticated/invest'
+import { Route as AuthenticatedEarnRouteImport } from './routes/_authenticated/earn'
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
+import { Route as ApiPublicCpxPostbackRouteImport } from './routes/api/public/cpx-postback'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
@@ -164,6 +166,11 @@ const AuthenticatedInvestRoute = AuthenticatedInvestRouteImport.update({
   path: '/invest',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedEarnRoute = AuthenticatedEarnRouteImport.update({
+  id: '/earn',
+  path: '/earn',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDepositRoute = AuthenticatedDepositRouteImport.update({
   id: '/deposit',
   path: '/deposit',
@@ -185,6 +192,11 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicCpxPostbackRoute = ApiPublicCpxPostbackRouteImport.update({
+  id: '/api/public/cpx-postback',
+  path: '/api/public/cpx-postback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminWithdrawalsRoute =
   AuthenticatedAdminWithdrawalsRouteImport.update({
     id: '/withdrawals',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -248,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -264,6 +278,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -282,6 +297,7 @@ export interface FileRoutesByTo {
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -300,6 +316,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
+  '/_authenticated/earn': typeof AuthenticatedEarnRoute
   '/_authenticated/invest': typeof AuthenticatedInvestRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -318,6 +335,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
+  '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -336,6 +354,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/deposit'
+    | '/earn'
     | '/invest'
     | '/kyc'
     | '/leaderboard'
@@ -354,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/referrals'
     | '/admin/withdrawals'
+    | '/api/public/cpx-postback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -370,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/deposit'
+    | '/earn'
     | '/invest'
     | '/kyc'
     | '/leaderboard'
@@ -388,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/kyc'
     | '/admin/referrals'
     | '/admin/withdrawals'
+    | '/api/public/cpx-postback'
   id:
     | '__root__'
     | '/'
@@ -405,6 +427,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/deposit'
+    | '/_authenticated/earn'
     | '/_authenticated/invest'
     | '/_authenticated/kyc'
     | '/_authenticated/leaderboard'
@@ -423,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/withdrawals'
+    | '/api/public/cpx-postback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -438,6 +462,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   RefUsernameRoute: typeof RefUsernameRoute
+  ApiPublicCpxPostbackRoute: typeof ApiPublicCpxPostbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -610,6 +635,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInvestRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/earn': {
+      id: '/_authenticated/earn'
+      path: '/earn'
+      fullPath: '/earn'
+      preLoaderRoute: typeof AuthenticatedEarnRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/deposit': {
       id: '/_authenticated/deposit'
       path: '/deposit'
@@ -637,6 +669,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/achievements'
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/cpx-postback': {
+      id: '/api/public/cpx-postback'
+      path: '/api/public/cpx-postback'
+      fullPath: '/api/public/cpx-postback'
+      preLoaderRoute: typeof ApiPublicCpxPostbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/withdrawals': {
       id: '/_authenticated/admin/withdrawals'
@@ -700,6 +739,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
+  AuthenticatedEarnRoute: typeof AuthenticatedEarnRoute
   AuthenticatedInvestRoute: typeof AuthenticatedInvestRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
@@ -719,6 +759,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
+  AuthenticatedEarnRoute: AuthenticatedEarnRoute,
   AuthenticatedInvestRoute: AuthenticatedInvestRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
@@ -750,6 +791,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   RefUsernameRoute: RefUsernameRoute,
+  ApiPublicCpxPostbackRoute: ApiPublicCpxPostbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

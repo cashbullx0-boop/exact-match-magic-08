@@ -19,6 +19,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/offerwall", label: "Offerwall", icon: Sparkles },
+  { to: "/earn", label: "Earn 💰", icon: Sparkles },
   { to: "/levels", label: "Levels", icon: Crown },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/achievements", label: "Achievements", icon: Award },
