@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
 
 const NAV = [
   { label: "Features", href: "#features" },
@@ -24,7 +25,9 @@ export function SiteHeader() {
   return (
     <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-black/60 backdrop-blur-2xl border-b border-border/60" : "bg-transparent"}`}>
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-full">
-        <Link to="/" className="text-xl sm:text-2xl font-bold brand-text">CashBullX</Link>
+        <Link to="/" className="flex items-center" aria-label="CashBullX home">
+          <img src={logoAsset.url} alt="CashBullX" className="h-10 sm:h-12 w-auto object-contain" />
+        </Link>
         <nav className="hidden md:flex items-center gap-1">
           {NAV.map((n) => (
             n.to ? (

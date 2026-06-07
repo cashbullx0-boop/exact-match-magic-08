@@ -11,6 +11,7 @@ import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Reveal } from "@/components/marketing/reveal";
 import { TrustStrip } from "@/components/marketing/trust-strip";
 import { FAQSection } from "@/components/marketing/faq";
+import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -62,6 +63,13 @@ function Index() {
             {/* Lightweight static glow for mobile */}
             <div className="md:hidden absolute -top-20 left-1/4 h-64 w-64 rounded-full bg-primary/20 blur-2xl" />
             <div className="md:hidden absolute bottom-0 right-0 h-64 w-64 rounded-full bg-accent/15 blur-2xl" />
+            {/* Bull watermark */}
+            <img
+              src={logoAsset.url}
+              alt=""
+              aria-hidden="true"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] sm:w-[60%] md:w-[50%] lg:w-[45%] max-w-2xl opacity-10 pointer-events-none select-none object-contain"
+            />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
