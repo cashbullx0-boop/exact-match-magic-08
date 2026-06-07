@@ -49,7 +49,21 @@ function Index() {
       <LiveTicker />
       <SiteHeader />
 
-      <main className="container mx-auto px-4 sm:px-6 max-w-full">
+      {/* Sticky bull watermark — visible across the whole homepage */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden">
+        <img
+          src={logoAsset.url}
+          alt=""
+          aria-hidden="true"
+          className="w-[90%] sm:w-[75%] md:w-[70%] lg:w-[65%] max-w-[900px] object-contain select-none"
+          style={{
+            opacity: 0.1,
+            filter: "sepia(1) saturate(4) hue-rotate(-10deg) brightness(1.1) drop-shadow(0 0 40px rgba(245, 158, 11, 0.35))",
+          }}
+        />
+      </div>
+
+      <main className="container mx-auto px-4 sm:px-6 max-w-full relative z-10">
         {/* HERO */}
         <section className="relative pt-10 pb-16 sm:pt-16 sm:pb-24 md:pt-24 md:pb-32">
           {/* aurora + floating gradient blobs */}
@@ -63,13 +77,6 @@ function Index() {
             {/* Lightweight static glow for mobile */}
             <div className="md:hidden absolute -top-20 left-1/4 h-64 w-64 rounded-full bg-primary/20 blur-2xl" />
             <div className="md:hidden absolute bottom-0 right-0 h-64 w-64 rounded-full bg-accent/15 blur-2xl" />
-            {/* Bull watermark */}
-            <img
-              src={logoAsset.url}
-              alt=""
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] sm:w-[60%] md:w-[50%] lg:w-[45%] max-w-2xl opacity-10 pointer-events-none select-none object-contain"
-            />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
