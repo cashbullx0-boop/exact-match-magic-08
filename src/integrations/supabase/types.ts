@@ -84,6 +84,7 @@ export type Database = {
           provider: string
           provider_payment_id: string | null
           rejection_reason: string | null
+          slip_attempt: number
           slip_path: string | null
           status: Database["public"]["Enums"]["deposit_status"]
           tx_hash: string | null
@@ -103,6 +104,7 @@ export type Database = {
           provider?: string
           provider_payment_id?: string | null
           rejection_reason?: string | null
+          slip_attempt?: number
           slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
           tx_hash?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           provider?: string
           provider_payment_id?: string | null
           rejection_reason?: string | null
+          slip_attempt?: number
           slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
           tx_hash?: string | null
