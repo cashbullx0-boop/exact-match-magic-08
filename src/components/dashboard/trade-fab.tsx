@@ -22,9 +22,11 @@ const DURATIONS = [
   { label: "15 min", value: 900 },
 ] as const;
 
+type LivePrice = { symbol: string; name: string; base: number; price: number; change: number };
+
 function useFakeLivePrices() {
-  const [prices, setPrices] = useState(() =>
-    SYMBOLS.map((s) => ({ ...s, price: s.base, change: 0 }))
+  const [prices, setPrices] = useState<LivePrice[]>(() =>
+    SYMBOLS.map((s) => ({ symbol: s.symbol, name: s.name, base: s.base, price: s.base, change: 0 }))
   );
   useEffect(() => {
     const tick = () => {
