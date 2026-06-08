@@ -731,6 +731,52 @@ export type Database = {
         }
         Returns: boolean
       }
+      place_trade: {
+        Args: {
+          _amount_cents: number
+          _direction: string
+          _duration_seconds: number
+        }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      settle_trade: {
+        Args: { _trade_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "user"
