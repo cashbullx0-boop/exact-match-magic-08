@@ -10,6 +10,7 @@ import { FloatingSupport } from "@/components/dashboard/floating-support";
 import { LiveNotificationPopup } from "@/components/dashboard/live-notification-popup";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { VipBadge } from "@/components/dashboard/vip-badge";
+import { TradeFab } from "@/components/dashboard/trade-fab";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -167,6 +168,7 @@ function AuthedLayout() {
 
       <LiveNotificationPopup />
       <FloatingSupport />
+      <TradeFab />
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border px-2 py-2 flex items-center justify-around max-w-full">
