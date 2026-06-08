@@ -477,6 +477,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trades: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id?: string
+          profit_cents?: number | null
+          result?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          direction?: string
+          duration_seconds?: number
+          expires_at?: string
+          id?: string
+          profit_cents?: number | null
+          result?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_cents: number
@@ -691,6 +730,52 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      place_trade: {
+        Args: {
+          _amount_cents: number
+          _direction: string
+          _duration_seconds: number
+        }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      settle_trade: {
+        Args: { _trade_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
