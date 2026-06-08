@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHash } from "node:crypto";
 
 export const Route = createFileRoute("/api/public/cpx-postback")({
   server: {
@@ -9,6 +10,25 @@ export const Route = createFileRoute("/api/public/cpx-postback")({
         const rewardRaw = url.searchParams.get("reward") ?? "";
         const transId = url.searchParams.get("trans_id") ?? "";
         const status = url.searchParams.get("status") ?? "";
+        const hash = url.searchParams.get("hash") ?? "";
+
+        // Require server-side secret; reject all postbacks if not configured
+        const securityKey = process.env.CPX_SECURITY_KEY;
+        if (!securityKey) {
+          console.error("[cpx-postback] CPX_SECURITY_KEY not configured");
+          return new Response("OK", { status: 200 });
+        }
+
+        // Verify CPX hash: md5(ext_user_id + status + trans_id + ip + security_key)
+        // CPX includes the requesting IP in the hash; use x-forwarded-for first hop.
+        const xff = request.headers.get("x-forwarded-for") ?? "";
+        const ip = xff.split(",")[0]?.trim() ?? "";
+        const expected = createHash("md5")
+          .update(extUserId + status + transId + ip + securityKey)
+          .digest("hex");
+        if (!hash || hash.toLowerCase() !== expected.toLowerCase()) {
+          return new Response("INVALID", { status: 200 });
+        }
 
         if (status !== "1") return new Response("OK", { status: 200 });
 
