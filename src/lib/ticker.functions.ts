@@ -30,27 +30,30 @@ export const getRecentEarnings = createServerFn({ method: "GET" }).handler(async
   if (error || !txs || txs.length === 0) return { events: [] as TickerEvent[] };
 
   const userIds = Array.from(new Set(txs.map((t) => t.user_id)));
-  const [{ data: profiles }, { data: kycs }] = await Promise.all([
-    supabaseAdmin.from("profiles").select("id, username, full_name").in("id", userIds),
-    supabaseAdmin.from("kyc_submissions").select("user_id, country, submitted_at").in("user_id", userIds),
-  ]);
+  const { data: profiles } = await supabaseAdmin
+    .from("profiles")
+    .select("id, username, full_name")
+    .in("id", userIds);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-  const countryMap = new Map<string, string>();
-  for (const k of kycs ?? []) {
-    if (!countryMap.has(k.user_id) && k.country) countryMap.set(k.user_id, k.country);
-  }
+
+  // Anonymize display name: first char + asterisks (e.g. "j***")
+  const maskName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return "User";
+    const first = trimmed[0];
+    return first + "***";
+  };
 
   const events: TickerEvent[] = txs.map((t) => {
     const p = profileMap.get(t.user_id);
     const rawName = p?.username || p?.full_name || "User";
-    const username = rawName.length > 18 ? rawName.slice(0, 18) : rawName;
     return {
-      username,
-      country: countryMap.get(t.user_id) ?? null,
+      username: maskName(rawName),
+      country: null,
       amount: t.amount_cents / 100,
       type: TYPE_LABEL[t.type as string] ?? String(t.type).replace(/_/g, " "),
-      description: t.description,
+      description: null,
     };
   });
 
