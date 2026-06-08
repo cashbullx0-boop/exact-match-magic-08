@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { openTrade, settleTrade, listTrades } from "@/lib/trades.functions";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
 
 const SYMBOLS = [
   { symbol: "BTC", name: "Bitcoin", base: 68240 },
