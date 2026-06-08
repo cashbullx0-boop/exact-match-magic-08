@@ -477,6 +477,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trades: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id: string
+          profit_cents: number | null
+          result: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          direction: string
+          duration_seconds: number
+          expires_at: string
+          id?: string
+          profit_cents?: number | null
+          result?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          direction?: string
+          duration_seconds?: number
+          expires_at?: string
+          id?: string
+          profit_cents?: number | null
+          result?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_cents: number
