@@ -72,7 +72,7 @@ export function TradeFab() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTC");
   const [placing, setPlacing] = useState(false);
 
-  const { profile, user } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const qc = useQueryClient();
   const prices = useFakeLivePrices();
 
@@ -89,12 +89,9 @@ export function TradeFab() {
 
   const balanceCents = profile?.balance_cents ?? 0;
 
-  const refreshProfile = async () => {
-    if (!user) return;
-    await supabase.from("profiles").select("*").eq("id", user.id).single();
-    qc.invalidateQueries({ queryKey: ["profile"] });
-    // best-effort: trigger auth context profile refresh via a custom event if exists
-    window.dispatchEvent(new Event("profile:refresh"));
+  const refresh = async () => {
+    await refreshProfile();
+    qc.invalidateQueries();
   };
 
   const handlePlace = async () => {
@@ -112,7 +109,7 @@ export function TradeFab() {
       await openFn({ data: { amount_cents: amt, direction, duration_seconds: duration } });
       toast.success(`Trade placed: ${direction.toUpperCase()} ${duration}s`);
       await tradesQuery.refetch();
-      await refreshProfile();
+      await refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to place trade");
     } finally {
@@ -127,7 +124,7 @@ export function TradeFab() {
       if (t?.result === "win") toast.success(`Trade WON +$${((t.profit_cents ?? 0) / 100).toFixed(2)}`);
       else if (t?.result === "loss") toast.error(`Trade LOST -$${((t.amount_cents ?? 0) / 100).toFixed(2)}`);
       await tradesQuery.refetch();
-      await refreshProfile();
+      await refresh();
     } catch (e) {
       // not yet expired or transient; ignore
     }
