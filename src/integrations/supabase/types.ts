@@ -344,7 +344,7 @@ export type Database = {
           approved_at: string | null
           expires_at: string
           id: string
-          otp_code: string | null
+          otp_hash: string | null
           otp_verified: boolean
           requested_at: string
           status: string
@@ -356,7 +356,7 @@ export type Database = {
           approved_at?: string | null
           expires_at?: string
           id?: string
-          otp_code?: string | null
+          otp_hash?: string | null
           otp_verified?: boolean
           requested_at?: string
           status?: string
@@ -368,7 +368,7 @@ export type Database = {
           approved_at?: string | null
           expires_at?: string
           id?: string
-          otp_code?: string | null
+          otp_hash?: string | null
           otp_verified?: boolean
           requested_at?: string
           status?: string
@@ -382,7 +382,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
-          otp_code: string
+          otp_hash: string | null
           phone: string
           user_id: string | null
           verified: boolean
@@ -391,7 +391,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          otp_code: string
+          otp_hash?: string | null
           phone: string
           user_id?: string | null
           verified?: boolean
@@ -400,7 +400,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          otp_code?: string
+          otp_hash?: string | null
           phone?: string
           user_id?: string | null
           verified?: boolean
@@ -766,7 +766,7 @@ export type Database = {
           id: string
           new_wallet: string
           old_wallet: string | null
-          otp_code: string | null
+          otp_hash: string | null
           otp_verified: boolean
           requested_at: string
           status: string
@@ -780,7 +780,7 @@ export type Database = {
           id?: string
           new_wallet: string
           old_wallet?: string | null
-          otp_code?: string | null
+          otp_hash?: string | null
           otp_verified?: boolean
           requested_at?: string
           status?: string
@@ -794,7 +794,7 @@ export type Database = {
           id?: string
           new_wallet?: string
           old_wallet?: string | null
-          otp_code?: string | null
+          otp_hash?: string | null
           otp_verified?: boolean
           requested_at?: string
           status?: string
@@ -809,7 +809,7 @@ export type Database = {
           email_verified: boolean
           expires_at: string
           id: string
-          otp_code: string
+          otp_hash: string | null
           phone_verified: boolean
           user_id: string
           withdrawal_id: string | null
@@ -819,7 +819,7 @@ export type Database = {
           email_verified?: boolean
           expires_at?: string
           id?: string
-          otp_code: string
+          otp_hash?: string | null
           phone_verified?: boolean
           user_id: string
           withdrawal_id?: string | null
@@ -829,7 +829,7 @@ export type Database = {
           email_verified?: boolean
           expires_at?: string
           id?: string
-          otp_code?: string
+          otp_hash?: string | null
           phone_verified?: boolean
           user_id?: string
           withdrawal_id?: string | null
