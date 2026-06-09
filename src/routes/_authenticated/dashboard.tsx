@@ -1,18 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap, Crown, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { levelFromTotalCents, nextLevel } from "@/lib/levels";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
+import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -33,13 +33,6 @@ function DashboardPage() {
   const alreadyCheckedIn = profile?.last_checkin_date === today;
   const streak = profile?.current_streak ?? 0;
   const nextRewardCents = Math.min(50 + streak * 10, 200);
-
-  const totalUsd = (profile?.total_earned_cents ?? 0) / 100;
-  const memLevel = levelFromTotalCents(profile?.total_earned_cents ?? 0);
-  const memNext = nextLevel(memLevel);
-  const memProgress = memNext
-    ? Math.min(100, ((totalUsd - memLevel.requiredUsd) / (memNext.requiredUsd - memLevel.requiredUsd)) * 100)
-    : 100;
 
   const claimCheckin = async () => {
     if (!user || !profile || alreadyCheckedIn) return;
@@ -160,38 +153,7 @@ function DashboardPage() {
         <StatCard icon={Users} label="Referrals" value={String(stats.referrals)} />
       </div>
 
-      {/* Membership level tracker */}
-      <Card className="glass-strong border-border p-6 relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full opacity-25 blur-3xl pointer-events-none"
-             style={{ background: memLevel.tier.gradient }} />
-        <div className="relative flex flex-col md:flex-row md:items-center gap-5">
-          <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-xl flex items-center justify-center shadow-lg ring-1 ring-white/10 shrink-0"
-                 style={{ background: memLevel.tier.gradient }}>
-              <memLevel.icon className="h-6 w-6 text-black/80" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Membership</span>
-              </div>
-              <p className="text-xl font-bold mt-0.5">Lv {memLevel.level} · {memLevel.tier.name}</p>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between text-xs mb-1.5 text-muted-foreground">
-              <span>${totalUsd.toFixed(2)} earned</span>
-              {memNext ? <span>Next: Lv {memNext.level} · ${memNext.requiredUsd.toLocaleString()}</span> : <span>Max level 👑</span>}
-            </div>
-            <Progress value={memProgress} className="h-2" />
-          </div>
-          <Link to="/levels" className="shrink-0">
-            <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
-              All 44 levels <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-      </Card>
+      <InvestmentLevelWidget />
 
       <Card className="glass-strong border-border p-6">
         <div className="flex items-center justify-between mb-4">
