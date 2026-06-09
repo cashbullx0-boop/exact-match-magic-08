@@ -12,6 +12,7 @@ import { levelFromTotalCents, nextLevel } from "@/lib/levels";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
+import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -114,6 +115,8 @@ function DashboardPage() {
         </div>
         <VipBadge totalCents={profile?.total_earned_cents ?? 0} />
       </header>
+
+      <DepositDeadlineRing />
 
       {/* Daily check-in + level */}
       <div className="grid gap-4 md:grid-cols-2">
