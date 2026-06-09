@@ -82,10 +82,10 @@ export async function createDepositRequest(input: CreateDepositInput) {
 }
 
 export async function attachTxHash(depositId: string, txHash: string) {
-  const { error } = await supabase
-    .from("deposits")
-    .update({ tx_hash: txHash.trim(), status: "confirming" })
-    .eq("id", depositId);
+  const { error } = await supabase.rpc("submit_deposit_tx_hash", {
+    _deposit_id: depositId,
+    _tx_hash: txHash.trim(),
+  });
   if (error) throw error;
 }
 
@@ -96,10 +96,10 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
     .from("deposit-slips")
     .upload(path, file, { upsert: true, contentType: file.type });
   if (upErr) throw upErr;
-  const { error } = await supabase
-    .from("deposits")
-    .update({ slip_path: path })
-    .eq("id", depositId);
+  const { error } = await supabase.rpc("submit_deposit_slip", {
+    _deposit_id: depositId,
+    _slip_path: path,
+  });
   if (error) throw error;
   return path;
 }
