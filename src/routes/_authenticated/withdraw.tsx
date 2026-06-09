@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, Wallet as WalletIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { WithdrawOtpModal } from "@/components/dashboard/withdraw-otp-modal";
 
 export const Route = createFileRoute("/_authenticated/withdraw")({
   head: () => ({ meta: [{ title: "Withdraw — CashBullX" }] }),
@@ -35,6 +36,7 @@ function WithdrawPage() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
+  const [otpOpen, setOtpOpen] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -67,26 +69,37 @@ function WithdrawPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const submit = async () => {
+  const validate = () => {
     const cents = Math.round(parseFloat(amount) * 100);
     if (!cents || cents < 1000) {
       toast.error("Minimum withdrawal is $10");
-      return;
+      return null;
     }
     if (!profile || cents > profile.balance_cents) {
       toast.error("Insufficient balance");
-      return;
+      return null;
     }
     const addr = address.trim();
     if (addr.length < 20 || addr.length > 128 || !/^[A-Za-z0-9]+$/.test(addr)) {
       toast.error("Enter a valid wallet address");
-      return;
+      return null;
     }
+    return { cents, addr };
+  };
+
+  const startVerify = () => {
+    if (!validate()) return;
+    setOtpOpen(true);
+  };
+
+  const submit = async () => {
+    const v = validate();
+    if (!v) return;
     setLoading(true);
     const { error } = await supabase.rpc("create_withdrawal", {
-      _amount_cents: cents,
+      _amount_cents: v.cents,
       _network: network,
-      _wallet_address: addr,
+      _wallet_address: v.addr,
     });
     setLoading(false);
     if (error) {
@@ -175,13 +188,24 @@ function WithdrawPage() {
         </div>
 
         <Button
-          onClick={submit}
+          onClick={startVerify}
           disabled={loading}
           className="btn-primary-gradient h-11 w-full sm:w-auto"
         >
-          {loading ? "Submitting…" : "Request withdrawal"}
+          {loading ? "Submitting…" : "Verify & request withdrawal"}
         </Button>
       </Card>
+
+      {user && (
+        <WithdrawOtpModal
+          open={otpOpen}
+          onOpenChange={setOtpOpen}
+          userId={user.id}
+          email={user.email}
+          phone={(profile as any)?.phone}
+          onVerified={submit}
+        />
+      )}
 
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold mb-4">Withdrawal history</h2>
