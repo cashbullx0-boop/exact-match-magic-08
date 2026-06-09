@@ -18,6 +18,7 @@ type Profile = {
   current_streak: number;
   longest_streak: number;
   last_checkin_date: string | null;
+  deposit_deadline: string | null;
 };
 
 type AuthContextValue = {
