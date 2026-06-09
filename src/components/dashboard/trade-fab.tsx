@@ -149,15 +149,9 @@ export function TradeFab() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open trading panel"
-          className="pointer-events-auto h-14 w-14 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
-          style={{
-            background: "linear-gradient(135deg, #F59E0B 0%, #FFD24A 50%, #B8860B 100%)",
-            boxShadow:
-              "0 0 20px rgba(245,158,11,0.5), 0 6px 18px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
-            border: "2px solid rgba(255, 215, 100, 0.6)",
-          }}
+          className="pointer-events-auto h-14 w-14 rounded-full flex items-center justify-center btn-primary-gradient btn-glow shadow-2xl transition-transform active:scale-95 hover:scale-105"
         >
-          <Wallet className="h-6 w-6 text-black drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]" />
+          <Wallet className="h-6 w-6 text-primary-foreground" />
         </button>
         <span className="mt-0.5 text-[10px] font-medium text-primary">Trade</span>
       </div>
