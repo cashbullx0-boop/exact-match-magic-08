@@ -72,6 +72,12 @@ export function TradeFab() {
   const [placing, setPlacing] = useState(false);
 
   const { profile, user, refreshProfile } = useAuth();
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-trade-fab", handler);
+    return () => window.removeEventListener("open-trade-fab", handler);
+  }, []);
   const qc = useQueryClient();
   const prices = useFakeLivePrices();
 
