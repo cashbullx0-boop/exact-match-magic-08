@@ -922,6 +922,10 @@ export type Database = {
         Args: { _id: string; _reason: string }
         Returns: undefined
       }
+      attach_verified_phone: {
+        Args: { _country_code: string; _phone: string }
+        Returns: undefined
+      }
       ban_expired_kyc_accounts: { Args: never; Returns: undefined }
       check_banned_documents: {
         Args: { _email: string; _id_number: string; _phone: string }
@@ -948,6 +952,7 @@ export type Database = {
         Args: { _body: string; _link?: string; _title: string; _type?: string }
         Returns: string
       }
+      create_signup_phone_otp: { Args: { _phone: string }; Returns: string }
       create_withdrawal: {
         Args: {
           _amount_cents: number
@@ -1061,6 +1066,10 @@ export type Database = {
       verify_password_reset_otp: {
         Args: { _email: string; _otp: string }
         Returns: string
+      }
+      verify_signup_phone_otp: {
+        Args: { _otp: string; _phone: string }
+        Returns: boolean
       }
       verify_withdrawal_otp: {
         Args: { _otp: string; _type: string; _user_id: string }
