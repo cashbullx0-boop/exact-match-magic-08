@@ -153,7 +153,7 @@ export function TradeFab() {
         >
           <Wallet className="h-6 w-6 text-primary-foreground" />
         </button>
-        <span className="mt-0.5 text-[10px] font-medium text-primary">Trade</span>
+        <span className="mt-0.5 text-[10px] font-semibold tracking-[0.18em] text-primary">CBX</span>
       </div>
 
       {/* Modal */}
@@ -161,35 +161,40 @@ export function TradeFab() {
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div
-            className="relative w-full md:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl border border-primary/30 p-5 animate-float-up"
+            className="relative w-full md:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl border border-white/[0.06] p-6 md:p-7 animate-float-up"
             style={{
               background:
-                "linear-gradient(180deg, hsl(var(--background)) 0%, rgba(20,14,4,0.98) 100%)",
-              boxShadow: "0 -12px 48px rgba(245,158,11,0.25), 0 0 0 1px rgba(245,158,11,0.18)",
+                "radial-gradient(120% 80% at 100% 0%, rgba(245,158,11,0.08) 0%, transparent 60%), linear-gradient(180deg, #0c0d12 0%, #08090d 100%)",
+              boxShadow:
+                "0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(245,158,11,0.10), inset 0 1px 0 rgba(255,255,255,0.04)",
             }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
                 <div
-                  className="h-9 w-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg,#F59E0B,#B8860B)" }}
+                  className="h-11 w-11 rounded-2xl flex items-center justify-center ring-1 ring-white/10"
+                  style={{
+                    background: "linear-gradient(135deg,#F59E0B,#B8860B)",
+                    boxShadow: "0 8px 20px -6px rgba(245,158,11,0.55)",
+                  }}
                 >
                   <Wallet className="h-5 w-5 text-black" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold" style={{ color: "#F59E0B" }}>
-                    Quick Trade
-                  </h2>
-                  <p className="text-[11px] text-muted-foreground">Balance: ${(balanceCents / 100).toFixed(2)}</p>
+                  <h2 className="text-xl font-semibold tracking-tight text-white">Quick Trade</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Balance <span className="font-mono tabular-nums text-foreground/90">${(balanceCents / 100).toFixed(2)}</span>
+                  </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
+              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full text-muted-foreground hover:text-foreground">
                 <X className="h-5 w-5" />
               </Button>
             </div>
 
             {/* Live prices */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2">Markets</div>
+            <div className="grid grid-cols-3 gap-2 mb-5">
               {prices.map((p) => {
                 const active = selectedSymbol === p.symbol;
                 const up = p.change >= 0;
@@ -197,21 +202,21 @@ export function TradeFab() {
                   <button
                     key={p.symbol}
                     onClick={() => setSelectedSymbol(p.symbol)}
-                    className={`rounded-xl p-2 text-left border transition-all ${
+                    className={`rounded-xl p-3 text-left border transition-all ${
                       active
-                        ? "border-primary bg-primary/10 shadow-[0_0_16px_rgba(245,158,11,0.35)]"
-                        : "border-border/50 bg-white/5 hover:border-primary/40"
+                        ? "border-primary/60 bg-primary/[0.08] shadow-[0_0_0_1px_rgba(245,158,11,0.25),0_8px_24px_-12px_rgba(245,158,11,0.4)]"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold" style={{ color: active ? "#FFD24A" : undefined }}>
+                      <span className={`text-xs font-semibold tracking-wide ${active ? "text-primary" : "text-foreground/90"}`}>
                         {p.symbol}
                       </span>
-                      <span className={`text-[10px] font-mono ${up ? "text-emerald-400" : "text-red-400"}`}>
+                      <span className={`text-[10px] font-mono tabular-nums ${up ? "text-emerald-400" : "text-red-400"}`}>
                         {up ? "▲" : "▼"} {Math.abs(p.change).toFixed(2)}%
                       </span>
                     </div>
-                    <div className="text-sm font-mono tabular-nums mt-0.5">
+                    <div className="text-sm font-mono tabular-nums mt-1 text-foreground">
                       ${p.price < 10 ? p.price.toFixed(4) : p.price.toFixed(2)}
                     </div>
                   </button>
@@ -219,48 +224,60 @@ export function TradeFab() {
               })}
             </div>
 
-            <div className="text-[11px] text-muted-foreground mb-3 flex items-center gap-1">
+            <div className="text-[11px] text-muted-foreground mb-5 flex items-center gap-1.5">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live · trading {selectedPrice?.symbol} @ $
-              {selectedPrice && (selectedPrice.price < 10 ? selectedPrice.price.toFixed(4) : selectedPrice.price.toFixed(2))}
+              <span className="uppercase tracking-wider text-emerald-400/90 font-semibold">Live</span>
+              <span>·</span>
+              <span>{selectedPrice?.symbol} @</span>
+              <span className="font-mono tabular-nums text-foreground/90">
+                ${selectedPrice && (selectedPrice.price < 10 ? selectedPrice.price.toFixed(4) : selectedPrice.price.toFixed(2))}
+              </span>
             </div>
 
             {/* Amount */}
-            <label className="text-xs text-muted-foreground">Amount (USD)</label>
-            <div className="flex gap-2 mt-1 mb-3">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Amount (USD)</label>
+            <div className="flex gap-2 mt-2 mb-4">
               <Input
                 type="number"
                 min={1}
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="bg-background/60 border-primary/30"
+                className="h-11 bg-white/[0.03] border-white/10 focus-visible:border-primary/60 focus-visible:ring-0 font-mono tabular-nums text-base"
               />
               {[10, 50, 100].map((v) => (
-                <Button key={v} type="button" variant="outline" size="sm" onClick={() => setAmount(String(v))}>
+                <Button
+                  key={v}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAmount(String(v))}
+                  className="h-11 px-3 bg-white/[0.02] border-white/10 hover:bg-white/[0.06] hover:border-white/20 text-foreground/80"
+                >
                   ${v}
                 </Button>
               ))}
             </div>
 
             {/* Direction */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Direction</label>
+            <div className="grid grid-cols-2 gap-2 mt-2 mb-4">
               <button
                 onClick={() => setDirection("up")}
-                className={`rounded-xl py-3 flex items-center justify-center gap-2 font-bold border-2 transition-all ${
+                className={`rounded-xl py-3.5 flex items-center justify-center gap-2 text-sm font-semibold tracking-wide border transition-all ${
                   direction === "up"
-                    ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_18px_rgba(16,185,129,0.4)]"
-                    : "border-border/50 text-muted-foreground hover:border-emerald-400/40"
+                    ? "bg-emerald-500/[0.12] border-emerald-400/60 text-emerald-300 shadow-[0_0_0_1px_rgba(16,185,129,0.25),0_10px_28px_-14px_rgba(16,185,129,0.5)]"
+                    : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-emerald-400/30 hover:text-emerald-300/80"
                 }`}
               >
                 <TrendingUp className="h-4 w-4" /> UP
               </button>
               <button
                 onClick={() => setDirection("down")}
-                className={`rounded-xl py-3 flex items-center justify-center gap-2 font-bold border-2 transition-all ${
+                className={`rounded-xl py-3.5 flex items-center justify-center gap-2 text-sm font-semibold tracking-wide border transition-all ${
                   direction === "down"
-                    ? "bg-red-500/20 border-red-400 text-red-300 shadow-[0_0_18px_rgba(239,68,68,0.4)]"
-                    : "border-border/50 text-muted-foreground hover:border-red-400/40"
+                    ? "bg-red-500/[0.12] border-red-400/60 text-red-300 shadow-[0_0_0_1px_rgba(239,68,68,0.25),0_10px_28px_-14px_rgba(239,68,68,0.5)]"
+                    : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-red-400/30 hover:text-red-300/80"
                 }`}
               >
                 <TrendingDown className="h-4 w-4" /> DOWN
@@ -268,16 +285,16 @@ export function TradeFab() {
             </div>
 
             {/* Duration */}
-            <label className="text-xs text-muted-foreground">Duration</label>
-            <div className="grid grid-cols-3 gap-2 mt-1 mb-4">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Duration</label>
+            <div className="grid grid-cols-3 gap-2 mt-2 mb-5">
               {DURATIONS.map((d) => (
                 <button
                   key={d.value}
                   onClick={() => setDuration(d.value as 60 | 300 | 900)}
-                  className={`rounded-xl py-2 text-sm border-2 transition-all ${
+                  className={`rounded-xl py-2.5 text-sm font-medium border transition-all ${
                     duration === d.value
-                      ? "border-primary bg-primary/15 text-primary"
-                      : "border-border/50 text-muted-foreground hover:border-primary/40"
+                      ? "border-primary/60 bg-primary/[0.10] text-primary shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
+                      : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/15 hover:text-foreground"
                   }`}
                 >
                   {d.label}
@@ -288,22 +305,24 @@ export function TradeFab() {
             <Button
               onClick={handlePlace}
               disabled={placing}
-              className="w-full h-12 text-base font-bold text-black"
+              className="w-full h-12 text-sm font-semibold tracking-wide text-black rounded-xl"
               style={{
                 background: "linear-gradient(135deg,#FFD24A 0%,#F59E0B 50%,#B8860B 100%)",
-                boxShadow: "0 8px 24px rgba(245,158,11,0.4)",
+                boxShadow: "0 14px 32px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35)",
               }}
             >
               {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Place Trade · ${parseFloat(amount || "0").toFixed(2)}
+              Place Trade · <span className="font-mono tabular-nums">${parseFloat(amount || "0").toFixed(2)}</span>
             </Button>
-            <p className="text-[10px] text-muted-foreground text-center mt-2">
-              Win returns original + 85% profit. 50/50 outcome.
+            <p className="text-[10px] text-muted-foreground text-center mt-3 tracking-wide">
+              Win returns original + 85% profit · 50/50 outcome
             </p>
 
+            <div className="h-px bg-white/[0.06] my-6" />
+
             {/* Active trades */}
-            <div className="mt-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#F59E0B" }}>
+            <div>
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
                 Active Trades
               </h3>
               {(tradesQuery.data?.active ?? []).length === 0 ? (
@@ -338,8 +357,8 @@ export function TradeFab() {
             </div>
 
             {/* History */}
-            <div className="mt-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#F59E0B" }}>
+            <div className="mt-6">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
                 Trade History
               </h3>
               {(tradesQuery.data?.history ?? []).length === 0 ? (
