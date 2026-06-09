@@ -377,6 +377,36 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verifications: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          otp_code: string
+          phone: string
+          user_id: string | null
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_code: string
+          phone: string
+          user_id?: string | null
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          phone?: string
+          user_id?: string | null
+          verified?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -394,6 +424,9 @@ export type Database = {
           longest_streak: number
           okx_wallet: string | null
           okx_wallet_locked: boolean
+          phone: string | null
+          phone_country_code: string | null
+          phone_verified: boolean
           referral_code: string
           referred_by: string | null
           status: string
@@ -419,6 +452,9 @@ export type Database = {
           longest_streak?: number
           okx_wallet?: string | null
           okx_wallet_locked?: boolean
+          phone?: string | null
+          phone_country_code?: string | null
+          phone_verified?: boolean
           referral_code: string
           referred_by?: string | null
           status?: string
@@ -444,6 +480,9 @@ export type Database = {
           longest_streak?: number
           okx_wallet?: string | null
           okx_wallet_locked?: boolean
+          phone?: string | null
+          phone_country_code?: string | null
+          phone_verified?: boolean
           referral_code?: string
           referred_by?: string | null
           status?: string
@@ -764,6 +803,39 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_otps: {
+        Row: {
+          created_at: string
+          email_verified: boolean
+          expires_at: string
+          id: string
+          otp_code: string
+          phone_verified: boolean
+          user_id: string
+          withdrawal_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_verified?: boolean
+          expires_at?: string
+          id?: string
+          otp_code: string
+          phone_verified?: boolean
+          user_id: string
+          withdrawal_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_verified?: boolean
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          phone_verified?: boolean
+          user_id?: string
+          withdrawal_id?: string | null
+        }
+        Relationships: []
+      }
       withdrawals: {
         Row: {
           admin_notes: string | null
@@ -855,6 +927,10 @@ export type Database = {
         Args: { _email: string; _id_number: string; _phone: string }
         Returns: boolean
       }
+      check_withdrawal_otp_complete: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
         Returns: undefined
@@ -880,6 +956,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_withdrawal_otp: { Args: { _user_id: string }; Returns: string }
       get_my_downline: {
         Args: never
         Returns: {
@@ -984,6 +1061,10 @@ export type Database = {
       verify_password_reset_otp: {
         Args: { _email: string; _otp: string }
         Returns: string
+      }
+      verify_withdrawal_otp: {
+        Args: { _otp: string; _type: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
