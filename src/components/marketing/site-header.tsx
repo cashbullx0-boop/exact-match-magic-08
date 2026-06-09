@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
+import logoAsset from "@/assets/cashbullx-logo.webp.asset.json";
 
 const NAV = [
   { label: "Features", href: "#features" },
@@ -30,6 +30,10 @@ export function SiteHeader() {
             src={logoAsset.url}
             alt=""
             aria-hidden="true"
+            width={40}
+            height={40}
+            decoding="async"
+            fetchPriority="high"
             className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             style={{ filter: "drop-shadow(0 0 6px rgba(245, 158, 11, 0.7)) drop-shadow(0 0 14px rgba(245, 158, 11, 0.4))" }}
           />

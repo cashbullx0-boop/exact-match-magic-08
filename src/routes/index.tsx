@@ -1,18 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Coins, Gift, PlayCircle, Smartphone, Sparkles, Users, Wallet, Shield, Zap, Lock, Globe, ArrowRight, TrendingUp } from "lucide-react";
 import { LiveTicker } from "@/components/marketing/live-ticker";
-import { Testimonials } from "@/components/marketing/testimonials";
 import { TrustBadges } from "@/components/marketing/trust-badges";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Reveal } from "@/components/marketing/reveal";
 import { TrustStrip } from "@/components/marketing/trust-strip";
-import { FAQSection } from "@/components/marketing/faq";
-import { EarnLottieScene } from "@/components/marketing/earn-lottie-scene";
-import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
+import logoAsset from "@/assets/cashbullx-logo.webp.asset.json";
+
+// Defer heavy below-the-fold sections (chunks load on demand)
+const EarnLottieScene = lazy(() =>
+  import("@/components/marketing/earn-lottie-scene").then((m) => ({ default: m.EarnLottieScene })),
+);
+const Testimonials = lazy(() =>
+  import("@/components/marketing/testimonials").then((m) => ({ default: m.Testimonials })),
+);
+const FAQSection = lazy(() =>
+  import("@/components/marketing/faq").then((m) => ({ default: m.FAQSection })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -56,6 +65,10 @@ function Index() {
           src={logoAsset.url}
           alt=""
           aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          width={900}
+          height={900}
           className="w-[90%] sm:w-[75%] md:w-[70%] lg:w-[65%] max-w-[900px] object-contain select-none"
           style={{
             opacity: 0.1,
@@ -171,7 +184,9 @@ function Index() {
         <section id="features" className="pb-24">
           <Reveal>
             <div className="mb-16">
-              <EarnLottieScene />
+              <Suspense fallback={<div className="h-[420px] rounded-3xl bg-zinc-900/50" />}>
+                <EarnLottieScene />
+              </Suspense>
             </div>
           </Reveal>
           <Reveal>
@@ -185,12 +200,16 @@ function Index() {
 
         {/* TESTIMONIALS */}
         <div id="reviews" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 800px" }}>
-          <Testimonials />
+          <Suspense fallback={<div className="h-[600px]" />}>
+            <Testimonials />
+          </Suspense>
         </div>
 
         {/* FAQ */}
         <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 600px" }}>
-          <FAQSection />
+          <Suspense fallback={<div className="h-[500px]" />}>
+            <FAQSection />
+          </Suspense>
         </div>
 
         {/* CTA */}
