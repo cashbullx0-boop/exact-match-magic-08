@@ -299,6 +299,45 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_requests: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          expires_at: string
+          id: string
+          otp_code: string | null
+          otp_verified: boolean
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          expires_at?: string
+          id?: string
+          otp_code?: string | null
+          otp_verified?: boolean
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          expires_at?: string
+          id?: string
+          otp_code?: string | null
+          otp_verified?: boolean
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -314,6 +353,8 @@ export type Database = {
           last_checkin_date: string | null
           level: number
           longest_streak: number
+          okx_wallet: string | null
+          okx_wallet_locked: boolean
           referral_code: string
           referred_by: string | null
           status: string
@@ -337,6 +378,8 @@ export type Database = {
           last_checkin_date?: string | null
           level?: number
           longest_streak?: number
+          okx_wallet?: string | null
+          okx_wallet_locked?: boolean
           referral_code: string
           referred_by?: string | null
           status?: string
@@ -360,6 +403,8 @@ export type Database = {
           last_checkin_date?: string | null
           level?: number
           longest_streak?: number
+          okx_wallet?: string | null
+          okx_wallet_locked?: boolean
           referral_code?: string
           referred_by?: string | null
           status?: string
@@ -635,6 +680,51 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_change_requests: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          expires_at: string
+          id: string
+          new_wallet: string
+          old_wallet: string | null
+          otp_code: string | null
+          otp_verified: boolean
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          expires_at?: string
+          id?: string
+          new_wallet: string
+          old_wallet?: string | null
+          otp_code?: string | null
+          otp_verified?: boolean
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          expires_at?: string
+          id?: string
+          new_wallet?: string
+          old_wallet?: string | null
+          otp_code?: string | null
+          otp_verified?: boolean
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       withdrawals: {
         Row: {
           admin_notes: string | null
@@ -689,6 +779,14 @@ export type Database = {
         Args: { _deposit_id: string }
         Returns: undefined
       }
+      admin_approve_password_reset: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
+      admin_approve_wallet_change: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       admin_approve_withdrawal: {
         Args: { _id: string; _notes?: string }
         Returns: undefined
@@ -717,6 +815,10 @@ export type Database = {
       check_banned_documents: {
         Args: { _email: string; _id_number: string; _phone: string }
         Returns: boolean
+      }
+      confirm_wallet_change: {
+        Args: { _otp: string; _request_id: string }
+        Returns: undefined
       }
       create_investment: {
         Args: {
@@ -800,6 +902,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      request_password_reset_by_email: {
+        Args: { _email: string }
+        Returns: string
+      }
+      request_wallet_change: { Args: { _new_wallet: string }; Returns: string }
+      set_okx_wallet: { Args: { _address: string }; Returns: undefined }
       settle_trade: {
         Args: { _trade_id: string }
         Returns: {
@@ -820,6 +928,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      verify_password_reset_otp: {
+        Args: { _email: string; _otp: string }
+        Returns: string
       }
     }
     Enums: {

@@ -19,6 +19,8 @@ type Profile = {
   longest_streak: number;
   last_checkin_date: string | null;
   deposit_deadline: string | null;
+  okx_wallet: string | null;
+  okx_wallet_locked: boolean;
 };
 
 type AuthContextValue = {
