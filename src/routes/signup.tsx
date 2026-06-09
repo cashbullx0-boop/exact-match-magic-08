@@ -180,7 +180,40 @@ function SignupPage() {
               <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
               {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number (required)</Label>
+              <div className="mt-1 rounded-md border border-input bg-transparent px-3 h-11 flex items-center [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:text-sm [&_.PhoneInputInput]:flex-1 [&_.PhoneInputCountry]:mr-2">
+                <PhoneField value={phone} onChange={(v) => { setPhone(v); setPhoneOtpSent(false); setPhoneVerified(false); setPhoneOtp(""); }} placeholder="Phone number" />
+              </div>
+              {!phoneVerified && (
+                <div className="mt-2 space-y-2">
+                  {!phoneOtpSent ? (
+                    <Button type="button" variant="outline" size="sm" onClick={sendPhoneOtp} disabled={loading || !phone} className="w-full">
+                      <Phone className="h-3.5 w-3.5 mr-1.5" /> Send phone OTP
+                    </Button>
+                  ) : (
+                    <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+                      <p className="text-xs text-muted-foreground">Enter the 6-digit code sent to <span className="text-foreground font-medium">{phone}</span></p>
+                      <div className="flex items-center justify-between gap-2">
+                        <InputOTP maxLength={6} value={phoneOtp} onChange={setPhoneOtp} inputMode="numeric">
+                          <InputOTPGroup>
+                            {[0,1,2,3,4,5].map((i) => (
+                              <InputOTPSlot key={i} index={i} className="h-10 w-8 text-base bg-white/[0.04] border-primary/30" />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                        <Button type="button" size="sm" onClick={verifyPhoneOtp} disabled={loading || phoneOtp.length !== 6} className="btn-primary-gradient">Verify</Button>
+                      </div>
+                      <button type="button" onClick={sendPhoneOtp} disabled={phoneResendIn > 0 || loading} className="text-xs text-primary disabled:text-muted-foreground hover:underline">
+                        {phoneResendIn > 0 ? `Resend in ${phoneResendIn}s` : "Resend code"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {phoneVerified && <p className="text-xs text-accent mt-2">✓ Phone verified</p>}
+            </div>
+            <Button type="submit" disabled={loading || !phoneVerified} className="w-full h-11 btn-primary-gradient">
               {loading ? "Creating..." : "Create account →"}
             </Button>
           </form>
