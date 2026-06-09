@@ -170,24 +170,32 @@ function AuthedLayout() {
       <FloatingSupport />
       <TradeFab />
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border px-2 py-2 flex items-center justify-around max-w-full">
-        {[
-          { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-          { to: "/tasks", label: "Tasks", icon: ListChecks },
-          { to: "/levels", label: "Levels", icon: Crown },
-          { to: "/wallet", label: "Wallet", icon: Wallet },
-          { to: "/profile", label: "Me", icon: UserIcon },
-        ].map((i) => {
-          const active = pathname === i.to;
-          return (
-            <Link key={i.to} to={i.to}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 min-h-[44px] min-w-[44px] py-2 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
-              <i.icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
-              <span>{i.label}</span>
-            </Link>
-          );
-        })}
+      {/* Mobile bottom nav with center FAB notch */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-border max-w-full"
+           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        <div className="grid grid-cols-5 items-end px-1 pt-2 pb-1">
+          {[
+            { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+            { to: "/tasks", label: "Tasks", icon: ListChecks },
+            { to: "__trade__", label: "", icon: null as never },
+            { to: "/wallet", label: "Wallet", icon: Wallet },
+            { to: "/profile", label: "Me", icon: UserIcon },
+          ].map((i, idx) => {
+            if (i.to === "__trade__") {
+              // Spacer for the floating Trade FAB
+              return <div key="trade-spacer" className="h-[44px]" aria-hidden="true" />;
+            }
+            const active = pathname === i.to;
+            const Icon = i.icon;
+            return (
+              <Link key={i.to} to={i.to}
+                className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-1 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+                <Icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
+                <span>{i.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
     </div>
   );
