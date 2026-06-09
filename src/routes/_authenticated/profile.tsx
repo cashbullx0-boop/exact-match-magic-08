@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Camera, Shield, Mail, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { OkxWalletCard } from "@/components/dashboard/okx-wallet-card";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — CashBullX" }] }),
