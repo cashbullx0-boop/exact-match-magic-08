@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { AdminRequestsPanel } from "@/components/dashboard/admin-requests-panel";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — CashBullX" }] }),
@@ -72,6 +73,8 @@ function AdminPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Admin dashboard</h1>
         <p className="text-muted-foreground mt-1">Manage tasks and view users.</p>
       </header>
+
+      <AdminRequestsPanel />
 
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold flex items-center gap-2"><Plus className="h-4 w-4" /> Create task</h2>
