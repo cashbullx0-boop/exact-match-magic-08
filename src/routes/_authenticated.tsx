@@ -100,6 +100,10 @@ function AuthedLayout() {
         })}
         {isAdmin && (
           <>
+            <Link to="/admin/deposits" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/deposits" ? "bg-accent/15 text-accent" : "text-accent hover:bg-accent/10"}`}>
+              <Shield className="h-4 w-4" />Admin Panel
+            </Link>
             <Link to="/admin" onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <Shield className="h-4 w-4" />Admin
