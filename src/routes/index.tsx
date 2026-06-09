@@ -169,6 +169,11 @@ function Index() {
         {/* FEATURES */}
         <section id="features" className="pb-24">
           <Reveal>
+            <div className="mb-16">
+              <CowboyBullScene />
+            </div>
+          </Reveal>
+          <Reveal>
             <div className="grid gap-5 md:grid-cols-3">
               <Feature icon={Wallet} title="Real wallet" body="Track every earning. Cash out to USDT (TRC20/BEP20) when you're ready." />
               <Feature icon={Users} title="Referral bonuses" body="Invite friends with your code. Earn lifetime bonuses on every task they complete." />
