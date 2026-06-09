@@ -11,6 +11,7 @@ import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Reveal } from "@/components/marketing/reveal";
 import { TrustStrip } from "@/components/marketing/trust-strip";
 import { FAQSection } from "@/components/marketing/faq";
+import { CowboyBullScene } from "@/components/marketing/cowboy-bull-scene";
 import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
