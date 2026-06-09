@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Mail } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
+import { PhoneField } from "@/components/auth/phone-field";
+import { parsePhoneNumber } from "react-phone-number-input";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (s) => ({ ref: typeof s.ref === "string" ? s.ref : undefined }),
@@ -28,6 +30,11 @@ function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [phoneResendIn, setPhoneResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
@@ -38,6 +45,12 @@ function SignupPage() {
     const t = setInterval(() => setResendIn((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, [resendIn]);
+
+  useEffect(() => {
+    if (phoneResendIn <= 0) return;
+    const t = setInterval(() => setPhoneResendIn((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, [phoneResendIn]);
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
   const pwdError = password.length > 0 && password.length < 6 ? "At least 6 characters" : "";
@@ -58,11 +71,34 @@ function SignupPage() {
     }, 800);
   };
 
+  const sendPhoneOtp = async () => {
+    const parsed = phone ? parsePhoneNumber(phone) : null;
+    if (!parsed || !parsed.isValid()) { toast.error("Enter a valid phone number"); return; }
+    setLoading(true);
+    const { data, error } = await supabase.rpc("create_signup_phone_otp", { _phone: phone });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    setPhoneOtpSent(true);
+    setPhoneResendIn(45);
+    toast.success(`Phone OTP sent${data ? ` (demo: ${data})` : ""}`, { duration: 8000 });
+  };
+
+  const verifyPhoneOtp = async () => {
+    if (phoneOtp.length !== 6) { toast.error("Enter the 6-digit code"); return; }
+    setLoading(true);
+    const { data, error } = await supabase.rpc("verify_signup_phone_otp", { _phone: phone, _otp: phoneOtp });
+    setLoading(false);
+    if (error || !data) { toast.error("Invalid or expired OTP"); return; }
+    setPhoneVerified(true);
+    toast.success("Phone verified ✓");
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) { toast.error("Enter your full name"); return; }
     if (!emailValid) { toast.error("Enter a valid email"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    if (!phoneVerified) { toast.error("Verify your phone number first"); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
@@ -86,6 +122,12 @@ function SignupPage() {
     setLoading(false);
     if (error) { toast.error(error.message || "Invalid code, try again"); return; }
     if (data.user) attachReferral(data.user.id);
+    // attach verified phone to profile
+    try {
+      const parsed = phone ? parsePhoneNumber(phone) : null;
+      const cc = parsed?.countryCallingCode ? `+${parsed.countryCallingCode}` : "";
+      await supabase.rpc("attach_verified_phone", { _phone: phone, _country_code: cc });
+    } catch {}
     toast.success("Email verified — welcome!");
     navigate({ to: "/dashboard", replace: true });
   };
