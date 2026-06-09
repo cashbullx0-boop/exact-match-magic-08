@@ -1,4 +1,5 @@
 export function EarnLottieScene() {
+  // Fewer particles on mobile reduce paint cost; CSS hides extras via media query below.
   const coins = Array.from({ length: 10 });
 
   return (
@@ -23,7 +24,7 @@ export function EarnLottieScene() {
           return (
             <span
               key={i}
-              className="absolute block rounded-full"
+              className={`absolute block rounded-full coin-particle ${i >= 5 ? "hidden md:block" : ""}`}
               style={{
                 left: `${left}%`,
                 bottom: `-40px`,
@@ -117,6 +118,10 @@ export function EarnLottieScene() {
         @media (prefers-reduced-motion: reduce) {
           [style*="coin-float"] { animation: none !important; display: none; }
           .bull-anim, .legs-front, .legs-back, .orbit-coin, .dust { animation: none !important; }
+        }
+        @media (max-width: 640px) {
+          .bull-anim { animation-duration: 2s !important; }
+          .orbit-coin { animation-duration: 6s !important; }
         }
       `}</style>
     </div>
