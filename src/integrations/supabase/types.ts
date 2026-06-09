@@ -816,6 +816,10 @@ export type Database = {
         Args: { _email: string; _id_number: string; _phone: string }
         Returns: boolean
       }
+      confirm_wallet_change: {
+        Args: { _otp: string; _request_id: string }
+        Returns: undefined
+      }
       create_investment: {
         Args: {
           _amount_cents: number
@@ -898,6 +902,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      request_password_reset_by_email: {
+        Args: { _email: string }
+        Returns: string
+      }
+      request_wallet_change: { Args: { _new_wallet: string }; Returns: string }
+      set_okx_wallet: { Args: { _address: string }; Returns: undefined }
       settle_trade: {
         Args: { _trade_id: string }
         Returns: {
@@ -918,6 +928,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      verify_password_reset_otp: {
+        Args: { _email: string; _otp: string }
+        Returns: string
       }
     }
     Enums: {
