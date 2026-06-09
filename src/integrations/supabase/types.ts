@@ -164,6 +164,45 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_levels: {
+        Row: {
+          color: string
+          created_at: string
+          daily_profit_cents: number
+          icon: string
+          id: string
+          level: number
+          min_deposit_cents: number
+          name: string
+          perks: string[] | null
+          tier: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          daily_profit_cents: number
+          icon: string
+          id?: string
+          level: number
+          min_deposit_cents: number
+          name: string
+          perks?: string[] | null
+          tier: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          daily_profit_cents?: number
+          icon?: string
+          id?: string
+          level?: number
+          min_deposit_cents?: number
+          name?: string
+          perks?: string[] | null
+          tier?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           amount_cents: number
@@ -868,6 +907,19 @@ export type Database = {
           avatar_url: string
           full_name: string
           username: string
+        }[]
+      }
+      get_user_level: {
+        Args: { _user_id: string }
+        Returns: {
+          color: string
+          daily_profit_cents: number
+          icon: string
+          level: number
+          min_deposit_cents: number
+          name: string
+          next_level_deposit: number
+          tier: string
         }[]
       }
       has_role: {
