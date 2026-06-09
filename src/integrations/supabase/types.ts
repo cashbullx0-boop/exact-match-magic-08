@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_documents: {
+        Row: {
+          banned_at: string
+          email: string | null
+          id: string
+          id_number: string | null
+          phone: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          email?: string | null
+          id?: string
+          id_number?: string | null
+          phone?: string | null
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          email?: string | null
+          id?: string
+          id_number?: string | null
+          phone?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
@@ -273,11 +303,14 @@ export type Database = {
         Row: {
           avatar_url: string | null
           balance_cents: number
+          ban_reason: string | null
           bio: string | null
           created_at: string
           current_streak: number
+          deposit_deadline: string | null
           full_name: string | null
           id: string
+          kyc_approved_at: string | null
           last_checkin_date: string | null
           level: number
           longest_streak: number
@@ -293,11 +326,14 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           balance_cents?: number
+          ban_reason?: string | null
           bio?: string | null
           created_at?: string
           current_streak?: number
+          deposit_deadline?: string | null
           full_name?: string | null
           id: string
+          kyc_approved_at?: string | null
           last_checkin_date?: string | null
           level?: number
           longest_streak?: number
@@ -313,11 +349,14 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           balance_cents?: number
+          ban_reason?: string | null
           bio?: string | null
           created_at?: string
           current_streak?: number
+          deposit_deadline?: string | null
           full_name?: string | null
           id?: string
+          kyc_approved_at?: string | null
           last_checkin_date?: string | null
           level?: number
           longest_streak?: number
@@ -673,6 +712,11 @@ export type Database = {
       admin_reject_withdrawal: {
         Args: { _id: string; _reason: string }
         Returns: undefined
+      }
+      ban_expired_kyc_accounts: { Args: never; Returns: undefined }
+      check_banned_documents: {
+        Args: { _email: string; _id_number: string; _phone: string }
+        Returns: boolean
       }
       create_investment: {
         Args: {
