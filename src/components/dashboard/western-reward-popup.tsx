@@ -143,9 +143,8 @@ function WesternRewardPopup({
                   key={i}
                   className="absolute wr-burst"
                   style={{
-                    // @ts-expect-error css vars
-                    "--dx": `${dx}px`,
-                    "--dy": `${dy}px`,
+                    ["--dx" as never]: `${dx}px`,
+                    ["--dy" as never]: `${dy}px`,
                     animationDelay: `${1.0 + (i % 5) * 0.05}s`,
                   } as React.CSSProperties}
                 >
