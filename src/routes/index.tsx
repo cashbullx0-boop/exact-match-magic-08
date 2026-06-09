@@ -33,10 +33,10 @@ function Index() {
     { icon: Gift, label: "Offers", desc: "Exclusive deals & bonuses.", reward: "$5 – $50" },
   ];
   const stats: { label: string; value: number; prefix?: string; suffix?: string }[] = [
-    { label: "Active earners", value: 120000, suffix: "+" },
-    { label: "Paid out to users", value: 4200000, prefix: "$", suffix: "+" },
-    { label: "Tasks completed", value: 8100000, suffix: "+" },
-    { label: "Countries", value: 140, suffix: "+" },
+    { label: "Active earners", value: 5000, suffix: "+" },
+    { label: "Paid out to users", value: 420000, prefix: "$", suffix: "+" },
+    { label: "Tasks completed", value: 810000, suffix: "+" },
+    { label: "Countries", value: 50, suffix: "+" },
   ];
   const trust = [
     { icon: Shield, label: "SSL secured" },
