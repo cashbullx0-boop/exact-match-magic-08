@@ -11,7 +11,7 @@ import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Reveal } from "@/components/marketing/reveal";
 import { TrustStrip } from "@/components/marketing/trust-strip";
 import { FAQSection } from "@/components/marketing/faq";
-import { CowboyBullScene } from "@/components/marketing/cowboy-bull-scene";
+import { EarnLottieScene } from "@/components/marketing/earn-lottie-scene";
 import logoAsset from "@/assets/cashbullx-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -171,7 +171,7 @@ function Index() {
         <section id="features" className="pb-24">
           <Reveal>
             <div className="mb-16">
-              <CowboyBullScene />
+              <EarnLottieScene />
             </div>
           </Reveal>
           <Reveal>
