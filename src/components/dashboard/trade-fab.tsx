@@ -143,20 +143,24 @@ export function TradeFab() {
   return (
     <>
       {/* FAB — centered on mobile bottom nav */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open trading panel"
-        className="md:hidden fixed bottom-7 left-1/2 -translate-x-1/2 z-50 h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
-        style={{
-          background: "linear-gradient(135deg, #F59E0B 0%, #FFD24A 50%, #B8860B 100%)",
-          boxShadow:
-            "0 0 24px rgba(245,158,11,0.55), 0 8px 24px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
-          border: "2px solid rgba(255, 215, 100, 0.6)",
-        }}
-      >
-        <Wallet className="h-7 w-7 text-black drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]" />
-      </button>
+      <div className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
+           style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 28px)" }}>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open trading panel"
+          className="pointer-events-auto h-14 w-14 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
+          style={{
+            background: "linear-gradient(135deg, #F59E0B 0%, #FFD24A 50%, #B8860B 100%)",
+            boxShadow:
+              "0 0 20px rgba(245,158,11,0.5), 0 6px 18px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
+            border: "2px solid rgba(255, 215, 100, 0.6)",
+          }}
+        >
+          <Wallet className="h-6 w-6 text-black drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]" />
+        </button>
+        <span className="mt-0.5 text-[10px] font-medium text-primary">Trade</span>
+      </div>
 
       {/* Modal */}
       {open && (
