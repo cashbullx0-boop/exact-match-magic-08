@@ -1063,6 +1063,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      submit_deposit_slip: {
+        Args: { _deposit_id: string; _slip_path: string }
+        Returns: undefined
+      }
+      submit_deposit_tx_hash: {
+        Args: { _deposit_id: string; _tx_hash: string }
+        Returns: undefined
+      }
       verify_password_reset_otp: {
         Args: { _email: string; _otp: string }
         Returns: string
