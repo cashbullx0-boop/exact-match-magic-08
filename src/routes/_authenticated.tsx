@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -100,32 +100,45 @@ function AuthedLayout() {
         })}
         {isAdmin && (
           <>
-            <Link to="/admin/deposits" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/deposits" ? "bg-accent/15 text-accent" : "text-accent hover:bg-accent/10"}`}>
-              <Shield className="h-4 w-4" />Admin Panel
-            </Link>
+            <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-amber-300/70 font-semibold">Admin Panel</div>
             <Link to="/admin" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
-              <Shield className="h-4 w-4" />Admin
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <Shield className="h-4 w-4" />Overview
             </Link>
             <Link to="/admin/kyc" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/kyc" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/kyc" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <ShieldCheck className="h-4 w-4" />KYC Review
             </Link>
             <Link to="/admin/deposits" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/deposits" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
-              <ShieldCheck className="h-4 w-4" />Deposits Review
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/deposits" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <ArrowDownToLine className="h-4 w-4" />Deposits Review
             </Link>
             <Link to="/admin/investments" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/investments" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/investments" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <TrendingUp className="h-4 w-4" />Investments
             </Link>
             <Link to="/admin/withdrawals" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/withdrawals" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/withdrawals" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <ArrowUpFromLine className="h-4 w-4" />Withdrawals
             </Link>
+            <Link to="/admin/users" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/users" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <Users className="h-4 w-4" />Users
+            </Link>
+            <Link to="/admin/support" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/support" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <LifeBuoy className="h-4 w-4" />Support Tickets
+            </Link>
+            <Link to="/admin/wallets" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/wallets" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <Wallet className="h-4 w-4" />Wallet Changes
+            </Link>
+            <Link to="/admin/password-resets" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/password-resets" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <KeyRound className="h-4 w-4" />Password Resets
+            </Link>
             <Link to="/admin/referrals" onClick={() => setOpen(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/referrals" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/referrals" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <Users className="h-4 w-4" />Referrals
             </Link>
           </>
