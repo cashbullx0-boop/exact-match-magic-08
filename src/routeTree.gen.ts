@@ -40,6 +40,8 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as ApiPublicCpxPostbackRouteImport } from './routes/api/public/cpx-postback'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
 import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin.investments'
@@ -203,6 +205,17 @@ const AuthenticatedAdminWithdrawalsRoute =
     path: '/withdrawals',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminSupportRoute =
+  AuthenticatedAdminSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReferralsRoute =
   AuthenticatedAdminReferralsRouteImport.update({
     id: '/referrals',
@@ -260,6 +273,8 @@ export interface FileRoutesByFullPath {
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -296,6 +311,8 @@ export interface FileRoutesByTo {
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/support': typeof AuthenticatedAdminSupportRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -334,6 +351,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -372,6 +391,8 @@ export interface FileRouteTypes {
     | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
+    | '/admin/support'
+    | '/admin/users'
     | '/admin/withdrawals'
     | '/api/public/cpx-postback'
   fileRoutesByTo: FileRoutesByTo
@@ -408,6 +429,8 @@ export interface FileRouteTypes {
     | '/admin/investments'
     | '/admin/kyc'
     | '/admin/referrals'
+    | '/admin/support'
+    | '/admin/users'
     | '/admin/withdrawals'
     | '/api/public/cpx-postback'
   id:
@@ -445,6 +468,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/investments'
     | '/_authenticated/admin/kyc'
     | '/_authenticated/admin/referrals'
+    | '/_authenticated/admin/support'
+    | '/_authenticated/admin/users'
     | '/_authenticated/admin/withdrawals'
     | '/api/public/cpx-postback'
   fileRoutesById: FileRoutesById
@@ -684,6 +709,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/support': {
+      id: '/_authenticated/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/referrals': {
       id: '/_authenticated/admin/referrals'
       path: '/referrals'
@@ -720,6 +759,8 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
+  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
 }
 
@@ -728,6 +769,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
   AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
+  AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
 }
 
@@ -796,3 +839,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
