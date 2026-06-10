@@ -36,6 +36,7 @@ import { Route as AuthenticatedInvestRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedEarnRouteImport } from './routes/_authenticated/earn'
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicCpxPostbackRouteImport } from './routes/api/public/cpx-postback'
@@ -185,6 +186,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAchievementsRoute =
   AuthenticatedAchievementsRouteImport.update({
     id: '/achievements',
@@ -192,9 +198,9 @@ const AuthenticatedAchievementsRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const ApiPublicCpxPostbackRoute = ApiPublicCpxPostbackRouteImport.update({
   id: '/api/public/cpx-postback',
@@ -203,55 +209,55 @@ const ApiPublicCpxPostbackRoute = ApiPublicCpxPostbackRouteImport.update({
 } as any)
 const AuthenticatedAdminWithdrawalsRoute =
   AuthenticatedAdminWithdrawalsRouteImport.update({
-    id: '/admin/withdrawals',
-    path: '/admin/withdrawals',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/withdrawals',
+    path: '/withdrawals',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminWalletsRoute =
   AuthenticatedAdminWalletsRouteImport.update({
-    id: '/admin/wallets',
-    path: '/admin/wallets',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/wallets',
+    path: '/wallets',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminSupportRoute =
   AuthenticatedAdminSupportRouteImport.update({
-    id: '/admin/support',
-    path: '/admin/support',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminReferralsRoute =
   AuthenticatedAdminReferralsRouteImport.update({
-    id: '/admin/referrals',
-    path: '/admin/referrals',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/referrals',
+    path: '/referrals',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminPasswordResetsRoute =
   AuthenticatedAdminPasswordResetsRouteImport.update({
-    id: '/admin/password-resets',
-    path: '/admin/password-resets',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/password-resets',
+    path: '/password-resets',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminKycRoute = AuthenticatedAdminKycRouteImport.update({
-  id: '/admin/kyc',
-  path: '/admin/kyc',
-  getParentRoute: () => AuthenticatedRoute,
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminInvestmentsRoute =
   AuthenticatedAdminInvestmentsRouteImport.update({
-    id: '/admin/investments',
-    path: '/admin/investments',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/investments',
+    path: '/investments',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminDepositsRoute =
   AuthenticatedAdminDepositsRouteImport.update({
-    id: '/admin/deposits',
-    path: '/admin/deposits',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/deposits',
+    path: '/deposits',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -266,6 +272,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
   '/earn': typeof AuthenticatedEarnRoute
@@ -348,6 +355,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
   '/_authenticated/earn': typeof AuthenticatedEarnRoute
@@ -390,6 +398,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/achievements'
+    | '/admin'
     | '/dashboard'
     | '/deposit'
     | '/earn'
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/_authenticated/achievements'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/deposit'
     | '/_authenticated/earn'
@@ -707,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/achievements': {
       id: '/_authenticated/achievements'
       path: '/achievements'
@@ -716,10 +733,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
-      path: '/admin'
+      path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/api/public/cpx-postback': {
       id: '/api/public/cpx-postback'
@@ -730,72 +747,102 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/withdrawals': {
       id: '/_authenticated/admin/withdrawals'
-      path: '/admin/withdrawals'
+      path: '/withdrawals'
       fullPath: '/admin/withdrawals'
       preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/wallets': {
       id: '/_authenticated/admin/wallets'
-      path: '/admin/wallets'
+      path: '/wallets'
       fullPath: '/admin/wallets'
       preLoaderRoute: typeof AuthenticatedAdminWalletsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
-      path: '/admin/users'
+      path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/support': {
       id: '/_authenticated/admin/support'
-      path: '/admin/support'
+      path: '/support'
       fullPath: '/admin/support'
       preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/referrals': {
       id: '/_authenticated/admin/referrals'
-      path: '/admin/referrals'
+      path: '/referrals'
       fullPath: '/admin/referrals'
       preLoaderRoute: typeof AuthenticatedAdminReferralsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/password-resets': {
       id: '/_authenticated/admin/password-resets'
-      path: '/admin/password-resets'
+      path: '/password-resets'
       fullPath: '/admin/password-resets'
       preLoaderRoute: typeof AuthenticatedAdminPasswordResetsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/kyc': {
       id: '/_authenticated/admin/kyc'
-      path: '/admin/kyc'
+      path: '/kyc'
       fullPath: '/admin/kyc'
       preLoaderRoute: typeof AuthenticatedAdminKycRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/investments': {
       id: '/_authenticated/admin/investments'
-      path: '/admin/investments'
+      path: '/investments'
       fullPath: '/admin/investments'
       preLoaderRoute: typeof AuthenticatedAdminInvestmentsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/deposits': {
       id: '/_authenticated/admin/deposits'
-      path: '/admin/deposits'
+      path: '/deposits'
       fullPath: '/admin/deposits'
       preLoaderRoute: typeof AuthenticatedAdminDepositsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
+  AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
+  AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
+  AuthenticatedAdminPasswordResetsRoute: typeof AuthenticatedAdminPasswordResetsRoute
+  AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
+  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
+  AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
+  AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
+  AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
+  AuthenticatedAdminPasswordResetsRoute: AuthenticatedAdminPasswordResetsRoute,
+  AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
+  AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
+  AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
   AuthenticatedEarnRoute: typeof AuthenticatedEarnRoute
@@ -811,20 +858,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
-  AuthenticatedAdminDepositsRoute: typeof AuthenticatedAdminDepositsRoute
-  AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
-  AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
-  AuthenticatedAdminPasswordResetsRoute: typeof AuthenticatedAdminPasswordResetsRoute
-  AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
-  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
-  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
-  AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
-  AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
-  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
   AuthenticatedEarnRoute: AuthenticatedEarnRoute,
@@ -840,16 +878,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
-  AuthenticatedAdminDepositsRoute: AuthenticatedAdminDepositsRoute,
-  AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
-  AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
-  AuthenticatedAdminPasswordResetsRoute: AuthenticatedAdminPasswordResetsRoute,
-  AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
-  AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
-  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
-  AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
-  AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
-  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
