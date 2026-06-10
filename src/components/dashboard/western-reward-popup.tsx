@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import cowboyAsset from "@/assets/cowboy-bull.png.asset.json";
 
 export type WesternRewardType =
   | "first_deposit"
@@ -199,67 +200,23 @@ function WesternRewardPopup({
   );
 }
 
-/* SVG cowboy riding a bull, with a hat-tip + reward-present animation */
 function CowboyOnBull({ rewardEmoji }: { rewardEmoji: string }) {
   return (
-    <div className="relative">
-      <svg width="200" height="150" viewBox="0 0 200 150" className="wr-bob">
-        <defs>
-          <linearGradient id="wrHorn" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#fff1b0" />
-            <stop offset="100%" stopColor="#8a5a04" />
-          </linearGradient>
-          <linearGradient id="wrBull" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#4a2f1a" />
-            <stop offset="100%" stopColor="#1a0e06" />
-          </linearGradient>
-          <linearGradient id="wrHat" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#ffe27a" />
-            <stop offset="100%" stopColor="#a8730a" />
-          </linearGradient>
-        </defs>
-
-        {/* bull body */}
-        <ellipse cx="100" cy="105" rx="55" ry="22" fill="url(#wrBull)" />
-        {/* legs */}
-        <rect x="65" y="118" width="7" height="22" fill="#1a0e06" className="wr-leg-a" />
-        <rect x="85" y="118" width="7" height="22" fill="#1a0e06" className="wr-leg-b" />
-        <rect x="108" y="118" width="7" height="22" fill="#1a0e06" className="wr-leg-b" />
-        <rect x="128" y="118" width="7" height="22" fill="#1a0e06" className="wr-leg-a" />
-        {/* tail */}
-        <path d="M45 100 q-12 4 -10 18" stroke="#fff1b0" strokeWidth="2" fill="none" className="wr-tail" />
-        {/* head */}
-        <ellipse cx="155" cy="92" rx="20" ry="16" fill="url(#wrBull)" />
-        {/* horns */}
-        <path d="M148 80 q-6 -14 -18 -10" stroke="url(#wrHorn)" strokeWidth="4" fill="none" strokeLinecap="round" />
-        <path d="M162 80 q6 -14 18 -10" stroke="url(#wrHorn)" strokeWidth="4" fill="none" strokeLinecap="round" />
-        {/* eye + nostril */}
-        <circle cx="160" cy="90" r="1.8" fill="#fff" />
-        <circle cx="170" cy="96" r="1.4" fill="#000" opacity="0.7" />
-
-        {/* cowboy body */}
-        <ellipse cx="95" cy="78" rx="11" ry="13" fill="#1d2a44" />
-        {/* legs */}
-        <rect x="88" y="85" width="6" height="14" fill="#0c1426" />
-        <rect x="98" y="85" width="6" height="14" fill="#0c1426" />
-        {/* head */}
-        <circle cx="95" cy="62" r="8" fill="#f1c69b" />
-        {/* hat — tipped via animation */}
-        <g className="wr-hat" style={{ transformOrigin: "95px 58px" }}>
-          <ellipse cx="95" cy="56" rx="16" ry="3" fill="url(#wrHat)" />
-          <path d="M86 56 q9 -16 18 0 Z" fill="url(#wrHat)" />
-          <rect x="86" y="55" width="18" height="2" fill="#6b4a08" opacity="0.6" />
-        </g>
-        {/* right arm holding reward up */}
-        <g className="wr-arm-reward" style={{ transformOrigin: "100px 75px" }}>
-          <rect x="100" y="72" width="4" height="14" fill="#1d2a44" />
-          <g className="wr-reward" style={{ transformOrigin: "104px 70px" }}>
-            <text x="104" y="72" fontSize="18" textAnchor="middle">{rewardEmoji}</text>
-          </g>
-        </g>
-        {/* left arm holding rein */}
-        <path d="M88 76 Q80 80 78 90" stroke="#1d2a44" strokeWidth="3" fill="none" strokeLinecap="round" />
-      </svg>
+    <div className="relative wr-bob">
+      <img
+        src={cowboyAsset.url}
+        alt="Cowboy riding a bull"
+        className="h-36 w-auto sm:h-44 drop-shadow-[0_10px_20px_rgba(245,196,60,0.45)]"
+      />
+      <span
+        className="wr-reward absolute -top-2 right-2 grid h-9 w-9 place-items-center rounded-full text-xl"
+        style={{
+          background: "radial-gradient(circle at 30% 30%, #fff3c0, #f5c43c 55%, #b8860b)",
+          boxShadow: "0 0 16px rgba(245,196,60,0.8)",
+        }}
+      >
+        {rewardEmoji}
+      </span>
     </div>
   );
 }
