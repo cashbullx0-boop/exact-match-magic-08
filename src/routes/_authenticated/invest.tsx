@@ -15,8 +15,8 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
-import { TrendingUp, TrendingDown, Lock, Coins, Bitcoin, Droplet, Gem } from "lucide-react";
+import { TrendingUp, TrendingDown, Lock, Coins, Bitcoin, Droplet, Gem, Radio } from "lucide-react";
+import { useLivePrice, Sparkline } from "@/hooks/use-live-price";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/invest")({
@@ -26,25 +26,67 @@ export const Route = createFileRoute("/_authenticated/invest")({
 
 const ICONS: Record<string, any> = { XAU: Gem, BTC: Bitcoin, ETH: Coins, WTI: Droplet };
 
-// Deterministic seeded random walk for 7-day sparkline
-function buildSeries(symbol: string, price: number, change: number) {
-  let seed = symbol.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const rand = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-  const points = 28;
-  const start = price / (1 + change / 100);
-  const step = (price - start) / points;
-  const vol = price * 0.012;
-  const out: { t: number; v: number }[] = [];
-  let v = start;
-  for (let i = 0; i < points; i++) {
-    v = v + step + (rand() - 0.5) * vol;
-    out.push({ t: i, v: Math.max(v, 0.01) });
-  }
-  out[out.length - 1].v = price;
-  return out;
+function LiveAssetCard({
+  asset,
+  onInvest,
+}: {
+  asset: AssetPrice;
+  onInvest: (a: AssetPrice) => void;
+}) {
+  const Icon = ICONS[asset.symbol] ?? Coins;
+  const live = useLivePrice(asset.symbol, { price: asset.price, change: asset.change });
+  const price = live.price ?? asset.price;
+  const change = live.change24h ?? asset.change;
+  const up = change >= 0;
+  const color = up ? "#22c55e" : "#ef4444";
+  const dirColor =
+    live.direction === "up" ? "text-emerald-400"
+    : live.direction === "down" ? "text-rose-400"
+    : "text-foreground";
+  const isLive = live.status === "live";
+  const isFallback = live.status === "fallback";
+  return (
+    <Card className="glass-strong border-border p-5 flex flex-col">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon className="h-5 w-5 text-primary" />
+          <div>
+            <p className="font-semibold leading-none">{asset.name}</p>
+            <p className="text-[10px] uppercase text-muted-foreground tracking-wider">{asset.symbol}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {(isLive || isFallback) && (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                isLive
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+              }`}
+              title={isLive ? "Binance live stream" : "CoinGecko REST"}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`} />
+              <Radio className="h-2.5 w-2.5" />
+              {isLive ? "LIVE" : "REST"}
+            </span>
+          )}
+          <Badge variant={up ? "default" : "destructive"} className="text-[10px]">
+            {up ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+            {change.toFixed(2)}%
+          </Badge>
+        </div>
+      </div>
+      <p className={`text-2xl font-bold mt-3 tabular-nums transition-colors ${dirColor}`}>
+        ${price < 10 ? price.toFixed(4) : price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+      </p>
+      <div className="mt-2 flex items-center justify-center h-12">
+        <Sparkline data={live.history.length > 1 ? live.history : [price, price]} color={color} width={220} height={48} />
+      </div>
+      <Button className="mt-3 btn-primary-gradient" onClick={() => onInvest({ ...asset, price, change })}>
+        Invest Now
+      </Button>
+    </Card>
+  );
 }
 
 function InvestPage() {
@@ -140,55 +182,13 @@ function InvestPage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {assets.map((a) => {
-          const up = a.change >= 0;
-          const Icon = ICONS[a.symbol] ?? Coins;
-          const data = buildSeries(a.symbol, a.price, a.change);
-          const color = up ? "hsl(var(--primary))" : "hsl(0 70% 55%)";
-          return (
-            <Card key={a.symbol} className="glass-strong border-border p-5 flex flex-col">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="font-semibold leading-none">{a.name}</p>
-                    <p className="text-[10px] uppercase text-muted-foreground tracking-wider">{a.symbol}</p>
-                  </div>
-                </div>
-                <Badge variant={up ? "default" : "destructive"} className="text-[10px]">
-                  {up ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                  {a.change.toFixed(2)}%
-                </Badge>
-              </div>
-              <p className="text-2xl font-bold mt-3 tabular-nums">
-                ${a.price < 10 ? a.price.toFixed(4) : a.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </p>
-              <div className="h-24 -mx-2 mt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data}>
-                    <defs>
-                      <linearGradient id={`g-${a.symbol}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={color} stopOpacity={0.45} />
-                        <stop offset="100%" stopColor={color} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="t" hide />
-                    <YAxis domain={["dataMin", "dataMax"]} hide />
-                    <Tooltip
-                      contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))", fontSize: 11 }}
-                      labelFormatter={() => ""}
-                      formatter={(v: any) => [`$${Number(v).toFixed(2)}`, a.symbol]}
-                    />
-                    <Area type="monotone" dataKey="v" stroke={color} fill={`url(#g-${a.symbol})`} strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <Button className="mt-3 btn-primary-gradient" onClick={() => { setModalAsset(a); setAmount(""); }}>
-                Invest Now
-              </Button>
-            </Card>
-          );
-        })}
+        {assets.map((a) => (
+          <LiveAssetCard
+            key={a.symbol}
+            asset={a}
+            onInvest={(updated) => { setModalAsset(updated); setAmount(""); }}
+          />
+        ))}
       </div>
 
       <Card className="glass-strong border-border p-6">
