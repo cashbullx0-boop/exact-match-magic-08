@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as ApiPublicCpxPostbackRouteImport } from './routes/api/public/cpx-postback'
 import { Route as AuthenticatedAdminWithdrawalsRouteImport } from './routes/_authenticated/admin.withdrawals'
+import { Route as AuthenticatedAdminWalletsRouteImport } from './routes/_authenticated/admin.wallets'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
@@ -205,6 +206,12 @@ const AuthenticatedAdminWithdrawalsRoute =
     path: '/withdrawals',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminWalletsRoute =
+  AuthenticatedAdminWalletsRouteImport.update({
+    id: '/wallets',
+    path: '/wallets',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -275,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -313,6 +321,7 @@ export interface FileRoutesByTo {
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -353,6 +362,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/wallets': typeof AuthenticatedAdminWalletsRoute
   '/_authenticated/admin/withdrawals': typeof AuthenticatedAdminWithdrawalsRoute
   '/api/public/cpx-postback': typeof ApiPublicCpxPostbackRoute
 }
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/admin/referrals'
     | '/admin/support'
     | '/admin/users'
+    | '/admin/wallets'
     | '/admin/withdrawals'
     | '/api/public/cpx-postback'
   fileRoutesByTo: FileRoutesByTo
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/admin/referrals'
     | '/admin/support'
     | '/admin/users'
+    | '/admin/wallets'
     | '/admin/withdrawals'
     | '/api/public/cpx-postback'
   id:
@@ -470,6 +482,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/referrals'
     | '/_authenticated/admin/support'
     | '/_authenticated/admin/users'
+    | '/_authenticated/admin/wallets'
     | '/_authenticated/admin/withdrawals'
     | '/api/public/cpx-postback'
   fileRoutesById: FileRoutesById
@@ -709,6 +722,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminWithdrawalsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/wallets': {
+      id: '/_authenticated/admin/wallets'
+      path: '/wallets'
+      fullPath: '/admin/wallets'
+      preLoaderRoute: typeof AuthenticatedAdminWalletsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -761,6 +781,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
   AuthenticatedAdminWithdrawalsRoute: typeof AuthenticatedAdminWithdrawalsRoute
 }
 
@@ -771,6 +792,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
   AuthenticatedAdminWithdrawalsRoute: AuthenticatedAdminWithdrawalsRoute,
 }
 
