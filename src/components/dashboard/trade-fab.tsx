@@ -149,17 +149,17 @@ export function TradeFab() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open CBX trading panel"
-          className="pointer-events-auto h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105 ring-1 ring-amber-200/40"
+          className="pointer-events-auto h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105 ring-1 ring-amber-300/50"
           style={{
             background:
-              "radial-gradient(120% 120% at 30% 20%, #FFE48A 0%, #F5C24A 35%, #E0A020 65%, #8A5A0B 100%)",
+              "linear-gradient(135deg,#FBBF24 0%,#F59E0B 50%,#B45309 100%)",
             boxShadow:
-              "0 0 0 4px rgba(245,158,11,0.12), 0 0 24px 2px rgba(245,194,74,0.55), 0 18px 38px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 6px rgba(0,0,0,0.25)",
+              "0 0 0 4px rgba(245,158,11,0.15), 0 0 28px 4px rgba(245,158,11,0.55), 0 18px 38px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.35)",
           }}
         >
           <span
-            className="text-[15px] font-extrabold tracking-[0.12em] text-[#2a1a00]"
-            style={{ textShadow: "0 1px 0 rgba(255,255,255,0.35)" }}
+            className="text-[16px] font-extrabold tracking-[0.12em] text-white"
+            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
           >
             CBX
           </span>
