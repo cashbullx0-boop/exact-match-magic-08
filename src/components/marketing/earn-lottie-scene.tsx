@@ -64,17 +64,23 @@ export function EarnLottieScene() {
           />
 
           {/* running cowboy traveling across the scene */}
+          {/* running cowboy traveling across the scene */}
           <div className="cowboy-run absolute bottom-2 left-0 will-change-transform">
             <div className="cowboy-bounce relative">
-              <img
-                src={cowboyAsset.url}
-                alt="Cowboy riding a bull"
-                loading="lazy"
-                className="h-[200px] sm:h-[250px] md:h-[290px] w-auto object-contain drop-shadow-[0_18px_30px_rgba(245,196,60,0.4)]"
-                style={{ background: "transparent" }}
-              />
+              <div className="cowboy-legs">
+                <img
+                  src={cowboyAsset.url}
+                  alt="Cowboy riding a bull"
+                  loading="lazy"
+                  className="h-[200px] sm:h-[250px] md:h-[290px] w-auto object-contain drop-shadow-[0_18px_30px_rgba(245,196,60,0.55)]"
+                  style={{
+                    background: "transparent",
+                    mixBlendMode: "screen",
+                  }}
+                />
+              </div>
               {/* dust particles at bull's feet */}
-              <div aria-hidden className="pointer-events-none absolute bottom-1 left-2 right-2 h-6">
+              <div aria-hidden className="pointer-events-none absolute -bottom-1 left-2 right-2 h-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <span
                     key={i}
@@ -133,22 +139,26 @@ export function EarnLottieScene() {
           100% { transform: translateY(-520px) rotate(360deg); opacity: 0; }
         }
         @keyframes cowboy-bounce {
-          0%, 100% { transform: translateY(0) rotate(-1.5deg); }
-          50% { transform: translateY(-10px) rotate(1.5deg); }
+          0%, 100% { transform: translateY(0) rotate(-3deg); }
+          50%      { transform: translateY(-10px) rotate(3deg); }
         }
-        .cowboy-bounce { animation: cowboy-bounce 0.45s ease-in-out infinite; will-change: transform; }
+        .cowboy-bounce { animation: cowboy-bounce 0.4s ease-in-out infinite; will-change: transform; }
 
-        /* Enter from RIGHT → pause at CENTER → exit to LEFT → loop */
+        @keyframes cowboy-legs {
+          0%, 100% { transform: scaleX(1); }
+          50%      { transform: scaleX(0.95); }
+        }
+        .cowboy-legs { display: inline-block; transform-origin: 50% 100%; animation: cowboy-legs 0.4s ease-in-out infinite; }
+
+        /* Run from RIGHT to LEFT, infinite loop */
         @keyframes cowboy-run {
-          0%   { transform: translateX(110%) scaleX(-1); }
-          25%  { transform: translateX(0%)   scaleX(-1); }
-          55%  { transform: translateX(0%)   scaleX(-1); }
-          100% { transform: translateX(-130%) scaleX(-1); }
+          0%   { transform: translateX(120%) scaleX(-1); }
+          100% { transform: translateX(-120%) scaleX(-1); }
         }
         .cowboy-run {
           left: 50%;
           margin-left: -145px;
-          animation: cowboy-run 6s cubic-bezier(.45,.05,.4,1) infinite;
+          animation: cowboy-run 4s linear infinite;
         }
 
         @keyframes dust-puff {
