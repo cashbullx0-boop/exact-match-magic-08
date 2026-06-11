@@ -25,30 +25,20 @@ export function SiteHeader() {
   return (
     <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-black/60 backdrop-blur-2xl border-b border-border/60" : "bg-transparent"}`}>
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-full">
-        <Link to="/" className="flex items-center gap-1.5 group" aria-label="CashBullX home">
+        <Link to="/" className="flex items-center group" aria-label="CashBullX home">
           <img
             src={logoAsset.url}
-            alt=""
-            aria-hidden="true"
-            width={40}
-            height={40}
+            alt="CashBullX"
+            width={56}
+            height={56}
             decoding="async"
             fetchPriority="high"
-            className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-            style={{ filter: "drop-shadow(0 0 6px rgba(245, 158, 11, 0.7)) drop-shadow(0 0 14px rgba(245, 158, 11, 0.4))" }}
+            className="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+            style={{
+              filter:
+                "drop-shadow(0 0 8px rgba(245, 158, 11, 0.85)) drop-shadow(0 0 18px rgba(245, 158, 11, 0.55)) drop-shadow(0 0 32px rgba(245, 158, 11, 0.35))",
+            }}
           />
-          <span className="font-extrabold tracking-tight text-lg sm:text-xl leading-none flex items-baseline">
-            <span style={{ color: "#F59E0B" }}>CASH</span>
-            <span className="text-white">BULL</span>
-            <span
-              style={{
-                color: "#FFD24A",
-                textShadow: "0 0 8px rgba(245,158,11,0.9), 0 0 18px rgba(245,158,11,0.55)",
-              }}
-            >
-              X
-            </span>
-          </span>
         </Link>
         <nav className="hidden md:flex items-center gap-1">
           {NAV.map((n) => (
