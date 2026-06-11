@@ -1,4 +1,4 @@
-import cowboyAsset from "@/assets/cowboy-bull.png.asset.json";
+import cowboyAsset from "@/assets/cowboy-bull-v2.png.asset.json";
 
 export function EarnLottieScene() {
   // Fewer particles on mobile reduce paint cost; CSS hides extras via media query below.
@@ -75,7 +75,6 @@ export function EarnLottieScene() {
                   className="h-[200px] sm:h-[250px] md:h-[290px] w-auto object-contain drop-shadow-[0_18px_30px_rgba(245,196,60,0.55)]"
                   style={{
                     background: "transparent",
-                    mixBlendMode: "screen",
                   }}
                 />
               </div>
