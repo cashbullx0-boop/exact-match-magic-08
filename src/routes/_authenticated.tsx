@@ -42,6 +42,13 @@ function AuthedLayout() {
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
 
+  const markAllNotificationsRead = async () => {
+    if (!user) return;
+    await supabase.from("notifications").update({ read: true })
+      .eq("user_id", user.id).eq("read", false);
+    setUnread(0);
+  };
+
   useEffect(() => {
     if (!user) return;
     const load = () => supabase.from("notifications").select("*", { count: "exact", head: true })
@@ -88,7 +95,7 @@ function AuthedLayout() {
           const active = pathname === i.to;
           const isNotif = i.to === "/notifications";
           return (
-            <Link key={i.to} to={i.to} onClick={() => setOpen(false)}
+            <Link key={i.to} to={i.to} onClick={() => { setOpen(false); if (isNotif) markAllNotificationsRead(); }}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all hover:translate-x-0.5 ${active ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px] shadow-primary/20" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <i.icon className="h-4 w-4" />
               <span className="flex-1">{i.label}</span>
