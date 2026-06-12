@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Share, Plus, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const DISMISS_KEY = "cbx_ios_install_dismissed_at";
 const DISMISS_DAYS = 7;
@@ -33,8 +34,20 @@ export function IosInstallPrompt() {
         if (days < DISMISS_DAYS) return;
       }
     } catch {}
-    const t = setTimeout(() => setShow(true), 1500);
-    return () => clearTimeout(t);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "ios_pwa_prompt")
+        .maybeSingle();
+      const enabled = (data?.value as any)?.enabled !== false;
+      if (!enabled || cancelled) return;
+      setTimeout(() => !cancelled && setShow(true), 1500);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const dismiss = () => {
