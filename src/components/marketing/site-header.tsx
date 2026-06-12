@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import logoAsset from "@/assets/cashbullx-logo.webp.asset.json";
 
 const NAV = [
   { label: "Features", href: "#features" },
@@ -26,19 +25,19 @@ export function SiteHeader() {
     <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "bg-black/60 backdrop-blur-2xl border-b border-border/60" : "bg-transparent"}`}>
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-full">
         <Link to="/" className="flex items-center group" aria-label="CashBullX home">
-          <img
-            src={logoAsset.url}
-            alt="CashBullX"
-            width={56}
-            height={56}
-            decoding="async"
-            fetchPriority="high"
-            className="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-            style={{
-              filter:
-                "drop-shadow(0 0 8px rgba(245, 158, 11, 0.85)) drop-shadow(0 0 18px rgba(245, 158, 11, 0.55)) drop-shadow(0 0 32px rgba(245, 158, 11, 0.35))",
-            }}
-          />
+          <span className="font-extrabold tracking-tight text-2xl sm:text-3xl transition-transform duration-300 group-hover:scale-105">
+            <span style={{ color: "#F59E0B" }}>Cash</span>
+            <span className="text-white">Bull</span>
+            <span
+              style={{
+                color: "#FFD24A",
+                textShadow:
+                  "0 0 8px rgba(245,158,11,0.85), 0 0 18px rgba(245,158,11,0.55), 0 0 32px rgba(245,158,11,0.35)",
+              }}
+            >
+              X
+            </span>
+          </span>
         </Link>
         <nav className="hidden md:flex items-center gap-1">
           {NAV.map((n) => (
