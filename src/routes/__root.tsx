@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { WesternRewardProvider } from "@/components/dashboard/western-reward-popup";
 import { useEffect } from "react";
 import { registerPwa } from "@/lib/pwa-register";
+import { IosInstallPrompt } from "@/components/pwa/ios-install-prompt";
 
 function NotFoundComponent() {
   return (
@@ -156,6 +157,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <Toaster />
+          <IosInstallPrompt />
         </WesternRewardProvider>
       </AuthProvider>
     </QueryClientProvider>
