@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -147,6 +147,10 @@ function AuthedLayout() {
             <Link to="/admin/referrals" onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/referrals" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <Users className="h-4 w-4" />Referrals
+            </Link>
+            <Link to="/admin/pwa" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/pwa" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <Smartphone className="h-4 w-4" />PWA Settings
             </Link>
           </>
         )}
