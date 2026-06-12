@@ -325,7 +325,7 @@ export function TradeFab() {
               Place Trade · <span className="font-mono tabular-nums">${parseFloat(amount || "0").toFixed(2)}</span>
             </Button>
             <p className="text-[10px] text-muted-foreground text-center mt-3 tracking-wide">
-              Win returns original + 85% profit · 50/50 outcome
+              Every trade wins · Returns original + 85% profit
             </p>
 
             <div className="h-px bg-white/[0.06] my-6" />
@@ -356,7 +356,7 @@ export function TradeFab() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm" style={{ color: "#FFD24A" }}>
+                        <span className="text-sm font-semibold text-emerald-400">
                           <Countdown expiresAt={t.expires_at} onExpire={() => handleSettle(t.id)} />
                         </span>
                       </div>
