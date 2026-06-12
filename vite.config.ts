@@ -7,17 +7,52 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { VitePWA } from "vite-plugin-pwa";
 
 // NOTE: Cloudflare Pages' build system inspects this file looking for a top-level
 // `plugins` array. The Lovable wrapper resolves plugins internally, so we expose
 // an empty `plugins: []` at the top level to satisfy that check. The TanStack
 // Start + Nitro (cloudflare preset) plugins are still injected by the wrapper.
 export default defineConfig({
-  plugins: [cloudflare({
-    viteEnvironment: {
-      name: "ssr"
-    }
-  })],
+  plugins: [
+    cloudflare({
+      viteEnvironment: {
+        name: "ssr"
+      }
+    }),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: null,
+      filename: "sw.js",
+      strategies: "generateSW",
+      devOptions: { enabled: false },
+      manifest: false,
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        navigateFallback: "/",
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/__/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-cache",
+              networkTimeoutSeconds: 5,
+            },
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && /\.(?:js|css|woff2|png|jpg|jpeg|webp|svg|gif)$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "assets-cache",
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     server: { entry: "server" },

@@ -12,6 +12,8 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { WesternRewardProvider } from "@/components/dashboard/western-reward-popup";
+import { useEffect } from "react";
+import { registerPwa } from "@/lib/pwa-register";
 
 function NotFoundComponent() {
   return (
@@ -103,12 +105,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1ffb71d-52d3-449f-8454-95918c8e6436/id-preview-1134533c--c489f98a-61d2-4c49-aeec-988968897d6f.lovable.app-1779977603207.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1ffb71d-52d3-449f-8454-95918c8e6436/id-preview-1134533c--c489f98a-61d2-4c49-aeec-988968897d6f.lovable.app-1779977603207.png" },
+      { name: "theme-color", content: "#F59E0B" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "CashBullX" },
+      { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -133,6 +144,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    registerPwa();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
