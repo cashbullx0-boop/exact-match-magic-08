@@ -50,7 +50,7 @@ export function WesternRewardProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!payload) return;
-    const ms = payload.autoDismissMs ?? 4000;
+    const ms = payload.autoDismissMs ?? 8000;
     const t = window.setTimeout(dismiss, ms);
     return () => window.clearTimeout(t);
   }, [payload, dismiss]);
