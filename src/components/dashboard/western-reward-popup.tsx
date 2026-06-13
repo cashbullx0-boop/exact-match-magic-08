@@ -116,18 +116,19 @@ function WesternRewardPopup({
         <div className="absolute left-1/2 top-10 -translate-x-1/2 h-32 w-32 rounded-full blur-2xl opacity-50"
              style={{ background: "radial-gradient(circle, #ffd770, transparent 70%)" }} />
 
-        {/* twinkle stars */}
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 12 }).map((_, i) => (
+        {/* falling confetti coins in background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 18 }).map((_, i) => (
             <span
               key={i}
-              className="absolute wr-star"
+              className="absolute wr-confetti"
               style={{
-                left: `${(i * 37) % 95 + 2}%`,
-                top: `${(i * 53) % 60 + 5}%`,
-                animationDelay: `${(i % 6) * 0.25}s`,
+                left: `${(i * 17) % 100}%`,
+                top: `-10%`,
+                animationDelay: `${(i % 9) * 0.3}s`,
+                animationDuration: `${3 + (i % 4) * 0.6}s`,
               }}
-            >★</span>
+            >{i % 3 === 0 ? "🪙" : i % 3 === 1 ? "✨" : "💰"}</span>
           ))}
         </div>
 
@@ -146,13 +147,18 @@ function WesternRewardPopup({
                   style={{
                     ["--dx" as never]: `${dx}px`,
                     ["--dy" as never]: `${dy}px`,
-                    animationDelay: `${1.0 + (i % 5) * 0.05}s`,
+                    animationDelay: `${2.2 + (i % 5) * 0.05}s`,
                   } as React.CSSProperties}
                 >
                   {i % 2 === 0 ? "🪙" : "✨"}
                 </span>
               );
             })}
+          </div>
+
+          {/* gift flying toward user */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 wr-gift pointer-events-none text-5xl">
+            🎁
           </div>
 
           {/* cowboy on bull */}
@@ -178,7 +184,7 @@ function WesternRewardPopup({
             {payload.title}
           </h2>
           {payload.amount && (
-            <p className="mt-2 text-4xl sm:text-5xl font-black bg-clip-text text-transparent drop-shadow"
+            <p className="mt-2 text-4xl sm:text-5xl font-black bg-clip-text text-transparent drop-shadow wr-amount"
                style={{ backgroundImage: "linear-gradient(180deg, #fff3c0, #f5c43c, #a8730a)" }}>
               {payload.amount}
             </p>
@@ -192,7 +198,7 @@ function WesternRewardPopup({
             className="mt-5 w-full h-11 font-bold text-base text-amber-950 border-0 hover:opacity-95"
             style={{ background: "linear-gradient(180deg, #fff1b0, #f5c43c 55%, #b8830a)" }}
           >
-            Claim Reward 🤠
+            Awesome! 🤠
           </Button>
         </div>
       </div>
@@ -228,12 +234,13 @@ const wrCss = `
 .wr-overlay-out { animation: wrOverlayOut .35s ease-in both; }
 
 @keyframes wrRide {
-  0%   { transform: translateX(110%); }
-  30%  { transform: translateX(28%); }
-  55%  { transform: translateX(28%); }
-  100% { transform: translateX(-130%); }
+  0%   { transform: translateX(110%) scaleX(1); }
+  20%  { transform: translateX(28%) scaleX(1); }
+  70%  { transform: translateX(28%) scaleX(1); }
+  75%  { transform: translateX(28%) scaleX(1); }
+  100% { transform: translateX(-130%) scaleX(1); }
 }
-.wr-ride { animation: wrRide 4s cubic-bezier(.4,.0,.2,1) forwards; }
+.wr-ride { animation: wrRide 5.5s cubic-bezier(.4,.0,.2,1) forwards; }
 
 @keyframes wrBob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -250,27 +257,43 @@ const wrCss = `
 .wr-tail { transform-origin: 45px 100px; animation: wrTail .6s ease-in-out infinite; }
 
 @keyframes wrHatTip {
-  0%, 35%   { transform: translateY(0) rotate(0deg); }
+  0%, 25%   { transform: translateY(0) rotate(0deg); }
+  32%       { transform: translateY(-6px) rotate(-18deg); }
   45%       { transform: translateY(-6px) rotate(-18deg); }
-  60%       { transform: translateY(-6px) rotate(-18deg); }
-  72%, 100% { transform: translateY(0) rotate(0deg); }
+  55%, 100% { transform: translateY(0) rotate(0deg); }
 }
-.wr-hat { animation: wrHatTip 4s ease-in-out forwards; }
+.wr-hat { animation: wrHatTip 5.5s ease-in-out forwards; }
 
 @keyframes wrArmReward {
-  0%, 40%   { transform: rotate(0deg); }
-  55%, 80%  { transform: rotate(-55deg); }
-  100%      { transform: rotate(0deg); }
+  0%, 30%   { transform: rotate(0deg); }
+  40%, 60%  { transform: rotate(-55deg); }
+  70%, 100% { transform: rotate(0deg); }
 }
-.wr-arm-reward { animation: wrArmReward 4s ease-in-out forwards; }
+.wr-arm-reward { animation: wrArmReward 5.5s ease-in-out forwards; }
 
 @keyframes wrRewardPulse {
-  0%, 50%   { transform: scale(1); }
-  60%       { transform: scale(1.7); }
-  80%       { transform: scale(1.3); }
+  0%, 35%   { transform: scale(1); }
+  45%       { transform: scale(1.7); }
+  60%       { transform: scale(1.3); }
   100%      { transform: scale(1); }
 }
-.wr-reward { animation: wrRewardPulse 4s ease-in-out forwards; }
+.wr-reward { animation: wrRewardPulse 5.5s ease-in-out forwards; }
+
+@keyframes wrGift {
+  0%, 38%   { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+  45%       { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  60%       { opacity: 1; transform: translate(-50%, -120%) scale(1.6) rotate(20deg); }
+  72%, 100% { opacity: 0; transform: translate(-50%, -250%) scale(3) rotate(45deg); }
+}
+.wr-gift { animation: wrGift 5.5s ease-out forwards; }
+
+@keyframes wrAmountPop {
+  0%, 40% { transform: scale(.6); opacity: 0; }
+  55%     { transform: scale(1.25); opacity: 1; }
+  70%     { transform: scale(1); }
+  100%    { transform: scale(1); opacity: 1; }
+}
+.wr-amount { animation: wrAmountPop 2.4s cubic-bezier(.34,1.56,.64,1) forwards; display: inline-block; }
 
 @keyframes wrBurst {
   0%   { opacity: 0; transform: translate(0,0) scale(.4); }
@@ -285,12 +308,16 @@ const wrCss = `
 }
 .wr-dust { animation: wrDust .8s ease-out infinite; }
 
-@keyframes wrTwinkle { 0%,100%{opacity:.2; transform: scale(.8)} 50%{opacity:1; transform: scale(1.2)} }
-.wr-star { color: #ffe27a; font-size: 10px; animation: wrTwinkle 2.4s ease-in-out infinite; }
+@keyframes wrConfettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translateY(420px) rotate(540deg); opacity: 0; }
+}
+.wr-confetti { font-size: 16px; animation: wrConfettiFall linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .wr-ride, .wr-bob, .wr-leg-a, .wr-leg-b, .wr-tail, .wr-hat,
-  .wr-arm-reward, .wr-reward, .wr-burst, .wr-dust, .wr-star {
+  .wr-arm-reward, .wr-reward, .wr-burst, .wr-dust, .wr-confetti, .wr-gift, .wr-amount {
     animation: none !important;
   }
   .wr-ride { transform: translateX(28%); }
