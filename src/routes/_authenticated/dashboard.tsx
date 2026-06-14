@@ -89,10 +89,20 @@ function DashboardPage() {
         const d = new Date(today); d.setDate(today.getDate() - i);
         days[d.toISOString().slice(5, 10)] = 0;
       }
-      const { data: weekTxns } = await supabase.from("transactions").select("amount_cents,created_at").eq("user_id", user.id).gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString());
-      (weekTxns ?? []).forEach((t) => {
+      // Only legitimate earnings — exclude trade win payouts and other trade txns
+      const { data: weekTxns } = await supabase
+        .from("transactions")
+        .select("amount_cents,created_at,description,type")
+        .eq("user_id", user.id)
+        .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString());
+      (weekTxns ?? []).forEach((t: any) => {
         const key = new Date(t.created_at).toISOString().slice(5, 10);
-        if (key in days && t.amount_cents > 0) days[key] += t.amount_cents;
+        if (!(key in days)) return;
+        if (t.amount_cents <= 0) return;
+        const desc = String(t.description ?? "").toLowerCase();
+        // Exclude trade win payouts / trade-related credits
+        if (desc.includes("trade")) return;
+        days[key] += t.amount_cents;
       });
       setSeries(Object.entries(days).map(([day, earned]) => ({ day, earned: earned / 100 })));
       setLoadingData(false);
