@@ -407,6 +407,16 @@ export function TradeFab() {
               </span>
             </div>
 
+            {/* Crisp price chart */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2 mb-5">
+              <CrispPriceChart
+                history={selectedHistory}
+                up={(selectedPrice?.change ?? 0) >= 0}
+                active={hasActiveTrade}
+                height={140}
+              />
+            </div>
+
             {/* Amount */}
             <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Amount (USD)</label>
             <div className="flex gap-2 mt-2 mb-4">
