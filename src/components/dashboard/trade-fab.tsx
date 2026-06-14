@@ -23,25 +23,172 @@ const DURATIONS = [
 
 type LivePrice = { symbol: string; name: string; base: number; price: number; change: number };
 
+const HISTORY_LEN = 60;
+
+function CrispPriceChart({
+  history,
+  up,
+  active,
+  height = 140,
+}: {
+  history: number[];
+  up: boolean;
+  active: boolean;
+  height?: number;
+}) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [cssWidth, setCssWidth] = useState(0);
+
+  // Track container width; resize canvas backing store via DPR for crispness
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const ro = new ResizeObserver((entries) => {
+      const w = Math.floor(entries[0].contentRect.width);
+      setCssWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || cssWidth <= 0) return;
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+    const w = cssWidth;
+    const h = height;
+    // Resize backing store only when needed (avoids flicker)
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const data = history.length > 1 ? history : [history[0] ?? 0, history[0] ?? 0];
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || Math.max(Math.abs(max) * 0.001, 0.0001);
+    const padY = 10;
+    const innerH = h - padY * 2;
+    const stepX = w / Math.max(1, data.length - 1);
+
+    // Grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+      const y = Math.round((h / 4) * i) + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    const color = up ? "#10b981" : "#ef4444";
+    const colorSoft = up ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)";
+    const colorFaint = up ? "rgba(16,185,129,0)" : "rgba(239,68,68,0)";
+
+    // Build smooth path
+    const pts = data.map((v, i) => ({
+      x: i * stepX,
+      y: padY + innerH - ((v - min) / range) * innerH,
+    }));
+
+    // Area fill
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, colorSoft);
+    grad.addColorStop(1, colorFaint);
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, h);
+    ctx.lineTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const cx = (p0.x + p1.x) / 2;
+      ctx.quadraticCurveTo(p0.x, p0.y, cx, (p0.y + p1.y) / 2);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.lineTo(pts[pts.length - 1].x, h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Stroke line (smooth)
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const cx = (p0.x + p1.x) / 2;
+      ctx.quadraticCurveTo(p0.x, p0.y, cx, (p0.y + p1.y) / 2);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.lineWidth = 1.75;
+    ctx.strokeStyle = color;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    // Last-point dot
+    const last = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = colorSoft;
+    ctx.fill();
+  }, [history, up, cssWidth, height]);
+
+  return (
+    <div ref={wrapRef} className="relative w-full" style={{ height }}>
+      <canvas ref={canvasRef} className="block" />
+      {active && (
+        <div className="pointer-events-none absolute top-2 right-2 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+          Live trade
+        </div>
+      )}
+    </div>
+  );
+}
+
 function useFakeLivePrices() {
   const [prices, setPrices] = useState<LivePrice[]>(() =>
     SYMBOLS.map((s) => ({ symbol: s.symbol, name: s.name, base: s.base, price: s.base, change: 0 }))
   );
+  const [histories, setHistories] = useState<Record<string, number[]>>(() =>
+    Object.fromEntries(SYMBOLS.map((s) => [s.symbol, Array(HISTORY_LEN).fill(s.base)]))
+  );
   useEffect(() => {
     const tick = () => {
-      setPrices((prev) =>
-        prev.map((p) => {
+      setPrices((prev) => {
+        const next = prev.map((p) => {
           const drift = p.symbol === "USDT" ? 0.0008 : 0.012;
           const delta = (Math.random() - 0.5) * 2 * drift;
-          const next = Math.max(p.base * 0.9, p.price * (1 + delta));
-          return { ...p, price: next, change: ((next - p.base) / p.base) * 100 };
-        })
-      );
+          const nextPrice = Math.max(p.base * 0.9, p.price * (1 + delta));
+          return { ...p, price: nextPrice, change: ((nextPrice - p.base) / p.base) * 100 };
+        });
+        setHistories((h) => {
+          const out: Record<string, number[]> = { ...h };
+          for (const p of next) {
+            const arr = h[p.symbol] ?? [];
+            out[p.symbol] = [...arr, p.price].slice(-HISTORY_LEN);
+          }
+          return out;
+        });
+        return next;
+      });
     };
-    const id = setInterval(tick, 3000);
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-  return prices;
+  return { prices, histories };
 }
 
 function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) {
