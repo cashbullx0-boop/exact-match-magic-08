@@ -241,10 +241,45 @@ export function TradeFab() {
 
   const balanceCents = profile?.balance_cents ?? 0;
   const hasActiveTrade = (tradesQuery.data?.active ?? []).length > 0;
+
+  // Daily limit: one trade per 24h. Find most recent trade (active or history).
+  const allTrades = [
+    ...(tradesQuery.data?.active ?? []),
+    ...(tradesQuery.data?.history ?? []),
+  ];
+  const lastTrade = allTrades
+    .slice()
+    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+  const nextAvailableMs = lastTrade
+    ? new Date(lastTrade.created_at).getTime() + 24 * 60 * 60 * 1000
+    : 0;
+  const [nowMs, setNowMs] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const dailyLimitReached = !!lastTrade && nowMs < nextAvailableMs;
+  const nextAvailableLabel = nextAvailableMs
+    ? new Date(nextAvailableMs).toLocaleString(undefined, {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  // Auto-fill full balance when modal opens and no active/today trade
+  useEffect(() => {
+    if (!open) return;
+    if (dailyLimitReached || hasActiveTrade) return;
+    if (balanceCents >= 100) setAmount((balanceCents / 100).toFixed(2));
+  }, [open, balanceCents, dailyLimitReached, hasActiveTrade]);
+
   const amountCents = Math.round((parseFloat(amount) || 0) * 100);
   const insufficient = amountCents > balanceCents;
   const belowMin = amountCents < 100;
-  const disabledReason = hasActiveTrade
+  const disabledReason = dailyLimitReached
+    ? "You have already placed your trade today. Come back tomorrow!"
+    : hasActiveTrade
     ? "You have an active trade. Please wait for it to complete"
     : insufficient
     ? "Insufficient balance"
@@ -259,6 +294,10 @@ export function TradeFab() {
 
   const handlePlace = async () => {
     const amt = amountCents;
+    if (dailyLimitReached) {
+      toast.error("You have already placed your trade today. Come back tomorrow!");
+      return;
+    }
     if (hasActiveTrade) {
       toast.error("You have an active trade. Please wait for it to complete");
       return;
@@ -416,6 +455,18 @@ export function TradeFab() {
                 height={140}
               />
             </div>
+
+            {dailyLimitReached && (
+              <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/[0.08] p-3 text-xs">
+                <div className="font-semibold text-amber-300 mb-0.5">
+                  You have already placed your trade today.
+                </div>
+                <div className="text-muted-foreground">
+                  Come back tomorrow! Next trade available:{" "}
+                  <span className="font-mono text-foreground/90">{nextAvailableLabel}</span>
+                </div>
+              </div>
+            )}
 
             {/* Amount */}
             <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Amount (USD)</label>
