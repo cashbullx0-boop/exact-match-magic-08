@@ -456,6 +456,18 @@ export function TradeFab() {
               />
             </div>
 
+            {dailyLimitReached && (
+              <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/[0.08] p-3 text-xs">
+                <div className="font-semibold text-amber-300 mb-0.5">
+                  You have already placed your trade today.
+                </div>
+                <div className="text-muted-foreground">
+                  Come back tomorrow! Next trade available:{" "}
+                  <span className="font-mono text-foreground/90">{nextAvailableLabel}</span>
+                </div>
+              </div>
+            )}
+
             {/* Amount */}
             <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Amount (USD)</label>
             <div className="flex gap-2 mt-2 mb-4">
