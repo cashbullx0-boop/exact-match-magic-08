@@ -956,6 +956,14 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      claim_daily_checkin: {
+        Args: never
+        Returns: {
+          reward_cents: number
+          streak_day: number
+          xp_gain: number
+        }[]
+      }
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
         Returns: undefined
