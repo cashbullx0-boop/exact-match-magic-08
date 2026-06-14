@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type TickerEvent = {
   username: string;
@@ -18,7 +19,9 @@ const TYPE_LABEL: Record<string, string> = {
   adjustment: "Adjustment",
 };
 
-export const getRecentEarnings = createServerFn({ method: "GET" }).handler(async () => {
+export const getRecentEarnings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: txs, error } = await supabaseAdmin
     .from("transactions")
