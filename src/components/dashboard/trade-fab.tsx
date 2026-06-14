@@ -93,6 +93,17 @@ export function TradeFab() {
   });
 
   const balanceCents = profile?.balance_cents ?? 0;
+  const hasActiveTrade = (tradesQuery.data?.active ?? []).length > 0;
+  const amountCents = Math.round((parseFloat(amount) || 0) * 100);
+  const insufficient = amountCents > balanceCents;
+  const belowMin = amountCents < 100;
+  const disabledReason = hasActiveTrade
+    ? "You have an active trade. Please wait for it to complete"
+    : insufficient
+    ? "Insufficient balance"
+    : belowMin
+    ? "Minimum trade is $1"
+    : null;
 
   const refresh = async () => {
     await refreshProfile();
@@ -100,7 +111,11 @@ export function TradeFab() {
   };
 
   const handlePlace = async () => {
-    const amt = Math.round(parseFloat(amount) * 100);
+    const amt = amountCents;
+    if (hasActiveTrade) {
+      toast.error("You have an active trade. Please wait for it to complete");
+      return;
+    }
     if (!Number.isFinite(amt) || amt < 100) {
       toast.error("Minimum trade is $1");
       return;
@@ -314,7 +329,7 @@ export function TradeFab() {
 
             <Button
               onClick={handlePlace}
-              disabled={placing}
+              disabled={placing || !!disabledReason}
               className="w-full h-12 text-sm font-semibold tracking-wide text-black rounded-xl"
               style={{
                 background: "linear-gradient(135deg,#FFD24A 0%,#F59E0B 50%,#B8860B 100%)",
@@ -322,7 +337,7 @@ export function TradeFab() {
               }}
             >
               {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Place Trade · <span className="font-mono tabular-nums">${parseFloat(amount || "0").toFixed(2)}</span>
+              {disabledReason ?? <>Place Trade · <span className="font-mono tabular-nums">${parseFloat(amount || "0").toFixed(2)}</span></>}
             </Button>
             <p className="text-[10px] text-muted-foreground text-center mt-3 tracking-wide">
               Every trade wins · Returns original + 85% profit
