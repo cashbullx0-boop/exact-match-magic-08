@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type TickerEvent = {
   username: string;
@@ -20,9 +19,10 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export const getRecentEarnings = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: txs, error } = await supabaseAdmin
     .from("transactions")
-    .select("user_id, type, amount_cents, description, created_at")
+    .select("user_id, type, amount_cents, created_at")
     .gt("amount_cents", 0)
     .order("created_at", { ascending: false })
     .limit(10);
