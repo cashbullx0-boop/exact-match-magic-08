@@ -1,40 +1,67 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, PlayCircle, Smartphone, ClipboardList } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { getCpxSecureHash } from "@/lib/cpx.functions";
 
 export const Route = createFileRoute("/_authenticated/earn")({
   head: () => ({ meta: [{ title: "Earn — CashBullX" }] }),
   component: EarnPage,
 });
 
-function CpxOfferwall({ userId, designType, containerId }: { userId: string; designType: 1 | 2; containerId: string }) {
-  useEffect(() => {
-    if (!userId) return;
-    // @ts-ignore
-    window.CpxResearch = {
-      app_id: 33442,
-      ext_user_id: userId,
-      secure_hash: null,
-      design_type: designType,
-      position_type: 1,
-      div_id: containerId,
-    };
-    const existing = document.querySelector<HTMLScriptElement>(`script[data-cpx="${containerId}"]`);
-    if (existing) existing.remove();
-    const s = document.createElement("script");
-    s.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
-    s.async = true;
-    s.dataset.cpx = containerId;
-    document.body.appendChild(s);
-    return () => {
-      s.remove();
-    };
-  }, [userId, designType, containerId]);
+function CpxOfferwall({ designType, containerId }: { designType: 1 | 2; containerId: string }) {
+  const fetchSecureHash = useServerFn(getCpxSecureHash);
+  const [error, setError] = useState<string | null>(null);
 
-  return <div id={containerId} className="min-h-[600px] w-full rounded-xl overflow-hidden bg-background/40" />;
+  useEffect(() => {
+    let cancelled = false;
+    let script: HTMLScriptElement | null = null;
+    setError(null);
+
+    const load = async () => {
+      try {
+        const { appId, userId, secureHash } = await fetchSecureHash();
+        if (cancelled) return;
+
+        const existing = document.querySelector<HTMLScriptElement>(`script[data-cpx="${containerId}"]`);
+        if (existing) existing.remove();
+
+        // @ts-expect-error CPX loads from a third-party script and reads this global.
+        window.CpxResearch = {
+          app_id: appId,
+          ext_user_id: userId,
+          secure_hash: secureHash,
+          design_type: designType,
+          position_type: 1,
+          div_id: containerId,
+        };
+
+        script = document.createElement("script");
+        script.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
+        script.async = true;
+        script.dataset.cpx = containerId;
+        document.body.appendChild(script);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? "Offerwall unavailable");
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+      script?.remove();
+    };
+  }, [fetchSecureHash, designType, containerId]);
+
+  return (
+    <div id={containerId} className="min-h-[600px] w-full rounded-xl overflow-hidden bg-background/40">
+      {error ? <p className="p-6 text-sm text-muted-foreground">{error}</p> : null}
+    </div>
+  );
 }
 
 function EarnPage() {
@@ -61,7 +88,7 @@ function EarnPage() {
             <p className="text-xs text-muted-foreground">Share your opinion and get rewarded instantly.</p>
           </div>
         </div>
-        {uid ? <CpxOfferwall userId={uid} designType={1} containerId="cpx-surveys" /> : null}
+        {uid ? <CpxOfferwall designType={1} containerId="cpx-surveys" /> : null}
       </Card>
 
       <Card className="glass-strong border-border p-6">
@@ -72,7 +99,7 @@ function EarnPage() {
             <p className="text-xs text-muted-foreground">Earn while watching sponsored video content.</p>
           </div>
         </div>
-        {uid ? <CpxOfferwall userId={uid} designType={2} containerId="cpx-videos" /> : null}
+        {uid ? <CpxOfferwall designType={2} containerId="cpx-videos" /> : null}
       </Card>
 
       <Card className="glass-strong border-border p-6 relative overflow-hidden">
