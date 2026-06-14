@@ -226,7 +226,7 @@ export function TradeFab() {
     return () => window.removeEventListener("open-trade-fab", handler);
   }, []);
   const qc = useQueryClient();
-  const prices = useFakeLivePrices();
+  const { prices, histories } = useFakeLivePrices();
 
   const openFn = useServerFn(openTrade);
   const settleFn = useServerFn(settleTrade);
@@ -301,6 +301,7 @@ export function TradeFab() {
     () => prices.find((p) => p.symbol === selectedSymbol) ?? prices[0],
     [prices, selectedSymbol]
   );
+  const selectedHistory = histories[selectedSymbol] ?? [];
 
   return (
     <>
