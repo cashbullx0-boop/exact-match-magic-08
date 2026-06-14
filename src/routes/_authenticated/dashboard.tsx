@@ -37,29 +37,16 @@ function DashboardPage() {
   const claimCheckin = async () => {
     if (!user || !profile || alreadyCheckedIn) return;
     setClaiming(true);
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    const newStreak = profile.last_checkin_date === yesterday ? streak + 1 : 1;
-    const reward = Math.min(50 + (newStreak - 1) * 10, 200);
-    const xpGain = 20 + newStreak * 5;
-
-    const { error } = await supabase.from("daily_checkins").insert({
-      user_id: user.id, checkin_date: today, reward_cents: reward, streak_day: newStreak,
-    });
-    if (error) { toast.error(error.message); setClaiming(false); return; }
-
-    await supabase.from("transactions").insert({
-      user_id: user.id, type: "task_reward", amount_cents: reward,
-      description: `Daily check-in (day ${newStreak})`,
-    });
-    await supabase.from("profiles").update({
-      balance_cents: profile.balance_cents + reward,
-      total_earned_cents: profile.total_earned_cents + reward,
-      current_streak: newStreak,
-      longest_streak: Math.max(profile.longest_streak, newStreak),
-      last_checkin_date: today,
-      xp: profile.xp + xpGain,
-      level: Math.floor((profile.xp + xpGain) / 500) + 1,
-    }).eq("id", user.id);
+    const { data, error } = await supabase.rpc("claim_daily_checkin");
+    if (error) {
+      toast.error(error.message);
+      setClaiming(false);
+      return;
+    }
+    const row: any = Array.isArray(data) ? data[0] : data;
+    const reward = row?.reward_cents ?? 0;
+    const xpGain = row?.xp_gain ?? 0;
+    const newStreak = row?.streak_day ?? 1;
     await supabase.rpc("create_self_notification", {
       _title: `Day ${newStreak} streak claimed!`,
       _body: `+$${(reward / 100).toFixed(2)} and +${xpGain} XP added to your wallet.`,
