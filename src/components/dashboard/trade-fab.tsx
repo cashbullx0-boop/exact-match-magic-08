@@ -58,17 +58,20 @@ function CrispPriceChart({
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
     const w = cssWidth;
     const h = height;
-    // Resize backing store only when needed (avoids flicker)
-    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-    }
+    // Always set backing store from CSS size * DPR — prevents ghost artifacts
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
     canvas.style.width = `${w}px`;
     canvas.style.height = `${h}px`;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    // Reset transform then clear full backing store before scaling for DPR
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Paint solid dark background (no ghost grid lines below the line)
+    ctx.fillStyle = "#0b0c10";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
 
     const data = history.length > 1 ? history : [history[0] ?? 0, history[0] ?? 0];
     const min = Math.min(...data);
@@ -77,17 +80,6 @@ function CrispPriceChart({
     const padY = 10;
     const innerH = h - padY * 2;
     const stepX = w / Math.max(1, data.length - 1);
-
-    // Grid
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 4; i++) {
-      const y = Math.round((h / 4) * i) + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
 
     const color = up ? "#10b981" : "#ef4444";
     const colorSoft = up ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)";
@@ -147,8 +139,8 @@ function CrispPriceChart({
   }, [history, up, cssWidth, height]);
 
   return (
-    <div ref={wrapRef} className="relative w-full" style={{ height }}>
-      <canvas ref={canvasRef} className="block" />
+    <div ref={wrapRef} className="relative w-full overflow-hidden rounded-lg" style={{ height, background: "#0b0c10" }}>
+      <canvas ref={canvasRef} className="block absolute inset-0" />
       {active && (
         <div className="pointer-events-none absolute top-2 right-2 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
           Live trade
