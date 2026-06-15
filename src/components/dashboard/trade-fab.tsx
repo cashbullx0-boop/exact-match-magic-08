@@ -476,12 +476,23 @@ export function TradeFab() {
 
             {dailyLimitReached && (
               <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/[0.08] p-3 text-xs">
-                <div className="font-semibold text-amber-300 mb-0.5">
-                  You have already placed your trade today.
+                <div className="font-semibold text-amber-300 mb-1">
+                  You have already placed your trade today. Come back tomorrow!
                 </div>
                 <div className="text-muted-foreground">
-                  Come back tomorrow! Next trade available:{" "}
-                  <span className="font-mono text-foreground/90">{nextAvailableLabel}</span>
+                  Next trade available at:{" "}
+                  <span className="font-mono text-foreground/90">
+                    {nextAvailableUkLabel} UK Time
+                  </span>
+                </div>
+                <div className="text-muted-foreground mt-0.5">
+                  Available in:{" "}
+                  <span className="font-mono tabular-nums text-foreground/90">
+                    {countdownLabel}
+                  </span>
+                </div>
+                <div className="text-[10px] text-muted-foreground/80 mt-1">
+                  🇬🇧 UK Time (GMT/BST)
                 </div>
               </div>
             )}
