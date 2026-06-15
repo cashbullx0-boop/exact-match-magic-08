@@ -25,6 +25,146 @@ type LivePrice = { symbol: string; name: string; base: number; price: number; ch
 
 const HISTORY_LEN = 60;
 
+const BINANCE_STREAMS: Record<string, string> = {
+  BTC: "btcusdt",
+  ETH: "ethusdt",
+  USDT: "usdcusdt",
+};
+const BINANCE_REST_SYMBOL: Record<string, string> = {
+  BTC: "BTCUSDT",
+  ETH: "ETHUSDT",
+  USDT: "USDCUSDT",
+};
+
+type FeedStatus = "connecting" | "live" | "fallback" | "offline";
+
+function useBinanceLivePrices() {
+  const [prices, setPrices] = useState<LivePrice[]>(() =>
+    SYMBOLS.map((s) => ({ symbol: s.symbol, name: s.name, base: s.base, price: s.base, change: 0 }))
+  );
+  const [histories, setHistories] = useState<Record<string, number[]>>(() =>
+    Object.fromEntries(SYMBOLS.map((s) => [s.symbol, [s.base]]))
+  );
+  const [status, setStatus] = useState<FeedStatus>("connecting");
+
+  // Throttled buffer of latest values per symbol
+  const latestRef = useRef<Record<string, { price: number; change: number } | null>>({});
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let stopped = false;
+    const sockets: WebSocket[] = [];
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let tickTimer: ReturnType<typeof setInterval> | null = null;
+    let openCount = 0;
+    let anyOpened = false;
+
+    const flush = () => {
+      const buf = latestRef.current;
+      const updates = Object.entries(buf).filter(([, v]) => v != null) as [string, { price: number; change: number }][];
+      if (updates.length === 0) return;
+      latestRef.current = {};
+      setPrices((prev) =>
+        prev.map((p) => {
+          const u = updates.find(([sym]) => sym === p.symbol);
+          if (!u) return p;
+          return { ...p, price: u[1].price, change: u[1].change };
+        })
+      );
+      setHistories((h) => {
+        const out = { ...h };
+        for (const [sym, v] of updates) {
+          const arr = out[sym] ?? [];
+          out[sym] = [...arr, v.price].slice(-HISTORY_LEN);
+        }
+        return out;
+      });
+    };
+
+    const startPolling = () => {
+      if (pollTimer) return;
+      const tick = async () => {
+        try {
+          const results = await Promise.all(
+            SYMBOLS.map(async (s) => {
+              const sym = BINANCE_REST_SYMBOL[s.symbol];
+              const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}`);
+              if (!res.ok) throw new Error("rest fail");
+              const j: any = await res.json();
+              const price = parseFloat(j.lastPrice);
+              const change = parseFloat(j.priceChangePercent);
+              return { symbol: s.symbol, price, change };
+            })
+          );
+          if (stopped) return;
+          for (const r of results) {
+            if (isFinite(r.price)) latestRef.current[r.symbol] = { price: r.price, change: isFinite(r.change) ? r.change : 0 };
+          }
+          flush();
+          setStatus("fallback");
+        } catch {
+          if (!stopped) setStatus("offline");
+        }
+      };
+      tick();
+      pollTimer = setInterval(tick, 3000);
+    };
+
+    for (const s of SYMBOLS) {
+      const stream = BINANCE_STREAMS[s.symbol];
+      try {
+        const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${stream}@ticker`);
+        sockets.push(ws);
+        ws.onopen = () => {
+          openCount += 1;
+          anyOpened = true;
+          setStatus("live");
+        };
+        ws.onmessage = (evt) => {
+          try {
+            const d = JSON.parse(evt.data);
+            const price = parseFloat(d.c);
+            const change = parseFloat(d.P);
+            if (isFinite(price)) {
+              latestRef.current[s.symbol] = { price, change: isFinite(change) ? change : 0 };
+            }
+          } catch {}
+        };
+        ws.onerror = () => {
+          try { ws.close(); } catch {}
+        };
+        ws.onclose = () => {
+          openCount = Math.max(0, openCount - 1);
+          if (!stopped && openCount === 0) {
+            startPolling();
+          }
+        };
+      } catch {
+        startPolling();
+      }
+    }
+
+    // If no socket opens within 4s, fall back to REST
+    const failTimer = setTimeout(() => {
+      if (!anyOpened && !stopped) startPolling();
+    }, 4000);
+
+    tickTimer = setInterval(flush, 1000);
+
+    return () => {
+      stopped = true;
+      clearTimeout(failTimer);
+      if (tickTimer) clearInterval(tickTimer);
+      if (pollTimer) clearInterval(pollTimer);
+      for (const ws of sockets) {
+        try { ws.close(); } catch {}
+      }
+    };
+  }, []);
+
+  return { prices, histories, status };
+}
+
 function CrispPriceChart({
   history,
   up,
@@ -150,38 +290,6 @@ function CrispPriceChart({
   );
 }
 
-function useFakeLivePrices() {
-  const [prices, setPrices] = useState<LivePrice[]>(() =>
-    SYMBOLS.map((s) => ({ symbol: s.symbol, name: s.name, base: s.base, price: s.base, change: 0 }))
-  );
-  const [histories, setHistories] = useState<Record<string, number[]>>(() =>
-    Object.fromEntries(SYMBOLS.map((s) => [s.symbol, Array(HISTORY_LEN).fill(s.base)]))
-  );
-  useEffect(() => {
-    const tick = () => {
-      setPrices((prev) => {
-        const next = prev.map((p) => {
-          const drift = p.symbol === "USDT" ? 0.0008 : 0.012;
-          const delta = (Math.random() - 0.5) * 2 * drift;
-          const nextPrice = Math.max(p.base * 0.9, p.price * (1 + delta));
-          return { ...p, price: nextPrice, change: ((nextPrice - p.base) / p.base) * 100 };
-        });
-        setHistories((h) => {
-          const out: Record<string, number[]> = { ...h };
-          for (const p of next) {
-            const arr = h[p.symbol] ?? [];
-            out[p.symbol] = [...arr, p.price].slice(-HISTORY_LEN);
-          }
-          return out;
-        });
-        return next;
-      });
-    };
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-  return { prices, histories };
-}
 
 function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) {
   const [now, setNow] = useState(Date.now());
@@ -218,7 +326,7 @@ export function TradeFab() {
     return () => window.removeEventListener("open-trade-fab", handler);
   }, []);
   const qc = useQueryClient();
-  const { prices, histories } = useFakeLivePrices();
+  const { prices, histories, status: feedStatus } = useBinanceLivePrices();
 
   const openFn = useServerFn(openTrade);
   const settleFn = useServerFn(settleTrade);
@@ -355,7 +463,7 @@ export function TradeFab() {
   };
 
   const selectedPrice = useMemo(
-    () => prices.find((p) => p.symbol === selectedSymbol) ?? prices[0],
+    () => prices.find((p: LivePrice) => p.symbol === selectedSymbol) ?? prices[0],
     [prices, selectedSymbol]
   );
   const selectedHistory = histories[selectedSymbol] ?? [];
@@ -425,7 +533,7 @@ export function TradeFab() {
             {/* Live prices */}
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2">Markets</div>
             <div className="grid grid-cols-3 gap-2 mb-5">
-              {prices.map((p) => {
+              {prices.map((p: LivePrice) => {
                 const active = selectedSymbol === p.symbol;
                 const up = p.change >= 0;
                 return (
@@ -455,8 +563,23 @@ export function TradeFab() {
             </div>
 
             <div className="text-[11px] text-muted-foreground mb-5 flex items-center gap-1.5">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="uppercase tracking-wider text-emerald-400/90 font-semibold">Live</span>
+              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+                feedStatus === "live" ? "bg-emerald-400 animate-pulse"
+                : feedStatus === "fallback" ? "bg-amber-400"
+                : feedStatus === "offline" ? "bg-red-400"
+                : "bg-muted-foreground animate-pulse"
+              }`} />
+              <span className={`uppercase tracking-wider font-semibold ${
+                feedStatus === "live" ? "text-emerald-400/90"
+                : feedStatus === "fallback" ? "text-amber-400/90"
+                : feedStatus === "offline" ? "text-red-400/90"
+                : "text-muted-foreground"
+              }`}>
+                {feedStatus === "live" ? "Live 🟢"
+                  : feedStatus === "fallback" ? "Live (REST)"
+                  : feedStatus === "offline" ? "Offline"
+                  : "Connecting…"}
+              </span>
               <span>·</span>
               <span>{selectedPrice?.symbol} @</span>
               <span className="font-mono tabular-nums text-foreground/90">
