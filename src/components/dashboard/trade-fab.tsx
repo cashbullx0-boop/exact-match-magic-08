@@ -234,7 +234,7 @@ export function TradeFab() {
   const balanceCents = profile?.balance_cents ?? 0;
   const hasActiveTrade = (tradesQuery.data?.active ?? []).length > 0;
 
-  // Daily limit: one trade per 24h. Find most recent trade (active or history).
+  // Daily limit: one trade per UK day (resets at 00:00 Europe/London).
   const allTrades = [
     ...(tradesQuery.data?.active ?? []),
     ...(tradesQuery.data?.history ?? []),
@@ -242,22 +242,47 @@ export function TradeFab() {
   const lastTrade = allTrades
     .slice()
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-  const nextAvailableMs = lastTrade
-    ? new Date(lastTrade.created_at).getTime() + 24 * 60 * 60 * 1000
-    : 0;
   const [nowMs, setNowMs] = useState(Date.now());
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
-  const dailyLimitReached = !!lastTrade && nowMs < nextAvailableMs;
-  const nextAvailableLabel = nextAvailableMs
-    ? new Date(nextAvailableMs).toLocaleString(undefined, {
-        weekday: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
+  // Compute the next UK (Europe/London) midnight in UTC ms.
+  const nextUkMidnightMs = useMemo(() => {
+    const now = new Date(nowMs);
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/London",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
+      .formatToParts(now)
+      .reduce((acc, p) => {
+        if (p.type !== "literal") acc[p.type] = p.value;
+        return acc;
+      }, {} as Record<string, string>);
+    const h = parseInt(parts.hour === "24" ? "0" : parts.hour, 10);
+    const m = parseInt(parts.minute, 10);
+    const s = parseInt(parts.second, 10);
+    const secsToday = h * 3600 + m * 60 + s;
+    const secsRemain = 24 * 3600 - secsToday;
+    return now.getTime() + secsRemain * 1000;
+  }, [nowMs]);
+  const prevUkMidnightMs = nextUkMidnightMs - 24 * 60 * 60 * 1000;
+  const dailyLimitReached =
+    !!lastTrade && new Date(lastTrade.created_at).getTime() >= prevUkMidnightMs;
+  const nextAvailableUkLabel = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(nextUkMidnightMs));
+  const remainingMs = Math.max(0, nextUkMidnightMs - nowMs);
+  const rh = Math.floor(remainingMs / 3600000);
+  const rm = Math.floor((remainingMs % 3600000) / 60000);
+  const rs = Math.floor((remainingMs % 60000) / 1000);
+  const countdownLabel = `${rh}h ${rm}m ${rs}s`;
 
   // Auto-fill full balance when modal opens and no active/today trade
   useEffect(() => {
