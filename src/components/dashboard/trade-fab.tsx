@@ -326,7 +326,7 @@ export function TradeFab() {
     return () => window.removeEventListener("open-trade-fab", handler);
   }, []);
   const qc = useQueryClient();
-  const { prices, histories } = useFakeLivePrices();
+  const { prices, histories, status: feedStatus } = useBinanceLivePrices();
 
   const openFn = useServerFn(openTrade);
   const settleFn = useServerFn(settleTrade);
