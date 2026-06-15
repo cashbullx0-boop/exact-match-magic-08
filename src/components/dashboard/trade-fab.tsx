@@ -563,8 +563,23 @@ export function TradeFab() {
             </div>
 
             <div className="text-[11px] text-muted-foreground mb-5 flex items-center gap-1.5">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="uppercase tracking-wider text-emerald-400/90 font-semibold">Live</span>
+              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
+                feedStatus === "live" ? "bg-emerald-400 animate-pulse"
+                : feedStatus === "fallback" ? "bg-amber-400"
+                : feedStatus === "offline" ? "bg-red-400"
+                : "bg-muted-foreground animate-pulse"
+              }`} />
+              <span className={`uppercase tracking-wider font-semibold ${
+                feedStatus === "live" ? "text-emerald-400/90"
+                : feedStatus === "fallback" ? "text-amber-400/90"
+                : feedStatus === "offline" ? "text-red-400/90"
+                : "text-muted-foreground"
+              }`}>
+                {feedStatus === "live" ? "Live 🟢"
+                  : feedStatus === "fallback" ? "Live (REST)"
+                  : feedStatus === "offline" ? "Offline"
+                  : "Connecting…"}
+              </span>
               <span>·</span>
               <span>{selectedPrice?.symbol} @</span>
               <span className="font-mono tabular-nums text-foreground/90">
