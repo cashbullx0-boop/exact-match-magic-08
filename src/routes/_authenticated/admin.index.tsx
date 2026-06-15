@@ -9,20 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, Loader2, Coins } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { AdminRequestsPanel } from "@/components/dashboard/admin-requests-panel";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({ meta: [{ title: "Admin — CashBullX" }] }),
@@ -35,11 +24,6 @@ function AdminPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [form, setForm] = useState({ title: "", description: "", category: "survey", reward: "0.50", url: "", minutes: "5" });
-  const [runningProfits, setRunningProfits] = useState(false);
-  const [lastProfitRun, setLastProfitRun] = useState<string | null>(
-    typeof window !== "undefined" ? localStorage.getItem("admin_last_profit_run") : null,
-  );
-  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -81,28 +65,6 @@ function AdminPage() {
     load();
   };
 
-  const runDailyProfits = async () => {
-    setConfirmOpen(false);
-    setRunningProfits(true);
-    try {
-      const { count: eligible } = await supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "active")
-        .gte("balance_cents", 5000);
-      const { error } = await supabase.rpc("process_daily_profits" as any);
-      if (error) throw error;
-      const stamp = new Date().toISOString();
-      localStorage.setItem("admin_last_profit_run", stamp);
-      setLastProfitRun(stamp);
-      toast.success(`Daily profits credited to ${eligible ?? 0} users`);
-    } catch (e: any) {
-      toast.error(e.message ?? "Failed to run daily profits");
-    } finally {
-      setRunningProfits(false);
-    }
-  };
-
   if (loading || !isAdmin) return <div className="text-muted-foreground">Checking access…</div>;
 
   return (
@@ -111,45 +73,6 @@ function AdminPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Admin dashboard</h1>
         <p className="text-muted-foreground mt-1">Manage tasks and view users.</p>
       </header>
-
-      <Card className="glass-strong border-amber-400/30 p-6 bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-transparent">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="font-semibold flex items-center gap-2 text-lg">
-              <Coins className="h-5 w-5 text-amber-400" /> Daily profits
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Last run: {lastProfitRun ? new Date(lastProfitRun).toLocaleString() : "Never"}
-            </p>
-          </div>
-          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                disabled={runningProfits}
-                className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-[#2a1a00] font-bold hover:opacity-90 shadow-[0_0_24px_-4px_rgba(245,194,74,0.6)] ring-1 ring-amber-200/40"
-              >
-                {runningProfits ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Processing…</>
-                ) : (
-                  <>💰 Run Daily Profits</>
-                )}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Run daily profits?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to process daily profits for all active users?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={runDailyProfits}>Confirm</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </Card>
 
       <AdminRequestsPanel />
 

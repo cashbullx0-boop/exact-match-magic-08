@@ -212,7 +212,7 @@ function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () =>
 
 export function TradeFab() {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("10");
+  const [amount, setAmount] = useState("50");
   const [direction, setDirection] = useState<"up" | "down">("up");
   const [duration, setDuration] = useState<60 | 300 | 900>(60);
   const [selectedSymbol, setSelectedSymbol] = useState<string>("BTC");
@@ -271,12 +271,13 @@ export function TradeFab() {
   useEffect(() => {
     if (!open) return;
     if (dailyLimitReached || hasActiveTrade) return;
-    if (balanceCents >= 100) setAmount((balanceCents / 100).toFixed(2));
+    if (balanceCents >= 5000) setAmount((balanceCents / 100).toFixed(2));
+    else setAmount("50");
   }, [open, balanceCents, dailyLimitReached, hasActiveTrade]);
 
   const amountCents = Math.round((parseFloat(amount) || 0) * 100);
   const insufficient = amountCents > balanceCents;
-  const belowMin = amountCents < 100;
+  const belowMin = amountCents < 5000;
   const disabledReason = dailyLimitReached
     ? "You have already placed your trade today. Come back tomorrow!"
     : hasActiveTrade
@@ -284,7 +285,7 @@ export function TradeFab() {
     : insufficient
     ? "Insufficient balance"
     : belowMin
-    ? "Minimum trade is $1"
+    ? "Minimum trade is $50"
     : null;
 
   const refresh = async () => {
@@ -302,8 +303,8 @@ export function TradeFab() {
       toast.error("You have an active trade. Please wait for it to complete");
       return;
     }
-    if (!Number.isFinite(amt) || amt < 100) {
-      toast.error("Minimum trade is $1");
+    if (!Number.isFinite(amt) || amt < 5000) {
+      toast.error("Minimum trade is $50");
       return;
     }
     if (amt > balanceCents) {

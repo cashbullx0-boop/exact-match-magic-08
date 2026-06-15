@@ -8,8 +8,8 @@ const ALLOWED_DURATIONS = [60, 300, 900] as const;
 export const openTrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { amount_cents: number; direction: Direction; duration_seconds: number }) => {
-    if (!Number.isInteger(d.amount_cents) || d.amount_cents < 100 || d.amount_cents > 100_000_00) {
-      throw new Error("Amount must be between $1 and $100,000");
+    if (!Number.isInteger(d.amount_cents) || d.amount_cents < 5000 || d.amount_cents > 100_000_00) {
+      throw new Error("Minimum trade amount is $50");
     }
     if (d.direction !== "up" && d.direction !== "down") throw new Error("Invalid direction");
     if (!ALLOWED_DURATIONS.includes(d.duration_seconds as 60 | 300 | 900)) throw new Error("Invalid duration");
