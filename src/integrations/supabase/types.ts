@@ -1065,7 +1065,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      process_daily_profits: { Args: never; Returns: undefined }
       request_password_reset_by_email: {
         Args: { _email: string }
         Returns: string
