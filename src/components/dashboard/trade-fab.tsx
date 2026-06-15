@@ -139,8 +139,8 @@ function CrispPriceChart({
   }, [history, up, cssWidth, height]);
 
   return (
-    <div ref={wrapRef} className="relative w-full" style={{ height }}>
-      <canvas ref={canvasRef} className="block" />
+    <div ref={wrapRef} className="relative w-full overflow-hidden rounded-lg" style={{ height, background: "#0b0c10" }}>
+      <canvas ref={canvasRef} className="block absolute inset-0" />
       {active && (
         <div className="pointer-events-none absolute top-2 right-2 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
           Live trade
