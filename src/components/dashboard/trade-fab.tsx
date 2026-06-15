@@ -463,7 +463,7 @@ export function TradeFab() {
   };
 
   const selectedPrice = useMemo(
-    () => prices.find((p) => p.symbol === selectedSymbol) ?? prices[0],
+    () => prices.find((p: LivePrice) => p.symbol === selectedSymbol) ?? prices[0],
     [prices, selectedSymbol]
   );
   const selectedHistory = histories[selectedSymbol] ?? [];
@@ -533,7 +533,7 @@ export function TradeFab() {
             {/* Live prices */}
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2">Markets</div>
             <div className="grid grid-cols-3 gap-2 mb-5">
-              {prices.map((p) => {
+              {prices.map((p: LivePrice) => {
                 const active = selectedSymbol === p.symbol;
                 const up = p.change >= 0;
                 return (
