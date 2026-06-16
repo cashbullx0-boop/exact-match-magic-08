@@ -69,10 +69,36 @@ function DepositPage() {
   const [active, setActive] = useState<DepositRow | null>(null);
   const [txHash, setTxHash] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
+  const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const net = NETWORKS[network];
+
+  const MAX_SLIP_BYTES = 5 * 1024 * 1024;
+
+  const handleSlipChange = (file: File | null) => {
+    if (!file) {
+      setSlipFile(null);
+      setSlipPreview(null);
+      return;
+    }
+    const okType = file.type.startsWith("image/") || file.type === "application/pdf";
+    if (!okType) {
+      toast.error("Only images or PDF files are allowed");
+      return;
+    }
+    if (file.size > MAX_SLIP_BYTES) {
+      toast.error("File is too large (max 5MB)");
+      return;
+    }
+    setSlipFile(file);
+    if (file.type.startsWith("image/")) {
+      setSlipPreview(URL.createObjectURL(file));
+    } else {
+      setSlipPreview(null);
+    }
+  };
 
   const refresh = async () => {
     if (!user) return;
@@ -116,16 +142,16 @@ function DepositPage() {
   const handleSubmitHash = async () => {
     if (!active || !user) return;
     if (!txHash.trim()) return toast.error("Enter the transaction hash");
+    if (!slipFile) return toast.error("Please upload your payment slip or screenshot as proof");
     setSubmitting(true);
     try {
-      if (slipFile) {
-        await uploadDepositSlip(user.id, active.id, slipFile);
-      }
+      await uploadDepositSlip(user.id, active.id, slipFile);
       await attachTxHash(active.id, txHash);
       toast.success("Deposit submitted — pending admin review");
       setActive(null);
       setTxHash("");
       setSlipFile(null);
+      setSlipPreview(null);
       refresh();
     } catch (e: any) {
       toast.error(e.message ?? "Failed to submit deposit");
@@ -369,23 +395,43 @@ function DepositPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="slip" className="text-xs">Deposit slip / screenshot (optional)</Label>
+                  <Label htmlFor="slip" className="text-xs">
+                    Payment Slip / Screenshot <span className="text-destructive">*</span>{" "}
+                    <span className="text-muted-foreground">(Required, max 5MB)</span>
+                  </Label>
                   <Input
                     id="slip"
                     type="file"
-                    accept="image/*"
-                    onChange={(e) => setSlipFile(e.target.files?.[0] ?? null)}
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleSlipChange(e.target.files?.[0] ?? null)}
                     className="mt-1 text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
                   />
-                  {slipFile && <p className="text-[11px] text-muted-foreground mt-1">Selected: {slipFile.name}</p>}
+                  {slipFile ? (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-[11px] text-muted-foreground">
+                        Selected: {slipFile.name} ({(slipFile.size / 1024).toFixed(0)} KB)
+                      </p>
+                      {slipPreview && (
+                        <img
+                          src={slipPreview}
+                          alt="Payment slip preview"
+                          className="max-h-48 w-auto rounded-md border border-border object-contain bg-black/30"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-destructive mt-1">
+                      Please upload your payment slip or screenshot as proof
+                    </p>
+                  )}
                 </div>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-2">
                 <Button variant="outline" onClick={() => setActive(null)}>Close</Button>
-                <Button onClick={handleSubmitHash} disabled={submitting || !txHash.trim()}>
+                <Button onClick={handleSubmitHash} disabled={submitting || !txHash.trim() || !slipFile}>
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                  Submit for review
+                  {!slipFile ? "Upload slip to continue" : "Submit Deposit"}
                 </Button>
               </DialogFooter>
             </>
