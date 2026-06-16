@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Trophy, Coins, Sparkles, X } from "lucide-react";
+import { Trophy, Coins, Sparkles, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,9 @@ export type RewardCelebrationProps = {
 };
 
 // Coins that fly outward from center
-const COIN_COUNT = 14;
+const COIN_COUNT = 22;
+const RAY_COUNT = 14;
+const ORBIT_COIN_COUNT = 8;
 
 function AnimatedCounter({
   value,
@@ -196,6 +198,76 @@ export function RewardCelebration({
             }}
           />
 
+          {/* Rotating background light rays */}
+          <motion.div
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: [0, 0.55, 0.35], scale: 1, rotate: 360 }}
+            transition={{
+              opacity: { duration: 1.2, ease: "easeOut" },
+              scale: { duration: 1.2, ease: "easeOut" },
+              rotate: { duration: 28, ease: "linear", repeat: Infinity },
+            }}
+            style={{ width: 1400, height: 1400 }}
+          >
+            {Array.from({ length: RAY_COUNT }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: 700,
+                  height: 70,
+                  transform: `translate(-50%, -50%) rotate(${(i * 360) / RAY_COUNT}deg)`,
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(255,205,80,0.32) 40%, rgba(255,235,150,0.55) 50%, rgba(255,205,80,0.32) 60%, transparent 100%)",
+                  filter: "blur(6px)",
+                  mixBlendMode: "screen",
+                }}
+              />
+            ))}
+          </motion.div>
+
+          {/* Orbiting coins around the card */}
+          <motion.div
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1, rotate: 360 }}
+            transition={{
+              opacity: { duration: 0.5, delay: 0.35 },
+              scale: { duration: 0.6, delay: 0.35, ease: "easeOut" },
+              rotate: { duration: 14, ease: "linear", repeat: Infinity },
+            }}
+            style={{ width: 320, height: 320 }}
+          >
+            {Array.from({ length: ORBIT_COIN_COUNT }).map((_, i) => {
+              const angle = (i / ORBIT_COIN_COUNT) * Math.PI * 2;
+              const r = 160;
+              const x = Math.cos(angle) * r;
+              const y = Math.sin(angle) * r;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute left-1/2 top-1/2"
+                  style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
+                  animate={{ rotateY: 360 }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "linear", delay: i * 0.08 }}
+                >
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 30% 30%, #FFE680 0%, #FFC107 50%, #B8860B 100%)",
+                      boxShadow:
+                        "0 0 14px rgba(255,193,7,0.7), inset 0 -2px 3px rgba(0,0,0,0.25)",
+                    }}
+                  >
+                    <span className="text-[10px] font-black text-amber-900">$</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
           {/* Flying coins */}
           <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             {Array.from({ length: COIN_COUNT }).map((_, i) => {
@@ -332,16 +404,32 @@ export function RewardCelebration({
                 </motion.div>
               </div>
 
-              {/* Achievement */}
+              {/* Achievement banner — slides in from the left */}
+              <motion.div
+                initial={{ opacity: 0, x: -160, scale: 0.85 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 220, damping: 18 }}
+                className="mx-auto mb-3 flex w-fit items-center gap-2 rounded-full border border-amber-300/50 px-4 py-1.5"
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(184,134,11,0.45) 0%, rgba(255,193,7,0.65) 50%, rgba(184,134,11,0.45) 100%)",
+                  boxShadow:
+                    "0 6px 20px -6px rgba(255,193,7,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
+                }}
+              >
+                <Star className="h-3.5 w-3.5 fill-amber-100 text-amber-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]" />
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-amber-50">
+                  {achievementTitle}
+                </span>
+                <Star className="h-3.5 w-3.5 fill-amber-100 text-amber-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]" />
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.4 }}
+                transition={{ delay: 0.55, duration: 0.4 }}
                 className="text-center"
               >
-                <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/90">
-                  {achievementTitle}
-                </div>
                 <h2
                   className="bg-gradient-to-b from-amber-100 to-amber-300 bg-clip-text text-2xl font-extrabold text-transparent sm:text-3xl"
                   style={{ textShadow: "0 2px 16px rgba(255,193,7,0.25)" }}
@@ -354,7 +442,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.45, type: "spring", stiffness: 220, damping: 18 }}
+                transition={{ delay: 0.75, type: "spring", stiffness: 220, damping: 18 }}
                 className="my-5 flex items-center justify-center gap-2"
               >
                 <Coins className="h-7 w-7 text-amber-300 drop-shadow-[0_0_8px_rgba(255,193,7,0.6)]" />
@@ -380,7 +468,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.9 }}
                 className="mb-5 text-center text-sm text-white/70"
               >
                 Added to your wallet balance
@@ -389,7 +477,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
+                transition={{ delay: 1.05, duration: 0.45 }}
               >
                 <Button
                   onClick={onClose}
