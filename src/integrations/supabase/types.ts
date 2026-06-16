@@ -671,6 +671,7 @@ export type Database = {
           expires_at: string | null
           id: string
           last_profit_at: string | null
+          missed_cycle_count: number
           next_profit_at: string | null
           profit_amount_cents: number | null
           profit_cents: number | null
@@ -691,6 +692,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           last_profit_at?: string | null
+          missed_cycle_count?: number
           next_profit_at?: string | null
           profit_amount_cents?: number | null
           profit_cents?: number | null
@@ -711,6 +713,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           last_profit_at?: string | null
+          missed_cycle_count?: number
           next_profit_at?: string | null
           profit_amount_cents?: number | null
           profit_cents?: number | null
@@ -943,6 +946,7 @@ export type Database = {
           expires_at: string | null
           id: string
           last_profit_at: string | null
+          missed_cycle_count: number
           next_profit_at: string | null
           profit_amount_cents: number | null
           profit_cents: number | null
@@ -1029,6 +1033,7 @@ export type Database = {
           expires_at: string | null
           id: string
           last_profit_at: string | null
+          missed_cycle_count: number
           next_profit_at: string | null
           profit_amount_cents: number | null
           profit_cents: number | null
@@ -1134,6 +1139,7 @@ export type Database = {
           expires_at: string | null
           id: string
           last_profit_at: string | null
+          missed_cycle_count: number
           next_profit_at: string | null
           profit_amount_cents: number | null
           profit_cents: number | null
