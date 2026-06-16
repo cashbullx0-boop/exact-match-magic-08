@@ -198,6 +198,76 @@ export function RewardCelebration({
             }}
           />
 
+          {/* Rotating background light rays */}
+          <motion.div
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: [0, 0.55, 0.35], scale: 1, rotate: 360 }}
+            transition={{
+              opacity: { duration: 1.2, ease: "easeOut" },
+              scale: { duration: 1.2, ease: "easeOut" },
+              rotate: { duration: 28, ease: "linear", repeat: Infinity },
+            }}
+            style={{ width: 1400, height: 1400 }}
+          >
+            {Array.from({ length: RAY_COUNT }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: 700,
+                  height: 70,
+                  transform: `translate(-50%, -50%) rotate(${(i * 360) / RAY_COUNT}deg)`,
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(255,205,80,0.32) 40%, rgba(255,235,150,0.55) 50%, rgba(255,205,80,0.32) 60%, transparent 100%)",
+                  filter: "blur(6px)",
+                  mixBlendMode: "screen",
+                }}
+              />
+            ))}
+          </motion.div>
+
+          {/* Orbiting coins around the card */}
+          <motion.div
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1, rotate: 360 }}
+            transition={{
+              opacity: { duration: 0.5, delay: 0.35 },
+              scale: { duration: 0.6, delay: 0.35, ease: "easeOut" },
+              rotate: { duration: 14, ease: "linear", repeat: Infinity },
+            }}
+            style={{ width: 320, height: 320 }}
+          >
+            {Array.from({ length: ORBIT_COIN_COUNT }).map((_, i) => {
+              const angle = (i / ORBIT_COIN_COUNT) * Math.PI * 2;
+              const r = 160;
+              const x = Math.cos(angle) * r;
+              const y = Math.sin(angle) * r;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute left-1/2 top-1/2"
+                  style={{ transform: `translate(${x}px, ${y}px) translate(-50%, -50%)` }}
+                  animate={{ rotateY: 360 }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "linear", delay: i * 0.08 }}
+                >
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 30% 30%, #FFE680 0%, #FFC107 50%, #B8860B 100%)",
+                      boxShadow:
+                        "0 0 14px rgba(255,193,7,0.7), inset 0 -2px 3px rgba(0,0,0,0.25)",
+                    }}
+                  >
+                    <span className="text-[10px] font-black text-amber-900">$</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
           {/* Flying coins */}
           <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             {Array.from({ length: COIN_COUNT }).map((_, i) => {
