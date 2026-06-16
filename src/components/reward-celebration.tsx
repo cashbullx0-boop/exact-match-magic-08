@@ -100,10 +100,12 @@ export function RewardCelebration({
 }: RewardCelebrationProps) {
   const [shake, setShake] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [vh, setVh] = useState(800);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+    setVh(window.innerHeight);
     setFlash(true);
     setShake(true);
     const flashT = setTimeout(() => setFlash(false), 180);
@@ -248,7 +250,7 @@ export function RewardCelebration({
                   className="absolute top-full"
                   style={{ left }}
                   initial={{ y: 0, opacity: 0 }}
-                  animate={{ y: -window.innerHeight - 80, opacity: [0, 1, 0] }}
+                  animate={{ y: -(vh + 80), opacity: [0, 1, 0] }}
                   transition={{ duration: 4 + Math.random() * 2, delay, repeat: Infinity, ease: "linear" }}
                 >
                   <Sparkles className="h-3 w-3 text-amber-300/70" />
