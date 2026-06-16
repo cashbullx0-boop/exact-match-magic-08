@@ -322,24 +322,14 @@ export function TradeFab() {
                       <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.total_profit_cents)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Cycles completed</div>
-                      <div className="font-mono font-semibold">{activeTrade.cycle_count}</div>
+                      <div className="text-xs text-muted-foreground">Payout on completion</div>
+                      <div className="font-mono font-semibold">{fmt(activeTrade.amount_cents + activeTrade.profit_amount_cents)}</div>
                     </div>
                   </div>
 
-                  {(activeTrade.missed_cycle_count ?? 0) > 0 && (
-                    <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500">
-                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
-                      <span>
-                        <span className="font-semibold">{activeTrade.missed_cycle_count}</span>{" "}
-                        cycle{activeTrade.missed_cycle_count === 1 ? "" : "s"} caught up automatically while you were away.
-                      </span>
-                    </div>
-                  )}
-
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Repeat className="h-3 w-3" />
-                    Looping every {activeTrade.duration_hours}h
+                    <Clock className="h-3 w-3" />
+                    Completes after {activeTrade.duration_hours}h (one-time)
                   </div>
 
                   <Button
@@ -414,7 +404,7 @@ export function TradeFab() {
                       +{fmt(profitPreviewCents)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      every {duration} hours <span className="opacity-70">(repeating)</span>
+                      after {duration} hours <span className="opacity-70">(one trade per day)</span>
                     </div>
                   </div>
 
