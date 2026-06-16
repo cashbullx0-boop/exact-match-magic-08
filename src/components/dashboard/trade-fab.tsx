@@ -1,446 +1,166 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, X, Wallet, Loader2, Trophy, AlertTriangle } from "lucide-react";
+import { TrendingUp, X, Wallet, Loader2, Clock, Repeat, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { openTrade, settleTrade, listTrades } from "@/lib/trades.functions";
+import { openRoiTrade, addTradeProfit, closeRoiTrade, listTrades } from "@/lib/trades.functions";
 import { useAuth } from "@/lib/auth";
 
-const SYMBOLS = [
-  { symbol: "BTC", name: "Bitcoin", base: 68240 },
-  { symbol: "ETH", name: "Ethereum", base: 3540 },
-  { symbol: "USDT", name: "Tether", base: 1.0 },
-] as const;
+type Trade = {
+  id: string;
+  user_id: string;
+  amount_cents: number;
+  duration_hours: number;
+  profit_rate: number;
+  profit_amount_cents: number;
+  next_profit_at: string | null;
+  last_profit_at: string | null;
+  cycle_count: number;
+  total_profit_cents: number;
+  status: string;
+  created_at: string;
+  trade_date: string;
+};
 
 const DURATIONS = [
-  { label: "1 min", value: 60 },
-  { label: "5 min", value: 300 },
-  { label: "15 min", value: 900 },
+  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast cycle", icon: Zap },
+  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid cycle", icon: Clock },
+  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long cycle", icon: TrendingUp },
 ] as const;
 
-type LivePrice = { symbol: string; name: string; base: number; price: number; change: number };
+const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
-const HISTORY_LEN = 60;
-
-const BINANCE_STREAMS: Record<string, string> = {
-  BTC: "btcusdt",
-  ETH: "ethusdt",
-  USDT: "usdcusdt",
-};
-const BINANCE_REST_SYMBOL: Record<string, string> = {
-  BTC: "BTCUSDT",
-  ETH: "ETHUSDT",
-  USDT: "USDCUSDT",
-};
-
-type FeedStatus = "connecting" | "live" | "fallback" | "offline";
-
-function useBinanceLivePrices() {
-  const [prices, setPrices] = useState<LivePrice[]>(() =>
-    SYMBOLS.map((s) => ({ symbol: s.symbol, name: s.name, base: s.base, price: s.base, change: 0 }))
-  );
-  const [histories, setHistories] = useState<Record<string, number[]>>(() =>
-    Object.fromEntries(SYMBOLS.map((s) => [s.symbol, [s.base]]))
-  );
-  const [status, setStatus] = useState<FeedStatus>("connecting");
-
-  // Throttled buffer of latest values per symbol
-  const latestRef = useRef<Record<string, { price: number; change: number } | null>>({});
+function useCycleTimer(trade: Trade | null, onElapsed: (id: string) => Promise<void>) {
+  const [label, setLabel] = useState("--:--:--");
+  const [under5, setUnder5] = useState(false);
+  const processingRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    let stopped = false;
-    const sockets: WebSocket[] = [];
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-    let tickTimer: ReturnType<typeof setInterval> | null = null;
-    let openCount = 0;
-    let anyOpened = false;
-
-    const flush = () => {
-      const buf = latestRef.current;
-      const updates = Object.entries(buf).filter(([, v]) => v != null) as [string, { price: number; change: number }][];
-      if (updates.length === 0) return;
-      latestRef.current = {};
-      setPrices((prev) =>
-        prev.map((p) => {
-          const u = updates.find(([sym]) => sym === p.symbol);
-          if (!u) return p;
-          return { ...p, price: u[1].price, change: u[1].change };
-        })
-      );
-      setHistories((h) => {
-        const out = { ...h };
-        for (const [sym, v] of updates) {
-          const arr = out[sym] ?? [];
-          out[sym] = [...arr, v.price].slice(-HISTORY_LEN);
-        }
-        return out;
-      });
-    };
-
-    const startPolling = () => {
-      if (pollTimer) return;
-      const tick = async () => {
-        try {
-          const results = await Promise.all(
-            SYMBOLS.map(async (s) => {
-              const sym = BINANCE_REST_SYMBOL[s.symbol];
-              const res = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}`);
-              if (!res.ok) throw new Error("rest fail");
-              const j: any = await res.json();
-              const price = parseFloat(j.lastPrice);
-              const change = parseFloat(j.priceChangePercent);
-              return { symbol: s.symbol, price, change };
-            })
-          );
-          if (stopped) return;
-          for (const r of results) {
-            if (isFinite(r.price)) latestRef.current[r.symbol] = { price: r.price, change: isFinite(r.change) ? r.change : 0 };
-          }
-          flush();
-          setStatus("fallback");
-        } catch {
-          if (!stopped) setStatus("offline");
-        }
-      };
-      tick();
-      pollTimer = setInterval(tick, 3000);
-    };
-
-    for (const s of SYMBOLS) {
-      const stream = BINANCE_STREAMS[s.symbol];
-      try {
-        const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${stream}@ticker`);
-        sockets.push(ws);
-        ws.onopen = () => {
-          openCount += 1;
-          anyOpened = true;
-          setStatus("live");
-        };
-        ws.onmessage = (evt) => {
+    if (!trade || trade.status !== "active" || !trade.next_profit_at) {
+      setLabel("--:--:--");
+      return;
+    }
+    processingRef.current = false;
+    let stop = false;
+    const tick = async () => {
+      if (stop || !trade.next_profit_at) return;
+      const diff = new Date(trade.next_profit_at).getTime() - Date.now();
+      if (diff <= 0) {
+        setLabel("Adding profit…");
+        setUnder5(false);
+        if (!processingRef.current) {
+          processingRef.current = true;
           try {
-            const d = JSON.parse(evt.data);
-            const price = parseFloat(d.c);
-            const change = parseFloat(d.P);
-            if (isFinite(price)) {
-              latestRef.current[s.symbol] = { price, change: isFinite(change) ? change : 0 };
-            }
-          } catch {}
-        };
-        ws.onerror = () => {
-          try { ws.close(); } catch {}
-        };
-        ws.onclose = () => {
-          openCount = Math.max(0, openCount - 1);
-          if (!stopped && openCount === 0) {
-            startPolling();
+            await onElapsed(trade.id);
+          } finally {
+            processingRef.current = false;
           }
-        };
-      } catch {
-        startPolling();
+        }
+        return;
       }
-    }
-
-    // If no socket opens within 4s, fall back to REST
-    const failTimer = setTimeout(() => {
-      if (!anyOpened && !stopped) startPolling();
-    }, 4000);
-
-    tickTimer = setInterval(flush, 1000);
-
-    return () => {
-      stopped = true;
-      clearTimeout(failTimer);
-      if (tickTimer) clearInterval(tickTimer);
-      if (pollTimer) clearInterval(pollTimer);
-      for (const ws of sockets) {
-        try { ws.close(); } catch {}
-      }
+      setUnder5(diff < 5 * 60 * 1000);
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setLabel(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
     };
-  }, []);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => {
+      stop = true;
+      clearInterval(id);
+    };
+  }, [trade?.id, trade?.next_profit_at, trade?.status, onElapsed]);
 
-  return { prices, histories, status };
-}
-
-function CrispPriceChart({
-  history,
-  up,
-  active,
-  height = 140,
-}: {
-  history: number[];
-  up: boolean;
-  active: boolean;
-  height?: number;
-}) {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [cssWidth, setCssWidth] = useState(0);
-
-  // Track container width; resize canvas backing store via DPR for crispness
-  useEffect(() => {
-    if (!wrapRef.current) return;
-    const el = wrapRef.current;
-    const ro = new ResizeObserver((entries) => {
-      const w = Math.floor(entries[0].contentRect.width);
-      setCssWidth(w);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || cssWidth <= 0) return;
-    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
-    const w = cssWidth;
-    const h = height;
-    // Always set backing store from CSS size * DPR — prevents ghost artifacts
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    canvas.style.width = `${w}px`;
-    canvas.style.height = `${h}px`;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    // Reset transform then clear full backing store before scaling for DPR
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Paint solid dark background (no ghost grid lines below the line)
-    ctx.fillStyle = "#0b0c10";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const data = history.length > 1 ? history : [history[0] ?? 0, history[0] ?? 0];
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const range = max - min || Math.max(Math.abs(max) * 0.001, 0.0001);
-    const padY = 10;
-    const innerH = h - padY * 2;
-    const stepX = w / Math.max(1, data.length - 1);
-
-    const color = up ? "#10b981" : "#ef4444";
-    const colorSoft = up ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)";
-    const colorFaint = up ? "rgba(16,185,129,0)" : "rgba(239,68,68,0)";
-
-    // Build smooth path
-    const pts = data.map((v, i) => ({
-      x: i * stepX,
-      y: padY + innerH - ((v - min) / range) * innerH,
-    }));
-
-    // Area fill
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, colorSoft);
-    grad.addColorStop(1, colorFaint);
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, h);
-    ctx.lineTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      const p0 = pts[i - 1];
-      const p1 = pts[i];
-      const cx = (p0.x + p1.x) / 2;
-      ctx.quadraticCurveTo(p0.x, p0.y, cx, (p0.y + p1.y) / 2);
-    }
-    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
-    ctx.lineTo(pts[pts.length - 1].x, h);
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
-
-    // Stroke line (smooth)
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      const p0 = pts[i - 1];
-      const p1 = pts[i];
-      const cx = (p0.x + p1.x) / 2;
-      ctx.quadraticCurveTo(p0.x, p0.y, cx, (p0.y + p1.y) / 2);
-    }
-    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
-    ctx.lineWidth = 1.75;
-    ctx.strokeStyle = color;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
-
-    // Last-point dot
-    const last = pts[pts.length - 1];
-    ctx.beginPath();
-    ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(last.x, last.y, 6, 0, Math.PI * 2);
-    ctx.fillStyle = colorSoft;
-    ctx.fill();
-  }, [history, up, cssWidth, height]);
-
-  return (
-    <div ref={wrapRef} className="relative w-full overflow-hidden rounded-lg" style={{ height, background: "#0b0c10" }}>
-      <canvas ref={canvasRef} className="block absolute inset-0" />
-      {active && (
-        <div className="pointer-events-none absolute top-2 right-2 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
-          Live trade
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(id);
-  }, []);
-  const remaining = Math.max(0, new Date(expiresAt).getTime() - now);
-  const firedRef = useRef(false);
-  useEffect(() => {
-    if (remaining <= 0 && !firedRef.current) {
-      firedRef.current = true;
-      onExpire();
-    }
-  }, [remaining, onExpire]);
-  const m = Math.floor(remaining / 60000);
-  const s = Math.floor((remaining % 60000) / 1000);
-  return <span className="font-mono tabular-nums">{m}:{s.toString().padStart(2, "0")}</span>;
+  return { label, under5 };
 }
 
 export function TradeFab() {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("50");
-  const [direction, setDirection] = useState<"up" | "down">("up");
-  const [duration, setDuration] = useState<60 | 300 | 900>(60);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("BTC");
+  const [duration, setDuration] = useState<4 | 8 | 12>(4);
   const [placing, setPlacing] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const { profile, user, refreshProfile } = useAuth();
+  const qc = useQueryClient();
 
   useEffect(() => {
     const handler = () => setOpen(true);
     window.addEventListener("open-trade-fab", handler);
     return () => window.removeEventListener("open-trade-fab", handler);
   }, []);
-  const qc = useQueryClient();
-  const { prices, histories, status: feedStatus } = useBinanceLivePrices();
 
-  const openFn = useServerFn(openTrade);
-  const settleFn = useServerFn(settleTrade);
+  const openFn = useServerFn(openRoiTrade);
+  const addProfitFn = useServerFn(addTradeProfit);
+  const closeFn = useServerFn(closeRoiTrade);
   const listFn = useServerFn(listTrades);
 
   const tradesQuery = useQuery({
     queryKey: ["trades", user?.id],
     queryFn: () => listFn(),
-    enabled: !!user && open,
-    refetchInterval: open ? 5000 : false,
+    enabled: !!user,
+    refetchInterval: 30000,
   });
 
+  const activeTrade = (tradesQuery.data?.active?.[0] ?? null) as Trade | null;
   const balanceCents = profile?.balance_cents ?? 0;
-  const hasActiveTrade = (tradesQuery.data?.active ?? []).length > 0;
 
-  // Daily limit: one trade per UK day (resets at 00:00 Europe/London).
-  const allTrades = [
+  // UK today: one trade per UK day
+  const todayUk = useMemo(() => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/London",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(new Date());
+    return parts;
+  }, []);
+  const allTrades: Trade[] = [
     ...(tradesQuery.data?.active ?? []),
     ...(tradesQuery.data?.history ?? []),
-  ];
-  const lastTrade = allTrades
-    .slice()
-    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-  const [nowMs, setNowMs] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  // Compute the next UK (Europe/London) midnight in UTC ms.
-  const nextUkMidnightMs = useMemo(() => {
-    const now = new Date(nowMs);
-    const parts = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/London",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-      .formatToParts(now)
-      .reduce((acc, p) => {
-        if (p.type !== "literal") acc[p.type] = p.value;
-        return acc;
-      }, {} as Record<string, string>);
-    const h = parseInt(parts.hour === "24" ? "0" : parts.hour, 10);
-    const m = parseInt(parts.minute, 10);
-    const s = parseInt(parts.second, 10);
-    const secsToday = h * 3600 + m * 60 + s;
-    const secsRemain = 24 * 3600 - secsToday;
-    return now.getTime() + secsRemain * 1000;
-  }, [nowMs]);
-  const prevUkMidnightMs = nextUkMidnightMs - 24 * 60 * 60 * 1000;
-  const dailyLimitReached =
-    !!lastTrade && new Date(lastTrade.created_at).getTime() >= prevUkMidnightMs;
-  const nextAvailableUkLabel = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/London",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(nextUkMidnightMs));
-  const remainingMs = Math.max(0, nextUkMidnightMs - nowMs);
-  const rh = Math.floor(remainingMs / 3600000);
-  const rm = Math.floor((remainingMs % 3600000) / 60000);
-  const rs = Math.floor((remainingMs % 60000) / 1000);
-  const countdownLabel = `${rh}h ${rm}m ${rs}s`;
+  ] as Trade[];
+  const dailyLimitReached = allTrades.some((t) => t.trade_date === todayUk);
 
-  // Auto-fill full balance when modal opens and no active/today trade
-  useEffect(() => {
-    if (!open) return;
-    if (dailyLimitReached || hasActiveTrade) return;
-    if (balanceCents >= 5000) setAmount((balanceCents / 100).toFixed(2));
-    else setAmount("50");
-  }, [open, balanceCents, dailyLimitReached, hasActiveTrade]);
+  const amountNum = parseFloat(amount) || 0;
+  const amountCents = Math.round(amountNum * 100);
+  const selectedDuration = DURATIONS.find((d) => d.hours === duration)!;
+  const profitPreviewCents = Math.floor(amountCents * selectedDuration.rate);
 
-  const amountCents = Math.round((parseFloat(amount) || 0) * 100);
-  const insufficient = amountCents > balanceCents;
-  const belowMin = amountCents < 5000;
-  const disabledReason = dailyLimitReached
-    ? "You have already placed your trade today. Come back tomorrow!"
-    : hasActiveTrade
-    ? "You have an active trade. Please wait for it to complete"
-    : insufficient
-    ? "Insufficient balance"
-    : belowMin
-    ? "Minimum trade is $50"
-    : null;
+  const amountError =
+    amountCents < 5000
+      ? "Minimum trade amount is $50"
+      : amountCents % 1000 !== 0
+      ? "Amount must be in multiples of $10 (50, 60, 70...)"
+      : amountCents > balanceCents
+      ? "Insufficient wallet balance"
+      : null;
+
+  const blockedReason =
+    activeTrade
+      ? "You have an active trade running"
+      : dailyLimitReached
+      ? "You have already placed a trade today. Come back tomorrow."
+      : amountError;
 
   const refresh = async () => {
     await refreshProfile();
+    await tradesQuery.refetch();
     qc.invalidateQueries();
   };
 
   const handlePlace = async () => {
-    const amt = amountCents;
-    if (dailyLimitReached) {
-      toast.error("You have already placed your trade today. Come back tomorrow!");
-      return;
-    }
-    if (hasActiveTrade) {
-      toast.error("You have an active trade. Please wait for it to complete");
-      return;
-    }
-    if (!Number.isFinite(amt) || amt < 5000) {
-      toast.error("Minimum trade is $50");
-      return;
-    }
-    if (amt > balanceCents) {
-      toast.error("Insufficient balance");
+    if (blockedReason) {
+      toast.error(blockedReason);
       return;
     }
     setPlacing(true);
     try {
-      await openFn({ data: { amount_cents: amt, direction, duration_seconds: duration } });
-      toast.success(`Trade placed: ${direction.toUpperCase()} ${duration}s`);
-      await tradesQuery.refetch();
+      await openFn({ data: { amount_cents: amountCents, duration_hours: duration } });
+      toast.success(`Trade started: ${duration}h cycle, +${(selectedDuration.rate * 100).toFixed(0)}% ROI`);
       await refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to place trade");
@@ -449,346 +169,238 @@ export function TradeFab() {
     }
   };
 
-  const handleSettle = async (id: string) => {
+  const handleCycleElapsed = useMemo(
+    () => async (tradeId: string) => {
+      try {
+        const res = await addProfitFn({ data: { trade_id: tradeId } });
+        const t = (res as any)?.trade as Trade | undefined;
+        if (t) {
+          toast.success(`✅ +${fmt(t.profit_amount_cents)} profit added to wallet!`);
+        }
+        await refresh();
+      } catch (e: any) {
+        // server enforces timing; transient errors fine
+      }
+    },
+    [addProfitFn]
+  );
+
+  const handleClose = async () => {
+    if (!activeTrade) return;
+    if (!confirm("Close this trade? Your principal will be returned to your wallet.")) return;
+    setClosing(true);
     try {
-      const res = await settleFn({ data: { trade_id: id } });
-      const t = (res as any)?.trade;
-      if (t?.result === "win") toast.success(`Trade WON +$${((t.profit_cents ?? 0) / 100).toFixed(2)}`);
-      else if (t?.result === "loss") toast.error(`Trade LOST -$${((t.amount_cents ?? 0) / 100).toFixed(2)}`);
-      await tradesQuery.refetch();
+      await closeFn({ data: { trade_id: activeTrade.id } });
+      toast.success(`Trade closed. ${fmt(activeTrade.amount_cents)} returned to wallet.`);
       await refresh();
-    } catch (e) {
-      // not yet expired or transient; ignore
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to close trade");
+    } finally {
+      setClosing(false);
     }
   };
 
-  const selectedPrice = useMemo(
-    () => prices.find((p: LivePrice) => p.symbol === selectedSymbol) ?? prices[0],
-    [prices, selectedSymbol]
-  );
-  const selectedHistory = histories[selectedSymbol] ?? [];
+  const { label: cycleLabel, under5 } = useCycleTimer(activeTrade, handleCycleElapsed);
 
   return (
     <>
       {/* FAB — centered on mobile bottom nav */}
-      <div className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
-           style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}>
+      <div
+        className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}
+      >
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open CBX trading panel"
+          aria-label="Open trading panel"
           className="pointer-events-auto h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105 ring-1 ring-amber-300/50"
           style={{
-            background:
-              "linear-gradient(135deg,#F59E0B 0%,#D97706 100%)",
+            background: "linear-gradient(135deg,#F59E0B 0%,#D97706 100%)",
             boxShadow:
               "0 0 20px rgba(245, 158, 11, 0.6), 0 18px 38px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.25)",
           }}
         >
-          <span
-            className="text-[16px] font-bold tracking-[0.12em] text-white"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
-          >
+          <span className="text-[16px] font-bold tracking-[0.12em] text-white" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}>
             CBX
           </span>
         </button>
       </div>
 
-      {/* Modal */}
       {open && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div
-            className="relative w-full md:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-3xl border border-white/[0.06] p-6 md:p-7 animate-float-up"
-            style={{
-              background:
-                "radial-gradient(120% 80% at 100% 0%, rgba(245,158,11,0.08) 0%, transparent 60%), linear-gradient(180deg, #0c0d12 0%, #08090d 100%)",
-              boxShadow:
-                "0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(245,158,11,0.10), inset 0 1px 0 rgba(255,255,255,0.04)",
-            }}
-          >
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-11 w-11 rounded-2xl flex items-center justify-center ring-1 ring-white/10"
-                  style={{
-                    background: "linear-gradient(135deg,#F59E0B,#B8860B)",
-                    boxShadow: "0 8px 20px -6px rgba(245,158,11,0.55)",
-                  }}
-                >
-                  <Wallet className="h-5 w-5 text-black" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold tracking-tight text-white">Quick Trade</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Balance <span className="font-mono tabular-nums text-foreground/90">${(balanceCents / 100).toFixed(2)}</span>
-                  </p>
-                </div>
+          <div className="relative w-full md:max-w-lg bg-card border border-border rounded-t-2xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-card border-b border-border p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold">CBX Trade</h2>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} className="rounded-full text-muted-foreground hover:text-foreground">
+              <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-muted">
                 <X className="h-5 w-5" />
-              </Button>
+              </button>
             </div>
 
-            {/* Live prices */}
-            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-2">Markets</div>
-            <div className="grid grid-cols-3 gap-2 mb-5">
-              {prices.map((p: LivePrice) => {
-                const active = selectedSymbol === p.symbol;
-                const up = p.change >= 0;
-                return (
-                  <button
-                    key={p.symbol}
-                    onClick={() => setSelectedSymbol(p.symbol)}
-                    className={`rounded-xl p-3 text-left border transition-all ${
-                      active
-                        ? "border-primary/60 bg-primary/[0.08] shadow-[0_0_0_1px_rgba(245,158,11,0.25),0_8px_24px_-12px_rgba(245,158,11,0.4)]"
-                        : "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs font-semibold tracking-wide ${active ? "text-primary" : "text-foreground/90"}`}>
-                        {p.symbol}
-                      </span>
-                      <span className={`text-[10px] font-mono tabular-nums ${up ? "text-emerald-400" : "text-red-400"}`}>
-                        {up ? "▲" : "▼"} {Math.abs(p.change).toFixed(2)}%
-                      </span>
-                    </div>
-                    <div className="text-sm font-mono tabular-nums mt-1 text-foreground">
-                      ${p.price < 10 ? p.price.toFixed(4) : p.price.toFixed(2)}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="text-[11px] text-muted-foreground mb-5 flex items-center gap-1.5">
-              <span className={`inline-block h-1.5 w-1.5 rounded-full ${
-                feedStatus === "live" ? "bg-emerald-400 animate-pulse"
-                : feedStatus === "fallback" ? "bg-amber-400"
-                : feedStatus === "offline" ? "bg-red-400"
-                : "bg-muted-foreground animate-pulse"
-              }`} />
-              <span className={`uppercase tracking-wider font-semibold ${
-                feedStatus === "live" ? "text-emerald-400/90"
-                : feedStatus === "fallback" ? "text-amber-400/90"
-                : feedStatus === "offline" ? "text-red-400/90"
-                : "text-muted-foreground"
-              }`}>
-                {feedStatus === "live" ? "Live 🟢"
-                  : feedStatus === "fallback" ? "Live (REST)"
-                  : feedStatus === "offline" ? "Offline"
-                  : "Connecting…"}
-              </span>
-              <span>·</span>
-              <span>{selectedPrice?.symbol} @</span>
-              <span className="font-mono tabular-nums text-foreground/90">
-                ${selectedPrice && (selectedPrice.price < 10 ? selectedPrice.price.toFixed(4) : selectedPrice.price.toFixed(2))}
-              </span>
-            </div>
-
-            {/* Crisp price chart */}
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-2 mb-5">
-              <CrispPriceChart
-                history={selectedHistory}
-                up={(selectedPrice?.change ?? 0) >= 0}
-                active={hasActiveTrade}
-                height={140}
-              />
-            </div>
-
-            {dailyLimitReached && (
-              <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/[0.08] p-3 text-xs">
-                <div className="font-semibold text-amber-300 mb-1">
-                  You have already placed your trade today. Come back tomorrow!
-                </div>
-                <div className="text-muted-foreground">
-                  Next trade available at:{" "}
-                  <span className="font-mono text-foreground/90">
-                    {nextAvailableUkLabel} UK Time
-                  </span>
-                </div>
-                <div className="text-muted-foreground mt-0.5">
-                  Available in:{" "}
-                  <span className="font-mono tabular-nums text-foreground/90">
-                    {countdownLabel}
-                  </span>
-                </div>
-                <div className="text-[10px] text-muted-foreground/80 mt-1">
-                  🇬🇧 UK Time (GMT/BST)
-                </div>
+            <div className="p-4 space-y-4">
+              {/* Balance */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border border-border">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Wallet className="h-4 w-4" /> Wallet balance
+                </span>
+                <span className="font-mono font-semibold">{fmt(balanceCents)}</span>
               </div>
-            )}
 
-            {/* Amount */}
-            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Amount (USD)</label>
-            <div className="flex gap-2 mt-2 mb-4">
-              <Input
-                type="number"
-                min={1}
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="h-11 bg-white/[0.03] border-white/10 focus-visible:border-primary/60 focus-visible:ring-0 font-mono tabular-nums text-base"
-              />
-              {[10, 50, 100].map((v) => (
-                <Button
-                  key={v}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setAmount(String(v))}
-                  className="h-11 px-3 bg-white/[0.02] border-white/10 hover:bg-white/[0.06] hover:border-white/20 text-foreground/80"
-                >
-                  ${v}
-                </Button>
-              ))}
-            </div>
-
-            {/* Direction */}
-            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Direction</label>
-            <div className="grid grid-cols-2 gap-2 mt-2 mb-4">
-              <button
-                onClick={() => setDirection("up")}
-                className={`rounded-xl py-3.5 flex items-center justify-center gap-2 text-sm font-semibold tracking-wide border transition-all ${
-                  direction === "up"
-                    ? "bg-emerald-500/[0.12] border-emerald-400/60 text-emerald-300 shadow-[0_0_0_1px_rgba(16,185,129,0.25),0_10px_28px_-14px_rgba(16,185,129,0.5)]"
-                    : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-emerald-400/30 hover:text-emerald-300/80"
-                }`}
-              >
-                <TrendingUp className="h-4 w-4" /> UP
-              </button>
-              <button
-                onClick={() => setDirection("down")}
-                className={`rounded-xl py-3.5 flex items-center justify-center gap-2 text-sm font-semibold tracking-wide border transition-all ${
-                  direction === "down"
-                    ? "bg-red-500/[0.12] border-red-400/60 text-red-300 shadow-[0_0_0_1px_rgba(239,68,68,0.25),0_10px_28px_-14px_rgba(239,68,68,0.5)]"
-                    : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-red-400/30 hover:text-red-300/80"
-                }`}
-              >
-                <TrendingDown className="h-4 w-4" /> DOWN
-              </button>
-            </div>
-
-            {/* Duration */}
-            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Duration</label>
-            <div className="grid grid-cols-3 gap-2 mt-2 mb-5">
-              {DURATIONS.map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setDuration(d.value as 60 | 300 | 900)}
-                  className={`rounded-xl py-2.5 text-sm font-medium border transition-all ${
-                    duration === d.value
-                      ? "border-primary/60 bg-primary/[0.10] text-primary shadow-[0_0_0_1px_rgba(245,158,11,0.2)]"
-                      : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/15 hover:text-foreground"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-
-            <Button
-              onClick={handlePlace}
-              disabled={placing || !!disabledReason}
-              className="w-full h-12 text-sm font-semibold tracking-wide text-black rounded-xl"
-              style={{
-                background: "linear-gradient(135deg,#FFD24A 0%,#F59E0B 50%,#B8860B 100%)",
-                boxShadow: "0 14px 32px -10px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.35)",
-              }}
-            >
-              {placing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              {disabledReason ?? <>Place Trade · <span className="font-mono tabular-nums">${parseFloat(amount || "0").toFixed(2)}</span></>}
-            </Button>
-            <p className="text-[10px] text-muted-foreground text-center mt-3 tracking-wide">
-              Every trade wins · Returns original + 85% profit
-            </p>
-
-            <div className="h-px bg-white/[0.06] my-6" />
-
-            {/* Active trades */}
-            <div>
-              <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
-                Active Trades
-              </h3>
-              {(tradesQuery.data?.active ?? []).length === 0 ? (
-                <p className="text-xs text-muted-foreground">No active trades.</p>
-              ) : (
-                <div className="space-y-2">
-                  {tradesQuery.data!.active.map((t: any) => (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between rounded-lg border border-primary/20 bg-white/5 px-3 py-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        {t.direction === "up" ? (
-                          <TrendingUp className="h-4 w-4 text-emerald-400" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-400" />
-                        )}
-                        <div>
-                          <div className="text-sm font-semibold">${(t.amount_cents / 100).toFixed(2)}</div>
-                          <div className="text-[10px] text-muted-foreground uppercase">{t.direction} · {t.duration_seconds}s</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-semibold text-emerald-400">
-                          <Countdown expiresAt={t.expires_at} onExpire={() => handleSettle(t.id)} />
-                        </span>
-                      </div>
+              {activeTrade ? (
+                <div className="rounded-xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                      </span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-500">Active Trade</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <Badge variant="outline" className="border-emerald-500/40 text-emerald-500">
+                      {activeTrade.duration_hours}h · +{(activeTrade.profit_rate * 100).toFixed(0)}%
+                    </Badge>
+                  </div>
 
-            {/* History */}
-            <div className="mt-6">
-              <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">
-                Trade History
-              </h3>
-              {(tradesQuery.data?.history ?? []).length === 0 ? (
-                <p className="text-xs text-muted-foreground">No trades yet.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {tradesQuery.data!.history.map((t: any) => {
-                    const won = t.result === "win";
-                    return (
-                      <div
-                        key={t.id}
-                        className="flex items-center justify-between rounded-lg border border-border/50 bg-white/[0.03] px-3 py-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          {won ? (
-                            <Trophy className="h-4 w-4 text-emerald-400" />
-                          ) : (
-                            <AlertTriangle className="h-4 w-4 text-red-400" />
-                          )}
-                          <div>
-                            <div className="text-sm">${(t.amount_cents / 100).toFixed(2)}</div>
-                            <div className="text-[10px] text-muted-foreground uppercase">
-                              {t.direction} · {t.duration_seconds}s
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm font-mono ${won ? "text-emerald-400" : "text-red-400"}`}>
-                            {won ? "+" : ""}${((t.profit_cents ?? 0) / 100).toFixed(2)}
-                          </span>
-                          <Badge
-                            className={
-                              won
-                                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                                : "bg-red-500/20 text-red-300 border-red-500/40"
-                            }
-                          >
-                            {won ? "WIN" : "LOSS"}
-                          </Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Amount</div>
+                      <div className="font-mono font-semibold">{fmt(activeTrade.amount_cents)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Profit / cycle</div>
+                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.profit_amount_cents)}</div>
+                    </div>
+                  </div>
+
+                  <div className="text-center py-2">
+                    <div className="text-xs text-muted-foreground mb-1">Next profit in</div>
+                    <div
+                      className={`font-mono text-3xl font-bold tabular-nums ${
+                        under5 ? "text-emerald-400" : "text-foreground"
+                      }`}
+                    >
+                      {cycleLabel}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-border">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Total earned</div>
+                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.total_profit_cents)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Cycles completed</div>
+                      <div className="font-mono font-semibold">{activeTrade.cycle_count}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Repeat className="h-3 w-3" />
+                    Looping every {activeTrade.duration_hours}h
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full border-destructive/40 text-destructive hover:bg-destructive/10"
+                    onClick={handleClose}
+                    disabled={closing}
+                  >
+                    {closing ? <Loader2 className="h-4 w-4 animate-spin" /> : `Close trade (return ${fmt(activeTrade.amount_cents)})`}
+                  </Button>
                 </div>
+              ) : (
+                <>
+                  {/* Amount */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Trade amount (USD)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        min={50}
+                        step={10}
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="pl-7 font-mono"
+                        disabled={dailyLimitReached}
+                      />
+                    </div>
+                    {amountError && !dailyLimitReached && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {amountError}
+                      </p>
+                    )}
+                    <p className="text-[11px] text-muted-foreground">Minimum $50, in multiples of $10.</p>
+                  </div>
+
+                  {/* Duration cards */}
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Duration</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {DURATIONS.map((d) => {
+                        const Icon = d.icon;
+                        const selected = duration === d.hours;
+                        return (
+                          <button
+                            key={d.hours}
+                            type="button"
+                            onClick={() => setDuration(d.hours as 4 | 8 | 12)}
+                            className={`p-3 rounded-lg border text-left transition-all ${
+                              selected
+                                ? "border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/40"
+                                : "border-border bg-muted/30 hover:border-border/80"
+                            }`}
+                          >
+                            <Icon className={`h-4 w-4 mb-1.5 ${selected ? "text-emerald-500" : "text-muted-foreground"}`} />
+                            <div className="text-sm font-semibold">{d.label}</div>
+                            <div className={`text-xs font-bold ${selected ? "text-emerald-500" : "text-muted-foreground"}`}>
+                              {d.rateLabel}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">{d.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Profit preview */}
+                  <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-center">
+                    <div className="text-xs text-muted-foreground mb-1">You will earn</div>
+                    <div className="text-lg font-bold text-emerald-500 font-mono">
+                      +{fmt(profitPreviewCents)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      every {duration} hours <span className="opacity-70">(repeating)</span>
+                    </div>
+                  </div>
+
+                  {dailyLimitReached && (
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500 flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <span>You have already placed a trade today. Come back tomorrow.</span>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full h-12 text-base font-semibold"
+                    onClick={handlePlace}
+                    disabled={placing || !!blockedReason}
+                  >
+                    {placing ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : dailyLimitReached ? (
+                      "Trade limit reached today"
+                    ) : amountError ? (
+                      amountError
+                    ) : (
+                      `Start Trade · ${fmt(amountCents)}`
+                    )}
+                  </Button>
+                </>
               )}
             </div>
           </div>
