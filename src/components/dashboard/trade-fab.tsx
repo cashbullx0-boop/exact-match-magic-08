@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, X, Wallet, Loader2, Clock, Repeat, Zap, AlertCircle } from "lucide-react";
+import { TrendingUp, X, Wallet, Loader2, Clock, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +24,12 @@ type Trade = {
   status: string;
   created_at: string;
   trade_date: string;
-  missed_cycle_count?: number;
 };
 
 const DURATIONS = [
-  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast cycle", icon: Zap },
-  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid cycle", icon: Clock },
-  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long cycle", icon: TrendingUp },
+  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast", icon: Zap },
+  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid", icon: Clock },
+  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long", icon: TrendingUp },
 ] as const;
 
 const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
@@ -51,7 +50,7 @@ function useCycleTimer(trade: Trade | null, onElapsed: (id: string) => Promise<v
       if (stop || !trade.next_profit_at) return;
       const diff = new Date(trade.next_profit_at).getTime() - Date.now();
       if (diff <= 0) {
-        setLabel("Adding profit…");
+        setLabel("Finalizing…");
         setUnder5(false);
         if (!processingRef.current) {
           processingRef.current = true;
@@ -206,7 +205,7 @@ export function TradeFab() {
         const res = await addProfitFn({ data: { trade_id: tradeId } });
         const t = (res as any)?.trade as Trade | undefined;
         if (t) {
-          toast.success(`✅ +${fmt(t.profit_amount_cents)} profit added to wallet!`);
+          toast.success(`✅ Trade complete! +${fmt(t.profit_amount_cents)} profit + ${fmt(t.amount_cents)} principal returned.`);
         }
         await refresh();
       } catch (e: any) {
@@ -323,24 +322,14 @@ export function TradeFab() {
                       <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.total_profit_cents)}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground">Cycles completed</div>
-                      <div className="font-mono font-semibold">{activeTrade.cycle_count}</div>
+                      <div className="text-xs text-muted-foreground">Payout on completion</div>
+                      <div className="font-mono font-semibold">{fmt(activeTrade.amount_cents + activeTrade.profit_amount_cents)}</div>
                     </div>
                   </div>
 
-                  {(activeTrade.missed_cycle_count ?? 0) > 0 && (
-                    <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500">
-                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
-                      <span>
-                        <span className="font-semibold">{activeTrade.missed_cycle_count}</span>{" "}
-                        cycle{activeTrade.missed_cycle_count === 1 ? "" : "s"} caught up automatically while you were away.
-                      </span>
-                    </div>
-                  )}
-
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Repeat className="h-3 w-3" />
-                    Looping every {activeTrade.duration_hours}h
+                    <Clock className="h-3 w-3" />
+                    Completes after {activeTrade.duration_hours}h (one-time)
                   </div>
 
                   <Button
@@ -415,7 +404,7 @@ export function TradeFab() {
                       +{fmt(profitPreviewCents)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      every {duration} hours <span className="opacity-70">(repeating)</span>
+                      after {duration} hours <span className="opacity-70">(one trade per day)</span>
                     </div>
                   </div>
 
