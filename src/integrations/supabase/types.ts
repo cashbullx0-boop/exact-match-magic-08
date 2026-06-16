@@ -95,6 +95,54 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_job_runs: {
+        Row: {
+          created_at: string
+          cycles_credited: number
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          job_name: string
+          missed_cycles: number
+          skipped: boolean
+          started_at: string
+          status: string
+          total_credited_cents: number
+          trades_processed: number
+        }
+        Insert: {
+          created_at?: string
+          cycles_credited?: number
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          job_name: string
+          missed_cycles?: number
+          skipped?: boolean
+          started_at?: string
+          status?: string
+          total_credited_cents?: number
+          trades_processed?: number
+        }
+        Update: {
+          created_at?: string
+          cycles_credited?: number
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          job_name?: string
+          missed_cycles?: number
+          skipped?: boolean
+          started_at?: string
+          status?: string
+          total_credited_cents?: number
+          trades_processed?: number
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
