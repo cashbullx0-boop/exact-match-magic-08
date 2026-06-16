@@ -1,32 +1,29 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type Direction = "up" | "down";
+const ALLOWED_HOURS = [4, 8, 12] as const;
 
-const ALLOWED_DURATIONS = [60, 300, 900] as const;
-
-export const openTrade = createServerFn({ method: "POST" })
+export const openRoiTrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { amount_cents: number; direction: Direction; duration_seconds: number }) => {
+  .inputValidator((d: { amount_cents: number; duration_hours: number }) => {
     if (!Number.isInteger(d.amount_cents) || d.amount_cents < 5000 || d.amount_cents > 100_000_00) {
       throw new Error("Minimum trade amount is $50");
     }
-    if (d.direction !== "up" && d.direction !== "down") throw new Error("Invalid direction");
-    if (!ALLOWED_DURATIONS.includes(d.duration_seconds as 60 | 300 | 900)) throw new Error("Invalid duration");
+    if (d.amount_cents % 1000 !== 0) throw new Error("Amount must be a multiple of $10");
+    if (!ALLOWED_HOURS.includes(d.duration_hours as 4 | 8 | 12)) throw new Error("Invalid duration");
     return d;
   })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: trade, error } = await supabase.rpc("place_trade", {
+    const { data: trade, error } = await supabase.rpc("open_roi_trade", {
       _amount_cents: data.amount_cents,
-      _direction: data.direction,
-      _duration_seconds: data.duration_seconds,
+      _duration_hours: data.duration_hours,
     });
     if (error) throw new Error(error.message);
     return { trade };
   });
 
-export const settleTrade = createServerFn({ method: "POST" })
+export const addTradeProfit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { trade_id: string }) => {
     if (!d?.trade_id || typeof d.trade_id !== "string") throw new Error("Invalid trade_id");
@@ -34,7 +31,20 @@ export const settleTrade = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: trade, error } = await supabase.rpc("settle_trade", { _trade_id: data.trade_id });
+    const { data: trade, error } = await supabase.rpc("add_trade_profit", { _trade_id: data.trade_id });
+    if (error) throw new Error(error.message);
+    return { trade };
+  });
+
+export const closeRoiTrade = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { trade_id: string }) => {
+    if (!d?.trade_id || typeof d.trade_id !== "string") throw new Error("Invalid trade_id");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: trade, error } = await supabase.rpc("close_roi_trade", { _trade_id: data.trade_id });
     if (error) throw new Error(error.message);
     return { trade };
   });
