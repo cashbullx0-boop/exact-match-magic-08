@@ -442,7 +442,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.45, type: "spring", stiffness: 220, damping: 18 }}
+                transition={{ delay: 0.75, type: "spring", stiffness: 220, damping: 18 }}
                 className="my-5 flex items-center justify-center gap-2"
               >
                 <Coins className="h-7 w-7 text-amber-300 drop-shadow-[0_0_8px_rgba(255,193,7,0.6)]" />
@@ -468,7 +468,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.9 }}
                 className="mb-5 text-center text-sm text-white/70"
               >
                 Added to your wallet balance
@@ -477,7 +477,7 @@ export function RewardCelebration({
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.4 }}
+                transition={{ delay: 1.05, duration: 0.45 }}
               >
                 <Button
                   onClick={onClose}
