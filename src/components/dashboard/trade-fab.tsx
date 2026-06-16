@@ -24,6 +24,7 @@ type Trade = {
   status: string;
   created_at: string;
   trade_date: string;
+  missed_cycle_count?: number;
 };
 
 const DURATIONS = [
@@ -326,6 +327,16 @@ export function TradeFab() {
                       <div className="font-mono font-semibold">{activeTrade.cycle_count}</div>
                     </div>
                   </div>
+
+                  {(activeTrade.missed_cycle_count ?? 0) > 0 && (
+                    <div className="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500">
+                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                      <span>
+                        <span className="font-semibold">{activeTrade.missed_cycle_count}</span>{" "}
+                        cycle{activeTrade.missed_cycle_count === 1 ? "" : "s"} caught up automatically while you were away.
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Repeat className="h-3 w-3" />
