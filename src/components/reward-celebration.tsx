@@ -404,16 +404,32 @@ export function RewardCelebration({
                 </motion.div>
               </div>
 
-              {/* Achievement */}
+              {/* Achievement banner — slides in from the left */}
+              <motion.div
+                initial={{ opacity: 0, x: -160, scale: 0.85 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 220, damping: 18 }}
+                className="mx-auto mb-3 flex w-fit items-center gap-2 rounded-full border border-amber-300/50 px-4 py-1.5"
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(184,134,11,0.45) 0%, rgba(255,193,7,0.65) 50%, rgba(184,134,11,0.45) 100%)",
+                  boxShadow:
+                    "0 6px 20px -6px rgba(255,193,7,0.6), inset 0 1px 0 rgba(255,255,255,0.35)",
+                }}
+              >
+                <Star className="h-3.5 w-3.5 fill-amber-100 text-amber-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]" />
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-amber-50">
+                  {achievementTitle}
+                </span>
+                <Star className="h-3.5 w-3.5 fill-amber-100 text-amber-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]" />
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.4 }}
+                transition={{ delay: 0.55, duration: 0.4 }}
                 className="text-center"
               >
-                <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/90">
-                  {achievementTitle}
-                </div>
                 <h2
                   className="bg-gradient-to-b from-amber-100 to-amber-300 bg-clip-text text-2xl font-extrabold text-transparent sm:text-3xl"
                   style={{ textShadow: "0 2px 16px rgba(255,193,7,0.25)" }}
