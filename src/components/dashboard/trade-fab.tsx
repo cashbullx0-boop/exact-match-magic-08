@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, X, Wallet, Loader2, Clock, Repeat, Zap, AlertCircle } from "lucide-react";
+import { TrendingUp, X, Wallet, Loader2, Clock, Zap, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +24,12 @@ type Trade = {
   status: string;
   created_at: string;
   trade_date: string;
-  missed_cycle_count?: number;
 };
 
 const DURATIONS = [
-  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast cycle", icon: Zap },
-  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid cycle", icon: Clock },
-  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long cycle", icon: TrendingUp },
+  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast", icon: Zap },
+  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid", icon: Clock },
+  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long", icon: TrendingUp },
 ] as const;
 
 const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
@@ -51,7 +50,7 @@ function useCycleTimer(trade: Trade | null, onElapsed: (id: string) => Promise<v
       if (stop || !trade.next_profit_at) return;
       const diff = new Date(trade.next_profit_at).getTime() - Date.now();
       if (diff <= 0) {
-        setLabel("Adding profit…");
+        setLabel("Finalizing…");
         setUnder5(false);
         if (!processingRef.current) {
           processingRef.current = true;
@@ -206,7 +205,7 @@ export function TradeFab() {
         const res = await addProfitFn({ data: { trade_id: tradeId } });
         const t = (res as any)?.trade as Trade | undefined;
         if (t) {
-          toast.success(`✅ +${fmt(t.profit_amount_cents)} profit added to wallet!`);
+          toast.success(`✅ Trade complete! +${fmt(t.profit_amount_cents)} profit + ${fmt(t.amount_cents)} principal returned.`);
         }
         await refresh();
       } catch (e: any) {
