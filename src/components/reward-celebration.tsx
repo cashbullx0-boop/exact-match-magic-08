@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform, animate } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Trophy, Coins, Sparkles, X } from "lucide-react";
+import { Trophy, Coins, Sparkles, X, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,9 @@ export type RewardCelebrationProps = {
 };
 
 // Coins that fly outward from center
-const COIN_COUNT = 14;
+const COIN_COUNT = 22;
+const RAY_COUNT = 14;
+const ORBIT_COIN_COUNT = 8;
 
 function AnimatedCounter({
   value,
