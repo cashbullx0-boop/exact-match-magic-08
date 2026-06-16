@@ -415,6 +415,8 @@ function DepositPage() {
                         <img
                           src={slipPreview}
                           alt="Payment slip preview"
+                          loading="lazy"
+                          decoding="async"
                           className="max-h-48 w-auto rounded-md border border-border object-contain bg-black/30"
                         />
                       )}
