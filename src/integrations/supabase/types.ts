@@ -664,37 +664,61 @@ export type Database = {
         Row: {
           amount_cents: number
           created_at: string
-          direction: string
-          duration_seconds: number
-          expires_at: string
+          cycle_count: number
+          direction: string | null
+          duration_hours: number | null
+          duration_seconds: number | null
+          expires_at: string | null
           id: string
+          last_profit_at: string | null
+          next_profit_at: string | null
+          profit_amount_cents: number | null
           profit_cents: number | null
+          profit_rate: number | null
           result: string | null
           status: string
+          total_profit_cents: number
+          trade_date: string | null
           user_id: string
         }
         Insert: {
           amount_cents: number
           created_at?: string
-          direction: string
-          duration_seconds: number
-          expires_at: string
+          cycle_count?: number
+          direction?: string | null
+          duration_hours?: number | null
+          duration_seconds?: number | null
+          expires_at?: string | null
           id?: string
+          last_profit_at?: string | null
+          next_profit_at?: string | null
+          profit_amount_cents?: number | null
           profit_cents?: number | null
+          profit_rate?: number | null
           result?: string | null
           status?: string
+          total_profit_cents?: number
+          trade_date?: string | null
           user_id: string
         }
         Update: {
           amount_cents?: number
           created_at?: string
-          direction?: string
-          duration_seconds?: number
-          expires_at?: string
+          cycle_count?: number
+          direction?: string | null
+          duration_hours?: number | null
+          duration_seconds?: number | null
+          expires_at?: string | null
           id?: string
+          last_profit_at?: string | null
+          next_profit_at?: string | null
+          profit_amount_cents?: number | null
           profit_cents?: number | null
+          profit_rate?: number | null
           result?: string | null
           status?: string
+          total_profit_cents?: number
+          trade_date?: string | null
           user_id?: string
         }
         Relationships: []
@@ -907,6 +931,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_trade_profit: {
+        Args: { _trade_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          cycle_count: number
+          direction: string | null
+          duration_hours: number | null
+          duration_seconds: number | null
+          expires_at: string | null
+          id: string
+          last_profit_at: string | null
+          next_profit_at: string | null
+          profit_amount_cents: number | null
+          profit_cents: number | null
+          profit_rate: number | null
+          result: string | null
+          status: string
+          total_profit_cents: number
+          trade_date: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_approve_deposit: {
         Args: { _deposit_id: string }
         Returns: undefined
@@ -963,6 +1016,35 @@ export type Database = {
           streak_day: number
           xp_gain: number
         }[]
+      }
+      close_roi_trade: {
+        Args: { _trade_id: string }
+        Returns: {
+          amount_cents: number
+          created_at: string
+          cycle_count: number
+          direction: string | null
+          duration_hours: number | null
+          duration_seconds: number | null
+          expires_at: string | null
+          id: string
+          last_profit_at: string | null
+          next_profit_at: string | null
+          profit_amount_cents: number | null
+          profit_cents: number | null
+          profit_rate: number | null
+          result: string | null
+          status: string
+          total_profit_cents: number
+          trade_date: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
@@ -1040,22 +1122,26 @@ export type Database = {
         }
         Returns: boolean
       }
-      place_trade: {
-        Args: {
-          _amount_cents: number
-          _direction: string
-          _duration_seconds: number
-        }
+      open_roi_trade: {
+        Args: { _amount_cents: number; _duration_hours: number }
         Returns: {
           amount_cents: number
           created_at: string
-          direction: string
-          duration_seconds: number
-          expires_at: string
+          cycle_count: number
+          direction: string | null
+          duration_hours: number | null
+          duration_seconds: number | null
+          expires_at: string | null
           id: string
+          last_profit_at: string | null
+          next_profit_at: string | null
+          profit_amount_cents: number | null
           profit_cents: number | null
+          profit_rate: number | null
           result: string | null
           status: string
+          total_profit_cents: number
+          trade_date: string | null
           user_id: string
         }
         SetofOptions: {
@@ -1071,27 +1157,6 @@ export type Database = {
       }
       request_wallet_change: { Args: { _new_wallet: string }; Returns: string }
       set_okx_wallet: { Args: { _address: string }; Returns: undefined }
-      settle_trade: {
-        Args: { _trade_id: string }
-        Returns: {
-          amount_cents: number
-          created_at: string
-          direction: string
-          duration_seconds: number
-          expires_at: string
-          id: string
-          profit_cents: number | null
-          result: string | null
-          status: string
-          user_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "trades"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       submit_deposit_slip: {
         Args: { _deposit_id: string; _slip_path: string }
         Returns: undefined
