@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { openRoiTrade, addTradeProfit, closeRoiTrade, listTrades } from "@/lib/trades.functions";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 type Trade = {
   id: string;
@@ -89,6 +90,35 @@ export function TradeFab() {
 
   const { profile, user, refreshProfile } = useAuth();
   const qc = useQueryClient();
+
+  // Realtime: when the server-side cron credits profit, balance changes on profiles.
+  // Show a toast and refresh local data without requiring the user to be on this page.
+  const lastBalanceRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    lastBalanceRef.current = profile?.balance_cents ?? null;
+    const channel = supabase
+      .channel(`wallet-updates-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => {
+          const next = (payload.new as { balance_cents?: number })?.balance_cents ?? null;
+          const prev = lastBalanceRef.current;
+          if (typeof next === "number" && typeof prev === "number" && next > prev) {
+            const diff = next - prev;
+            toast.success(`✅ +${fmt(diff)} profit added to wallet!`);
+          }
+          lastBalanceRef.current = next;
+          refreshProfile();
+          qc.invalidateQueries({ queryKey: ["trades", user.id] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const handler = () => setOpen(true);
