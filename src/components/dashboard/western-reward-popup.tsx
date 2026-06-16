@@ -212,6 +212,8 @@ function CowboyOnBull({ rewardEmoji }: { rewardEmoji: string }) {
       <img
         src={cowboyAsset.url}
         alt="Cowboy riding a bull"
+        loading="lazy"
+        decoding="async"
         className="h-36 w-auto sm:h-44 drop-shadow-[0_10px_20px_rgba(245,196,60,0.45)]"
       />
       <span
