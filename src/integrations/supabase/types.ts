@@ -1150,6 +1150,7 @@ export type Database = {
         Args: { _deposit_id: string; _tx_hash: string }
         Returns: undefined
       }
+      trade_cooldown_seconds: { Args: never; Returns: number }
       verify_password_reset_otp: {
         Args: { _email: string; _otp: string }
         Returns: string
