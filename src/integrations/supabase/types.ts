@@ -1003,6 +1003,7 @@ export type Database = {
         Args: { _email: string; _id_number: string; _phone: string }
         Returns: boolean
       }
+      check_signup_health: { Args: never; Returns: Json }
       check_withdrawal_otp_complete: {
         Args: { _user_id: string }
         Returns: boolean
