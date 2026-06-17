@@ -280,8 +280,8 @@ export function TradeFab() {
 
                   <div className="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-border">
                     <div>
-                      <div className="text-xs text-muted-foreground">Total earned</div>
-                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.total_profit_cents)}</div>
+                      <div className="text-xs text-muted-foreground">Expected profit</div>
+                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.profit_amount_cents)}</div>
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Payout on completion</div>
@@ -293,15 +293,6 @@ export function TradeFab() {
                     <Clock className="h-3 w-3" />
                     Completes after {activeTrade.duration_hours}h (one-time)
                   </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full border-destructive/40 text-destructive hover:bg-destructive/10"
-                    onClick={handleClose}
-                    disabled={closing}
-                  >
-                    {closing ? <Loader2 className="h-4 w-4 animate-spin" /> : `Close trade (return ${fmt(activeTrade.amount_cents)})`}
-                  </Button>
                 </div>
               ) : (
                 <>
@@ -317,10 +308,9 @@ export function TradeFab() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="pl-7 font-mono"
-                        disabled={dailyLimitReached}
                       />
                     </div>
-                    {amountError && !dailyLimitReached && (
+                    {amountError && (
                       <p className="text-xs text-destructive flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {amountError}
@@ -366,16 +356,9 @@ export function TradeFab() {
                       +{fmt(profitPreviewCents)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      after {duration} hours <span className="opacity-70">(one trade per day)</span>
+                      after {duration} hours <span className="opacity-70">(one active trade at a time)</span>
                     </div>
                   </div>
-
-                  {dailyLimitReached && (
-                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500 flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>You have already placed a trade today. Come back tomorrow.</span>
-                    </div>
-                  )}
 
                   <Button
                     className="w-full h-12 text-base font-semibold"
@@ -384,8 +367,6 @@ export function TradeFab() {
                   >
                     {placing ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : dailyLimitReached ? (
-                      "Trade limit reached today"
                     ) : amountError ? (
                       amountError
                     ) : (
