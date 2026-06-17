@@ -220,7 +220,7 @@ export function TradeFab() {
 
       {open && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="relative w-full md:max-w-lg bg-card border border-border rounded-t-2xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="sticky top-0 z-10 bg-card border-b border-border p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
