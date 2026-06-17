@@ -23,32 +23,6 @@ export const openRoiTrade = createServerFn({ method: "POST" })
     return { trade };
   });
 
-export const addTradeProfit = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: { trade_id: string }) => {
-    if (!d?.trade_id || typeof d.trade_id !== "string") throw new Error("Invalid trade_id");
-    return d;
-  })
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: trade, error } = await supabase.rpc("add_trade_profit", { _trade_id: data.trade_id });
-    if (error) throw new Error(error.message);
-    return { trade };
-  });
-
-export const closeRoiTrade = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: { trade_id: string }) => {
-    if (!d?.trade_id || typeof d.trade_id !== "string") throw new Error("Invalid trade_id");
-    return d;
-  })
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: trade, error } = await supabase.rpc("close_roi_trade", { _trade_id: data.trade_id });
-    if (error) throw new Error(error.message);
-    return { trade };
-  });
-
 export const listTrades = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

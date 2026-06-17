@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { openRoiTrade, addTradeProfit, closeRoiTrade, listTrades } from "@/lib/trades.functions";
+import { openRoiTrade, listTrades } from "@/lib/trades.functions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,13 +17,10 @@ type Trade = {
   duration_hours: number;
   profit_rate: number;
   profit_amount_cents: number;
-  next_profit_at: string | null;
-  last_profit_at: string | null;
-  cycle_count: number;
-  total_profit_cents: number;
+  expires_at: string;
+  settled_at: string | null;
   status: string;
   created_at: string;
-  trade_date: string;
 };
 
 const DURATIONS = [
@@ -34,31 +31,28 @@ const DURATIONS = [
 
 const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
-function useCycleTimer(trade: Trade | null, onElapsed: (id: string) => Promise<void>) {
+function useExpiryTimer(trade: Trade | null, onElapsed: () => void) {
   const [label, setLabel] = useState("--:--:--");
   const [under5, setUnder5] = useState(false);
-  const processingRef = useRef(false);
+  const firedRef = useRef(false);
 
   useEffect(() => {
-    if (!trade || trade.status !== "active" || !trade.next_profit_at) {
+    if (!trade || trade.status !== "active" || !trade.expires_at) {
       setLabel("--:--:--");
+      firedRef.current = false;
       return;
     }
-    processingRef.current = false;
+    firedRef.current = false;
     let stop = false;
-    const tick = async () => {
-      if (stop || !trade.next_profit_at) return;
-      const diff = new Date(trade.next_profit_at).getTime() - Date.now();
+    const tick = () => {
+      if (stop) return;
+      const diff = new Date(trade.expires_at).getTime() - Date.now();
       if (diff <= 0) {
-        setLabel("Finalizing…");
+        setLabel("Settling…");
         setUnder5(false);
-        if (!processingRef.current) {
-          processingRef.current = true;
-          try {
-            await onElapsed(trade.id);
-          } finally {
-            processingRef.current = false;
-          }
+        if (!firedRef.current) {
+          firedRef.current = true;
+          onElapsed();
         }
         return;
       }
@@ -76,7 +70,7 @@ function useCycleTimer(trade: Trade | null, onElapsed: (id: string) => Promise<v
       stop = true;
       clearInterval(id);
     };
-  }, [trade?.id, trade?.next_profit_at, trade?.status, onElapsed]);
+  }, [trade?.id, trade?.expires_at, trade?.status, onElapsed]);
 
   return { label, under5 };
 }
@@ -86,7 +80,6 @@ export function TradeFab() {
   const [amount, setAmount] = useState("50");
   const [duration, setDuration] = useState<4 | 8 | 12>(4);
   const [placing, setPlacing] = useState(false);
-  const [closing, setClosing] = useState(false);
 
   const { profile, user, refreshProfile } = useAuth();
   const qc = useQueryClient();
@@ -127,8 +120,6 @@ export function TradeFab() {
   }, []);
 
   const openFn = useServerFn(openRoiTrade);
-  const addProfitFn = useServerFn(addTradeProfit);
-  const closeFn = useServerFn(closeRoiTrade);
   const listFn = useServerFn(listTrades);
 
   const tradesQuery = useQuery({
@@ -140,20 +131,6 @@ export function TradeFab() {
 
   const activeTrade = (tradesQuery.data?.active?.[0] ?? null) as Trade | null;
   const balanceCents = profile?.balance_cents ?? 0;
-
-  // UK today: one trade per UK day
-  const todayUk = useMemo(() => {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/London",
-      year: "numeric", month: "2-digit", day: "2-digit",
-    }).format(new Date());
-    return parts;
-  }, []);
-  const allTrades: Trade[] = [
-    ...(tradesQuery.data?.active ?? []),
-    ...(tradesQuery.data?.history ?? []),
-  ] as Trade[];
-  const dailyLimitReached = allTrades.some((t) => t.trade_date === todayUk);
 
   const amountNum = parseFloat(amount) || 0;
   const amountCents = Math.round(amountNum * 100);
@@ -172,8 +149,6 @@ export function TradeFab() {
   const blockedReason =
     activeTrade
       ? "You have an active trade running"
-      : dailyLimitReached
-      ? "You have already placed a trade today. Come back tomorrow."
       : amountError;
 
   const refresh = async () => {
@@ -190,7 +165,7 @@ export function TradeFab() {
     setPlacing(true);
     try {
       await openFn({ data: { amount_cents: amountCents, duration_hours: duration } });
-      toast.success(`Trade started: ${duration}h cycle, +${(selectedDuration.rate * 100).toFixed(0)}% ROI`);
+      toast.success(`Trade started: ${duration}h, +${(selectedDuration.rate * 100).toFixed(0)}% ROI`);
       await refresh();
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to place trade");
@@ -199,38 +174,25 @@ export function TradeFab() {
     }
   };
 
-  const handleCycleElapsed = useMemo(
-    () => async (tradeId: string) => {
-      try {
-        const res = await addProfitFn({ data: { trade_id: tradeId } });
-        const t = (res as any)?.trade as Trade | undefined;
-        if (t) {
-          toast.success(`✅ Trade complete! +${fmt(t.profit_amount_cents)} profit + ${fmt(t.amount_cents)} principal returned.`);
-        }
-        await refresh();
-      } catch (e: any) {
-        // server enforces timing; transient errors fine
-      }
+  // When the local timer hits zero, give the cron a few seconds, then refetch.
+  const handleElapsed = useMemo(
+    () => () => {
+      const poll = (attempt = 0) => {
+        if (attempt > 12) return;
+        setTimeout(async () => {
+          await refresh();
+          const after = (await tradesQuery.refetch()).data;
+          const stillActive = after?.active?.some((t: any) => t.id === activeTrade?.id);
+          if (stillActive) poll(attempt + 1);
+        }, 5000);
+      };
+      poll();
     },
-    [addProfitFn]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeTrade?.id]
   );
 
-  const handleClose = async () => {
-    if (!activeTrade) return;
-    if (!confirm("Close this trade? Your principal will be returned to your wallet.")) return;
-    setClosing(true);
-    try {
-      await closeFn({ data: { trade_id: activeTrade.id } });
-      toast.success(`Trade closed. ${fmt(activeTrade.amount_cents)} returned to wallet.`);
-      await refresh();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to close trade");
-    } finally {
-      setClosing(false);
-    }
-  };
-
-  const { label: cycleLabel, under5 } = useCycleTimer(activeTrade, handleCycleElapsed);
+  const { label: cycleLabel, under5 } = useExpiryTimer(activeTrade, handleElapsed);
 
   return (
     <>
@@ -318,8 +280,8 @@ export function TradeFab() {
 
                   <div className="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-border">
                     <div>
-                      <div className="text-xs text-muted-foreground">Total earned</div>
-                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.total_profit_cents)}</div>
+                      <div className="text-xs text-muted-foreground">Expected profit</div>
+                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.profit_amount_cents)}</div>
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Payout on completion</div>
@@ -331,15 +293,6 @@ export function TradeFab() {
                     <Clock className="h-3 w-3" />
                     Completes after {activeTrade.duration_hours}h (one-time)
                   </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full border-destructive/40 text-destructive hover:bg-destructive/10"
-                    onClick={handleClose}
-                    disabled={closing}
-                  >
-                    {closing ? <Loader2 className="h-4 w-4 animate-spin" /> : `Close trade (return ${fmt(activeTrade.amount_cents)})`}
-                  </Button>
                 </div>
               ) : (
                 <>
@@ -355,10 +308,9 @@ export function TradeFab() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="pl-7 font-mono"
-                        disabled={dailyLimitReached}
                       />
                     </div>
-                    {amountError && !dailyLimitReached && (
+                    {amountError && (
                       <p className="text-xs text-destructive flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {amountError}
@@ -404,16 +356,9 @@ export function TradeFab() {
                       +{fmt(profitPreviewCents)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      after {duration} hours <span className="opacity-70">(one trade per day)</span>
+                      after {duration} hours <span className="opacity-70">(one active trade at a time)</span>
                     </div>
                   </div>
-
-                  {dailyLimitReached && (
-                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500 flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                      <span>You have already placed a trade today. Come back tomorrow.</span>
-                    </div>
-                  )}
 
                   <Button
                     className="w-full h-12 text-base font-semibold"
@@ -422,8 +367,6 @@ export function TradeFab() {
                   >
                     {placing ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : dailyLimitReached ? (
-                      "Trade limit reached today"
                     ) : amountError ? (
                       amountError
                     ) : (
