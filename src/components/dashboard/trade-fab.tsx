@@ -24,9 +24,9 @@ type Trade = {
 };
 
 const DURATIONS = [
-  { hours: 4, label: "4 Hours", rate: 0.03, rateLabel: "+3% ROI", desc: "Fast", icon: Zap },
-  { hours: 8, label: "8 Hours", rate: 0.06, rateLabel: "+6% ROI", desc: "Mid", icon: Clock },
-  { hours: 12, label: "12 Hours", rate: 0.10, rateLabel: "+10% ROI", desc: "Long", icon: TrendingUp },
+  { hours: 4, label: "4 Hours", rate: 0.02, rateLabel: "+2% ROI", desc: "Fast", icon: Zap },
+  { hours: 8, label: "8 Hours", rate: 0.02, rateLabel: "+2% ROI", desc: "Mid", icon: Clock },
+  { hours: 12, label: "12 Hours", rate: 0.02, rateLabel: "+2% ROI", desc: "Long", icon: TrendingUp },
 ] as const;
 
 const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
@@ -131,6 +131,24 @@ export function TradeFab() {
 
   const activeTrade = (tradesQuery.data?.active?.[0] ?? null) as Trade | null;
   const balanceCents = profile?.balance_cents ?? 0;
+  const cooldownInitial = tradesQuery.data?.cooldown_seconds ?? 0;
+
+  // Live-decrementing cooldown
+  const [cooldownSec, setCooldownSec] = useState(cooldownInitial);
+  useEffect(() => { setCooldownSec(cooldownInitial); }, [cooldownInitial]);
+  useEffect(() => {
+    if (cooldownSec <= 0) return;
+    const id = setInterval(() => setCooldownSec((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldownSec > 0]);
+
+  const cooldownLabel = (() => {
+    const s = cooldownSec;
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  })();
 
   const amountNum = parseFloat(amount) || 0;
   const amountCents = Math.round(amountNum * 100);
@@ -149,6 +167,8 @@ export function TradeFab() {
   const blockedReason =
     activeTrade
       ? "You have an active trade running"
+      : cooldownSec > 0
+      ? `Next trade in ${cooldownLabel}`
       : amountError;
 
   const refresh = async () => {

@@ -33,5 +33,10 @@ export const listTrades = createServerFn({ method: "GET" })
     const { data: history } = await supabase
       .from("trades").select("*").eq("user_id", userId).neq("status", "active")
       .order("created_at", { ascending: false }).limit(10);
-    return { active: active ?? [], history: history ?? [] };
+    const { data: cdSec } = await supabase.rpc("trade_cooldown_seconds");
+    return {
+      active: active ?? [],
+      history: history ?? [],
+      cooldown_seconds: (cdSec as number | null) ?? 0,
+    };
   });
