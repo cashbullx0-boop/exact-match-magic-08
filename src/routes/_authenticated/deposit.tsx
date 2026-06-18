@@ -17,7 +17,7 @@ import {
 import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
-  createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
+  createDepositRequest, attachTxHash, attachSenderAddress, listUserDeposits, uploadDepositSlip,
 } from "@/lib/deposits";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
@@ -68,6 +68,7 @@ function DepositPage() {
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [active, setActive] = useState<DepositRow | null>(null);
   const [txHash, setTxHash] = useState("");
+  const [senderAddress, setSenderAddress] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -141,15 +142,18 @@ function DepositPage() {
 
   const handleSubmitHash = async () => {
     if (!active || !user) return;
-    if (!txHash.trim()) return toast.error("Enter the transaction hash");
+    if (!senderAddress.trim()) return toast.error("Enter the wallet address you sent from");
     if (!slipFile) return toast.error("Please upload your payment slip or screenshot as proof");
+    if (!txHash.trim()) return toast.error("Enter the transaction hash");
     setSubmitting(true);
     try {
+      await attachSenderAddress(active.id, senderAddress);
       await uploadDepositSlip(user.id, active.id, slipFile);
       await attachTxHash(active.id, txHash);
       toast.success("Deposit submitted — pending admin review");
       setActive(null);
       setTxHash("");
+      setSenderAddress("");
       setSlipFile(null);
       setSlipPreview(null);
       refresh();
@@ -349,7 +353,15 @@ function DepositPage() {
       </Card>
 
       {/* Active deposit modal */}
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
+      <Dialog open={!!active} onOpenChange={(o) => {
+        if (!o) {
+          setActive(null);
+          setTxHash("");
+          setSenderAddress("");
+          setSlipFile(null);
+          setSlipPreview(null);
+        }
+      }}>
         <DialogContent className="max-w-md">
           {active && (
             <>
@@ -389,7 +401,23 @@ function DepositPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="txhash" className="text-xs">Transaction hash (after sending)</Label>
+                  <Label htmlFor="sender" className="text-xs">
+                    Your wallet address (the one you sent from) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="sender"
+                    placeholder="0x... or T..."
+                    value={senderAddress}
+                    onChange={(e) => setSenderAddress(e.target.value)}
+                    className="mt-1 font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    This is YOUR sending wallet — different from the company address above.
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="txhash" className="text-xs">Transaction hash (after sending) <span className="text-destructive">*</span></Label>
                   <Input id="txhash" placeholder="0x... or T..." value={txHash}
                     onChange={(e) => setTxHash(e.target.value)} className="mt-1 font-mono text-xs" />
                 </div>
@@ -430,10 +458,25 @@ function DepositPage() {
               </div>
 
               <DialogFooter className="gap-2 sm:gap-2">
-                <Button variant="outline" onClick={() => setActive(null)}>Close</Button>
-                <Button onClick={handleSubmitHash} disabled={submitting || !txHash.trim() || !slipFile}>
+                <Button variant="outline" onClick={() => {
+                  setActive(null);
+                  setTxHash("");
+                  setSenderAddress("");
+                  setSlipFile(null);
+                  setSlipPreview(null);
+                }}>Close</Button>
+                <Button
+                  onClick={handleSubmitHash}
+                  disabled={submitting || !senderAddress.trim() || !slipFile || !txHash.trim()}
+                >
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                  {!slipFile ? "Upload slip to continue" : "Submit Deposit"}
+                  {!senderAddress.trim()
+                    ? "Enter your sender wallet address"
+                    : !slipFile
+                    ? "Upload slip to continue"
+                    : !txHash.trim()
+                    ? "Enter transaction hash"
+                    : "Submit Deposit"}
                 </Button>
               </DialogFooter>
             </>

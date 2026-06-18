@@ -183,6 +183,7 @@ export type Database = {
           provider: string
           provider_payment_id: string | null
           rejection_reason: string | null
+          sender_wallet_address: string | null
           slip_attempt: number
           slip_path: string | null
           status: Database["public"]["Enums"]["deposit_status"]
@@ -203,6 +204,7 @@ export type Database = {
           provider?: string
           provider_payment_id?: string | null
           rejection_reason?: string | null
+          sender_wallet_address?: string | null
           slip_attempt?: number
           slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
@@ -223,6 +225,7 @@ export type Database = {
           provider?: string
           provider_payment_id?: string | null
           rejection_reason?: string | null
+          sender_wallet_address?: string | null
           slip_attempt?: number
           slip_path?: string | null
           status?: Database["public"]["Enums"]["deposit_status"]
@@ -1142,6 +1145,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      submit_deposit_sender_address: {
+        Args: { _deposit_id: string; _sender_address: string }
+        Returns: undefined
       }
       submit_deposit_slip: {
         Args: { _deposit_id: string; _slip_path: string }
