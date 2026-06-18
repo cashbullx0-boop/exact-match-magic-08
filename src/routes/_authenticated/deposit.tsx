@@ -401,7 +401,23 @@ function DepositPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="txhash" className="text-xs">Transaction hash (after sending)</Label>
+                  <Label htmlFor="sender" className="text-xs">
+                    Your wallet address (the one you sent from) <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="sender"
+                    placeholder="0x... or T..."
+                    value={senderAddress}
+                    onChange={(e) => setSenderAddress(e.target.value)}
+                    className="mt-1 font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    This is YOUR sending wallet — different from the company address above.
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="txhash" className="text-xs">Transaction hash (after sending) <span className="text-destructive">*</span></Label>
                   <Input id="txhash" placeholder="0x... or T..." value={txHash}
                     onChange={(e) => setTxHash(e.target.value)} className="mt-1 font-mono text-xs" />
                 </div>
@@ -442,10 +458,25 @@ function DepositPage() {
               </div>
 
               <DialogFooter className="gap-2 sm:gap-2">
-                <Button variant="outline" onClick={() => setActive(null)}>Close</Button>
-                <Button onClick={handleSubmitHash} disabled={submitting || !txHash.trim() || !slipFile}>
+                <Button variant="outline" onClick={() => {
+                  setActive(null);
+                  setTxHash("");
+                  setSenderAddress("");
+                  setSlipFile(null);
+                  setSlipPreview(null);
+                }}>Close</Button>
+                <Button
+                  onClick={handleSubmitHash}
+                  disabled={submitting || !senderAddress.trim() || !slipFile || !txHash.trim()}
+                >
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                  {!slipFile ? "Upload slip to continue" : "Submit Deposit"}
+                  {!senderAddress.trim()
+                    ? "Enter your sender wallet address"
+                    : !slipFile
+                    ? "Upload slip to continue"
+                    : !txHash.trim()
+                    ? "Enter transaction hash"
+                    : "Submit Deposit"}
                 </Button>
               </DialogFooter>
             </>
