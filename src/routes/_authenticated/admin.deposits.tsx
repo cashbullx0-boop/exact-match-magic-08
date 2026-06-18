@@ -214,7 +214,6 @@ function AdminDepositsPage() {
                 <Field label="Amount" value={`$${Number(selected.amount_usd).toFixed(2)} USDT`} />
                 <Field label="Network" value={selected.network} />
                 <Field label="Submitted" value={new Date(selected.created_at).toLocaleString()} />
-                <Field label="Wallet address" value={selected.wallet_address} mono />
                 <Field label="Company receiving address" value={selected.wallet_address} mono copy />
                 <Field label="User's sender address" value={selected.sender_wallet_address ?? "—"} mono copy />
                 <Field label="Tx hash" value={selected.tx_hash ?? "—"} mono copy />
