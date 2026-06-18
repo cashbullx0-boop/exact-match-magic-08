@@ -78,6 +78,30 @@ function DepositPage() {
 
   const MAX_SLIP_BYTES = 5 * 1024 * 1024;
 
+  // Mirrors server-side check in submit_deposit_sender_address:
+  // length 6–128 and only [A-Za-z0-9]. Network-specific hints layered on top.
+  const validateSenderAddress = (
+    addr: string,
+    network: DepositNetwork,
+  ): string | null => {
+    const a = addr.trim();
+    if (!a) return "Enter the wallet address you sent from";
+    if (!/^[A-Za-z0-9]+$/.test(a)) return "Address can only contain letters and numbers (no spaces or symbols)";
+    if (a.length < 6 || a.length > 128) return "Address must be between 6 and 128 characters";
+    if (network === "USDT_TRC20" && !/^T[A-Za-z0-9]{33}$/.test(a)) {
+      return "TRC20 address must start with T and be 34 characters long";
+    }
+    if (network === "USDT_BEP20" && !/^0x[a-fA-F0-9]{40}$/.test(a)) {
+      return "BEP20 address must start with 0x and be 42 characters long";
+    }
+    return null;
+  };
+
+  const senderAddressError =
+    senderAddress.length > 0 && active
+      ? validateSenderAddress(senderAddress, active.network)
+      : null;
+
   const handleSlipChange = (file: File | null) => {
     if (!file) {
       setSlipFile(null);
@@ -142,14 +166,30 @@ function DepositPage() {
 
   const handleSubmitHash = async () => {
     if (!active || !user) return;
-    if (!senderAddress.trim()) return toast.error("Enter the wallet address you sent from");
+    const addrErr = validateSenderAddress(senderAddress, active.network);
+    if (addrErr) {
+      console.warn("[deposit:submit] validation failed", { depositId: active.id, reason: addrErr });
+      return toast.error(addrErr);
+    }
     if (!slipFile) return toast.error("Please upload your payment slip or screenshot as proof");
     if (!txHash.trim()) return toast.error("Enter the transaction hash");
     setSubmitting(true);
+    console.info("[deposit:submit] start", {
+      depositId: active.id,
+      amount: active.amount_usd,
+      network: active.network,
+      senderAddressLength: senderAddress.trim().length,
+      txHashLength: txHash.trim().length,
+      slipSize: slipFile.size,
+    });
     try {
       await attachSenderAddress(active.id, senderAddress);
+      console.info("[deposit:submit] sender address attached", { depositId: active.id });
       await uploadDepositSlip(user.id, active.id, slipFile);
+      console.info("[deposit:submit] slip uploaded", { depositId: active.id });
       await attachTxHash(active.id, txHash);
+      console.info("[deposit:submit] tx hash attached", { depositId: active.id });
+      console.info("[deposit:submit] success", { depositId: active.id });
       toast.success("Deposit submitted — pending admin review");
       setActive(null);
       setTxHash("");
@@ -158,6 +198,11 @@ function DepositPage() {
       setSlipPreview(null);
       refresh();
     } catch (e: any) {
+      console.error("[deposit:submit] failed", {
+        depositId: active.id,
+        message: e?.message,
+        code: e?.code,
+      });
       toast.error(e.message ?? "Failed to submit deposit");
     } finally {
       setSubmitting(false);
@@ -409,11 +454,21 @@ function DepositPage() {
                     placeholder="0x... or T..."
                     value={senderAddress}
                     onChange={(e) => setSenderAddress(e.target.value)}
-                    className="mt-1 font-mono text-xs"
+                    aria-invalid={!!senderAddressError}
+                    aria-describedby="sender-help"
+                    className={`mt-1 font-mono text-xs ${
+                      senderAddressError ? "border-destructive focus-visible:ring-destructive" : ""
+                    }`}
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    This is YOUR sending wallet — different from the company address above.
-                  </p>
+                  {senderAddressError ? (
+                    <p id="sender-help" className="text-[11px] text-destructive mt-1">
+                      {senderAddressError}
+                    </p>
+                  ) : (
+                    <p id="sender-help" className="text-[11px] text-muted-foreground mt-1">
+                      This is YOUR sending wallet — different from the company address above.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -467,11 +522,19 @@ function DepositPage() {
                 }}>Close</Button>
                 <Button
                   onClick={handleSubmitHash}
-                  disabled={submitting || !senderAddress.trim() || !slipFile || !txHash.trim()}
+                  disabled={
+                    submitting ||
+                    !senderAddress.trim() ||
+                    !!senderAddressError ||
+                    !slipFile ||
+                    !txHash.trim()
+                  }
                 >
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
                   {!senderAddress.trim()
                     ? "Enter your sender wallet address"
+                    : senderAddressError
+                    ? "Fix wallet address"
                     : !slipFile
                     ? "Upload slip to continue"
                     : !txHash.trim()
