@@ -89,6 +89,14 @@ export async function attachTxHash(depositId: string, txHash: string) {
   if (error) throw error;
 }
 
+export async function attachSenderAddress(depositId: string, senderAddress: string) {
+  const { error } = await supabase.rpc("submit_deposit_sender_address", {
+    _deposit_id: depositId,
+    _sender_address: senderAddress.trim(),
+  });
+  if (error) throw error;
+}
+
 export async function uploadDepositSlip(userId: string, depositId: string, file: File) {
   const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
   const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
