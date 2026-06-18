@@ -23,6 +23,7 @@ type Row = {
   amount_usd: number;
   network: string;
   wallet_address: string;
+  sender_wallet_address: string | null;
   tx_hash: string | null;
   slip_path: string | null;
   status: "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
@@ -214,6 +215,8 @@ function AdminDepositsPage() {
                 <Field label="Network" value={selected.network} />
                 <Field label="Submitted" value={new Date(selected.created_at).toLocaleString()} />
                 <Field label="Wallet address" value={selected.wallet_address} mono />
+                <Field label="Company receiving address" value={selected.wallet_address} mono copy />
+                <Field label="User's sender address" value={selected.sender_wallet_address ?? "—"} mono copy />
                 <Field label="Tx hash" value={selected.tx_hash ?? "—"} mono copy />
               </div>
 
