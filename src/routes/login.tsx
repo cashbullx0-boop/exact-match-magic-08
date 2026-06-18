@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhoneField } from "@/components/auth/phone-field";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CashBullX" }] }),
@@ -28,6 +29,7 @@ function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
   const phoneValid = useMemo(() => phone && isValidPhoneNumber(phone), [phone]);
@@ -116,7 +118,12 @@ function LoginPage() {
                   <Label htmlFor="pwd" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
                   <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot?</Link>
                 </div>
-                <Input id="pwd" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1 h-11" />
+                <div className="relative mt-1">
+                  <Input id="pwd" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="h-11 pr-10" />
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
                 <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} /> Remember me

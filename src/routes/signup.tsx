@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Eye, EyeOff } from "lucide-react";
 import { PhoneField } from "@/components/auth/phone-field";
 import { parsePhoneNumber } from "react-phone-number-input";
 
@@ -36,6 +36,7 @@ function SignupPage() {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [phoneResendIn, setPhoneResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
   const [resendIn, setResendIn] = useState(0);
@@ -177,7 +178,12 @@ function SignupPage() {
             </div>
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
-              <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11" placeholder="At least 6 characters" />
+              <div className="relative mt-1">
+                <Input type={showPassword ? "text" : "password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 pr-10" placeholder="At least 6 characters" />
+                <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
             </div>
             <div>
