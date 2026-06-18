@@ -454,11 +454,21 @@ function DepositPage() {
                     placeholder="0x... or T..."
                     value={senderAddress}
                     onChange={(e) => setSenderAddress(e.target.value)}
-                    className="mt-1 font-mono text-xs"
+                    aria-invalid={!!senderAddressError}
+                    aria-describedby="sender-help"
+                    className={`mt-1 font-mono text-xs ${
+                      senderAddressError ? "border-destructive focus-visible:ring-destructive" : ""
+                    }`}
                   />
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    This is YOUR sending wallet — different from the company address above.
-                  </p>
+                  {senderAddressError ? (
+                    <p id="sender-help" className="text-[11px] text-destructive mt-1">
+                      {senderAddressError}
+                    </p>
+                  ) : (
+                    <p id="sender-help" className="text-[11px] text-muted-foreground mt-1">
+                      This is YOUR sending wallet — different from the company address above.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -512,11 +522,19 @@ function DepositPage() {
                 }}>Close</Button>
                 <Button
                   onClick={handleSubmitHash}
-                  disabled={submitting || !senderAddress.trim() || !slipFile || !txHash.trim()}
+                  disabled={
+                    submitting ||
+                    !senderAddress.trim() ||
+                    !!senderAddressError ||
+                    !slipFile ||
+                    !txHash.trim()
+                  }
                 >
                   {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
                   {!senderAddress.trim()
                     ? "Enter your sender wallet address"
+                    : senderAddressError
+                    ? "Fix wallet address"
                     : !slipFile
                     ? "Upload slip to continue"
                     : !txHash.trim()
