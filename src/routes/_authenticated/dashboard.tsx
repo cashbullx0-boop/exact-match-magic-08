@@ -3,10 +3,8 @@ import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Flame, Gift, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Wallet, TrendingUp, ListChecks, Users, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { VipBadge } from "@/components/dashboard/vip-badge";
@@ -27,35 +25,6 @@ function DashboardPage() {
   const [series, setSeries] = useState<{ day: string; earned: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [claiming, setClaiming] = useState(false);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const alreadyCheckedIn = profile?.last_checkin_date === today;
-  const streak = profile?.current_streak ?? 0;
-  const nextRewardCents = Math.min(50 + streak * 10, 200);
-
-  const claimCheckin = async () => {
-    if (!user || !profile || alreadyCheckedIn) return;
-    setClaiming(true);
-    const { data, error } = await supabase.rpc("claim_daily_checkin");
-    if (error) {
-      toast.error(error.message);
-      setClaiming(false);
-      return;
-    }
-    const row: any = Array.isArray(data) ? data[0] : data;
-    const reward = row?.reward_cents ?? 0;
-    const xpGain = row?.xp_gain ?? 0;
-    const newStreak = row?.streak_day ?? 1;
-    await supabase.rpc("create_self_notification", {
-      _title: `Day ${newStreak} streak claimed!`,
-      _body: `+$${(reward / 100).toFixed(2)} and +${xpGain} XP added to your wallet.`,
-      _type: "reward",
-    });
-    setClaiming(false);
-    toast.success(`+$${(reward / 100).toFixed(2)} · +${xpGain} XP`);
-    refreshProfile();
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -108,29 +77,9 @@ function DashboardPage() {
 
       <DepositDeadlineRing />
 
-      {/* Daily check-in + level */}
+      {/* Level progress */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="glass-strong border-border p-6 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-44 w-44 rounded-full opacity-30 blur-2xl" style={{ background: "var(--gradient-primary)" }} />
-          <div className="flex items-start justify-between relative">
-            <div>
-              <div className="flex items-center gap-2"><Flame className="h-5 w-5 text-orange-400" /><span className="text-xs uppercase tracking-wider text-muted-foreground">Daily streak</span></div>
-              <p className="text-4xl font-bold mt-2">{streak} <span className="text-base font-normal text-muted-foreground">day{streak === 1 ? "" : "s"}</span></p>
-              <p className="text-xs text-muted-foreground mt-1">Longest: {profile?.longest_streak ?? 0}</p>
-            </div>
-            <Button onClick={claimCheckin} disabled={alreadyCheckedIn || claiming} className={alreadyCheckedIn ? "" : "btn-primary-gradient"} size="sm">
-              <Gift className="h-4 w-4 mr-1" />
-              {alreadyCheckedIn ? "Claimed today" : `Claim +$${(nextRewardCents / 100).toFixed(2)}`}
-            </Button>
-          </div>
-          <div className="mt-4 flex gap-1 relative">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className={`flex-1 h-2 rounded-full ${i < (streak % 7 || (alreadyCheckedIn ? 7 : 0)) ? "bg-primary" : "bg-white/10"}`} />
-            ))}
-          </div>
-        </Card>
-
-        <Card className="glass-strong border-border p-6 relative overflow-hidden">
+        <Card className="glass-strong border-border p-6 relative overflow-hidden max-w-md">
           <div className="absolute -bottom-10 -left-10 h-44 w-44 rounded-full opacity-30 blur-2xl" style={{ background: "linear-gradient(135deg, oklch(0.78 0.16 165), oklch(0.62 0.22 295))" }} />
           <div className="flex items-start justify-between relative">
             <div>
