@@ -97,6 +97,24 @@ export async function attachSenderAddress(depositId: string, senderAddress: stri
   if (error) throw error;
 }
 
+/**
+ * Best-effort cleanup of an orphaned pending deposit row when the post-create
+ * steps (sender address / slip / tx hash) fail. RLS restricts this to the
+ * owner's own pending rows. Errors are swallowed and logged.
+ */
+export async function deleteDepositIfPending(depositId: string) {
+  try {
+    const { error } = await supabase
+      .from("deposits")
+      .delete()
+      .eq("id", depositId)
+      .eq("status", "pending");
+    if (error) console.warn("[deposits] cleanup failed", error);
+  } catch (e) {
+    console.warn("[deposits] cleanup threw", e);
+  }
+}
+
 export async function uploadDepositSlip(userId: string, depositId: string, file: File) {
   const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
   const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
