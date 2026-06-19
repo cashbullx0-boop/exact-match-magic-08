@@ -99,7 +99,6 @@ function SignupPage() {
     if (!fullName.trim()) { toast.error("Enter your full name"); return; }
     if (!emailValid) { toast.error("Enter a valid email"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
-    if (!phoneVerified) { toast.error("Verify your phone number first"); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
@@ -123,12 +122,14 @@ function SignupPage() {
     setLoading(false);
     if (error) { toast.error(error.message || "Invalid code, try again"); return; }
     if (data.user) attachReferral(data.user.id);
-    // attach verified phone to profile
-    try {
-      const parsed = phone ? parsePhoneNumber(phone) : null;
-      const cc = parsed?.countryCallingCode ? `+${parsed.countryCallingCode}` : "";
-      await supabase.rpc("attach_verified_phone", { _phone: phone, _country_code: cc });
-    } catch {}
+    // attach verified phone to profile (only if user verified one)
+    if (phoneVerified && phone) {
+      try {
+        const parsed = parsePhoneNumber(phone);
+        const cc = parsed?.countryCallingCode ? `+${parsed.countryCallingCode}` : "";
+        await supabase.rpc("attach_verified_phone", { _phone: phone, _country_code: cc });
+      } catch {}
+    }
     toast.success("Email verified — welcome!");
     navigate({ to: "/dashboard", replace: true });
   };
@@ -187,7 +188,7 @@ function SignupPage() {
               {pwdError && <p className="text-xs text-destructive mt-1">{pwdError}</p>}
             </div>
             <div>
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number (required)</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number (optional)</Label>
               <div className="mt-1 rounded-md border border-input bg-transparent px-3 h-11 flex items-center [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:text-sm [&_.PhoneInputInput]:flex-1 [&_.PhoneInputCountry]:mr-2">
                 <PhoneField value={phone} onChange={(v) => { setPhone(v); setPhoneOtpSent(false); setPhoneVerified(false); setPhoneOtp(""); }} placeholder="Phone number" />
               </div>
@@ -219,7 +220,7 @@ function SignupPage() {
               )}
               {phoneVerified && <p className="text-xs text-accent mt-2">✓ Phone verified</p>}
             </div>
-            <Button type="submit" disabled={loading || !phoneVerified} className="w-full h-11 btn-primary-gradient">
+            <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
               {loading ? "Creating..." : "Create account →"}
             </Button>
           </form>
