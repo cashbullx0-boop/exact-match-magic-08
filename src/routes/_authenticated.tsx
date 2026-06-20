@@ -42,6 +42,39 @@ function AuthedLayout() {
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
 
+  // Attach a pending referral (stored in sessionStorage by /ref/:username) once
+  // the user is authenticated — works for ALL signup methods, including
+  // Google OAuth, where the email/password signup flow's own attach logic
+  // never runs.
+  useEffect(() => {
+    if (!user) return;
+    let ref: string | null = null;
+    try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+    if (!ref) return;
+    (async () => {
+      try {
+        const { data: alreadyReferred } = await supabase
+          .from("referrals")
+          .select("id")
+          .eq("referred_id", user.id)
+          .maybeSingle();
+        if (alreadyReferred) {
+          sessionStorage.removeItem("cbx_ref");
+          return;
+        }
+        const { data: refId } = await supabase.rpc("get_referrer_id_by_username_or_code", { _value: ref });
+        if (refId && refId !== user.id) {
+          await supabase.from("profiles").update({ referred_by: refId }).eq("id", user.id);
+          await supabase.from("referrals").insert({ referrer_id: refId, referred_id: user.id, bonus_cents: 100 });
+        }
+      } catch {
+        // best-effort; don't block the dashboard if this fails
+      } finally {
+        try { sessionStorage.removeItem("cbx_ref"); } catch {}
+      }
+    })();
+  }, [user]);
+
   const markAllNotificationsRead = async () => {
     if (!user) return;
     await supabase.from("notifications").update({ read: true })
