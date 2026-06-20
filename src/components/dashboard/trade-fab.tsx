@@ -86,23 +86,18 @@ export function TradeFab() {
 
   // Realtime: when the server-side cron credits profit, balance changes on profiles.
   // Show a toast and refresh local data without requiring the user to be on this page.
-  const lastBalanceRef = useRef<number | null>(null);
   useEffect(() => {
     if (!user) return;
-    lastBalanceRef.current = profile?.balance_cents ?? null;
     const channel = supabase
       .channel(`wallet-updates-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        { event: "INSERT", schema: "public", table: "transactions", filter: `user_id=eq.${user.id}` },
         (payload) => {
-          const next = (payload.new as { balance_cents?: number })?.balance_cents ?? null;
-          const prev = lastBalanceRef.current;
-          if (typeof next === "number" && typeof prev === "number" && next > prev) {
-            const diff = next - prev;
-            toast.success(`✅ +${fmt(diff)} profit added to wallet!`);
+          const row = payload.new as { type?: string; amount_cents?: number } | null;
+          if (row?.type === "profit" && typeof row.amount_cents === "number" && row.amount_cents > 0) {
+            toast.success(`✅ +${fmt(row.amount_cents)} profit added to wallet!`);
           }
-          lastBalanceRef.current = next;
           refreshProfile();
           qc.invalidateQueries({ queryKey: ["trades", user.id] });
         }
