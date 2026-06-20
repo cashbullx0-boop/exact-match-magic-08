@@ -60,16 +60,11 @@ function SignupPage() {
     if (user) navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
 
-  const attachReferral = (uid: string) => {
+  const attachReferral = (_uid: string) => {
+    // Referral attribution is handled server-side by the handle_new_user trigger
+    // using the referral_code passed in signUp options.data. Just clean up local storage.
     if (!ref) return;
-    setTimeout(async () => {
-      const { data: refId } = await supabase.rpc("get_referrer_id_by_username_or_code", { _value: ref });
-      if (refId) {
-        await supabase.from("profiles").update({ referred_by: refId }).eq("id", uid);
-        await supabase.from("referrals").insert({ referrer_id: refId, referred_id: uid, bonus_cents: 100 });
-        try { sessionStorage.removeItem("cbx_ref"); } catch {}
-      }
-    }, 800);
+    try { sessionStorage.removeItem("cbx_ref"); } catch {}
   };
 
   const sendPhoneOtp = async () => {
