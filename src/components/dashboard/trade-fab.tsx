@@ -86,10 +86,8 @@ export function TradeFab() {
 
   // Realtime: when the server-side cron credits profit, balance changes on profiles.
   // Show a toast and refresh local data without requiring the user to be on this page.
-  const lastBalanceRef = useRef<number | null>(null);
   useEffect(() => {
     if (!user) return;
-    lastBalanceRef.current = profile?.balance_cents ?? null;
     const channel = supabase
       .channel(`wallet-updates-${user.id}`)
       .on(
