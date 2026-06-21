@@ -11,6 +11,7 @@ import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Reveal } from "@/components/marketing/reveal";
 import { TrustStrip } from "@/components/marketing/trust-strip";
 import logoAsset from "@/assets/cashbullx-logo.webp.asset.json";
+import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 // Defer heavy below-the-fold sections (chunks load on demand)
 const EarnLottieScene = lazy(() =>
@@ -32,7 +33,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Complete surveys, videos, app installs and offers. Withdraw earnings to your wallet." },
     ],
   }),
-  component: Index,
+  component: () => (
+    <RedirectIfAuthenticated>
+      <Index />
+    </RedirectIfAuthenticated>
+  ),
 });
 
 function Index() {
