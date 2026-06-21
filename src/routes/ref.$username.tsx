@@ -5,10 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Gift, Sparkles, ArrowRight } from "lucide-react";
+import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 export const Route = createFileRoute("/ref/$username")({
   head: ({ params }) => ({ meta: [{ title: `Join via @${params.username} — CashBullX` }] }),
-  component: RefLanding,
+  component: () => (
+    <RedirectIfAuthenticated>
+      <RefLanding />
+    </RedirectIfAuthenticated>
+  ),
 });
 
 function RefLanding() {

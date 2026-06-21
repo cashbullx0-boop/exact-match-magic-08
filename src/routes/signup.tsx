@@ -11,11 +11,16 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Mail, Phone, Eye, EyeOff } from "lucide-react";
 import { PhoneField } from "@/components/auth/phone-field";
 import { parsePhoneNumber } from "react-phone-number-input";
+import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (s) => ({ ref: typeof s.ref === "string" ? s.ref : undefined }),
   head: () => ({ meta: [{ title: "Create account — CashBullX" }] }),
-  component: SignupPage,
+  component: () => (
+    <RedirectIfAuthenticated>
+      <SignupPage />
+    </RedirectIfAuthenticated>
+  ),
 });
 
 function SignupPage() {

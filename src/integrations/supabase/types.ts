@@ -1193,6 +1193,7 @@ export type Database = {
         | "adjustment"
         | "deposit"
         | "profit"
+        | "bonus"
       withdrawal_network: "TRC20" | "BEP20" | "ERC20"
       withdrawal_status:
         | "pending"
@@ -1348,6 +1349,7 @@ export const Constants = {
         "adjustment",
         "deposit",
         "profit",
+        "bonus",
       ],
       withdrawal_network: ["TRC20", "BEP20", "ERC20"],
       withdrawal_status: [
