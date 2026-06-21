@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
+import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,11 @@ import { Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CashBullX" }] }),
-  component: LoginPage,
+  component: () => (
+    <RedirectIfAuthenticated>
+      <LoginPage />
+    </RedirectIfAuthenticated>
+  ),
 });
 
 function LoginPage() {
