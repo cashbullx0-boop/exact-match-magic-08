@@ -15,22 +15,24 @@ export interface NetworkConfig {
   estTime: string;
   fee: string;
   color: string;
+  enabled: boolean;
 }
 
-// Placeholder receiving addresses. Replace with real treasury wallets per network
-// or fetch from your payment provider (NOWPayments / CoinPayments) at deposit time.
+// Real treasury wallet for TRC20. BEP20 is disabled until a real wallet is added —
+// flip `enabled: true` and replace the placeholder address once available.
 export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
   USDT_TRC20: {
     id: "USDT_TRC20",
     label: "USDT (TRC20)",
     chain: "Tron Network",
     symbol: "USDT",
-    address: "TXYZaBcDeFgHiJkLmNoPqRsTuVwXyZ1234",
+    address: "TB66zHLC4xwRUhsr3gDdJLWs9ZUCzS1x5Z",
     minAmount: 50,
     confirmations: 19,
     estTime: "~3 min",
     fee: "~1 USDT",
     color: "from-red-500/30 to-orange-500/20",
+    enabled: true,
   },
   USDT_BEP20: {
     id: "USDT_BEP20",
@@ -43,6 +45,7 @@ export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
     estTime: "~1 min",
     fee: "~0.3 USDT",
     color: "from-yellow-500/30 to-amber-500/20",
+    enabled: false,
   },
 };
 
