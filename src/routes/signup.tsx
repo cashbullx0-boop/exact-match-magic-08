@@ -29,8 +29,8 @@ function SignupPage() {
   const { ref: refSearch } = Route.useSearch();
   const [ref, setRef] = useState<string | undefined>(refSearch);
   useEffect(() => {
-    if (refSearch) { setRef(refSearch); try { sessionStorage.setItem("cbx_ref", refSearch); } catch {} return; }
-    try { const v = sessionStorage.getItem("cbx_ref"); if (v) setRef(v); } catch {}
+    if (refSearch) { setRef(refSearch); try { sessionStorage.setItem("cbx_ref", refSearch); } catch { } return; }
+    try { const v = sessionStorage.getItem("cbx_ref"); if (v) setRef(v); } catch { }
   }, [refSearch]);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,11 +65,33 @@ function SignupPage() {
     if (user) navigate({ to: "/dashboard", replace: true });
   }, [user, navigate]);
 
-  const attachReferral = (_uid: string) => {
-    // Referral attribution is handled server-side by the handle_new_user trigger
-    // using the referral_code passed in signUp options.data. Just clean up local storage.
+  const attachReferral = async (uid: string) => {
     if (!ref) return;
-    try { sessionStorage.removeItem("cbx_ref"); } catch {}
+    try {
+      const { data: referrer } = await supabase
+        .from("profiles")
+        .select("id")
+        .or(`username.eq.${ref},referral_code.eq.${ref}`)
+        .single();
+
+      if (referrer?.id && referrer.id !== uid) {
+        const { count } = await supabase
+          .from("referrals")
+          .select("*", { count: "exact", head: true })
+          .eq("referrer_id", referrer.id);
+
+        if ((count ?? 0) < 6) {
+          await supabase.from("referrals").insert({
+            referrer_id: referrer.id,
+            referred_id: uid,
+            bonus_cents: 0,
+          });
+        }
+      }
+      sessionStorage.removeItem("cbx_ref");
+    } catch (err) {
+      console.error("Referral attach error:", err);
+    }
   };
 
   const sendPhoneOtp = async () => {
@@ -121,14 +143,13 @@ function SignupPage() {
     const { data, error } = await supabase.auth.verifyOtp({ email, token: emailOtp, type: "signup" });
     setLoading(false);
     if (error) { toast.error(error.message || "Invalid code, try again"); return; }
-    if (data.user) attachReferral(data.user.id);
-    // attach verified phone to profile (only if user verified one)
+    if (data.user) await attachReferral(data.user.id);
     if (phoneVerified && phone) {
       try {
         const parsed = parsePhoneNumber(phone);
         const cc = parsed?.countryCallingCode ? `+${parsed.countryCallingCode}` : "";
         await supabase.rpc("attach_verified_phone", { _phone: phone, _country_code: cc });
-      } catch {}
+      } catch { }
     }
     toast.success("Email verified — welcome!");
     navigate({ to: "/dashboard", replace: true });
@@ -158,7 +179,7 @@ function SignupPage() {
         {ref && <p className="text-xs text-center text-primary mt-2">Referral code applied: {ref}</p>}
 
         <Button onClick={google} variant="outline" className="w-full mt-6 h-11">
-          <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.2h5.35c-.23 1.4-1.7 4.1-5.35 4.1-3.22 0-5.85-2.66-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.57-2.48C16.86 3.96 14.7 3 12 3 6.95 3 2.85 7.1 2.85 12.15S6.95 21.3 12 21.3c6.92 0 9.5-4.86 9.5-7.4 0-.5-.05-.88-.15-1.3Z"/></svg>
+          <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.2h5.35c-.23 1.4-1.7 4.1-5.35 4.1-3.22 0-5.85-2.66-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.57-2.48C16.86 3.96 14.7 3 12 3 6.95 3 2.85 7.1 2.85 12.15S6.95 21.3 12 21.3c6.92 0 9.5-4.86 9.5-7.4 0-.5-.05-.88-.15-1.3Z" /></svg>
           Continue with Google
         </Button>
 
@@ -204,7 +225,7 @@ function SignupPage() {
                       <div className="flex items-center justify-between gap-2">
                         <InputOTP maxLength={6} value={phoneOtp} onChange={setPhoneOtp} inputMode="numeric">
                           <InputOTPGroup>
-                            {[0,1,2,3,4,5].map((i) => (
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
                               <InputOTPSlot key={i} index={i} className="h-10 w-8 text-base bg-white/[0.04] border-primary/30" />
                             ))}
                           </InputOTPGroup>
@@ -237,7 +258,7 @@ function SignupPage() {
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Enter verification code</Label>
               <InputOTP maxLength={6} value={emailOtp} onChange={setEmailOtp} inputMode="numeric" pattern="^[0-9]*$">
                 <InputOTPGroup>
-                  {[0,1,2,3,4,5].map((i) => (
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
                     <InputOTPSlot key={i} index={i} className="h-12 w-10 text-lg bg-white/[0.04] border-border" />
                   ))}
                 </InputOTPGroup>
