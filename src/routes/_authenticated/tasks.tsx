@@ -37,11 +37,13 @@ function TaskCardComponent({
   completionStatus,
   onSubmit,
   submitting,
+  storageKey,
 }: {
   task: DbTask;
   completionStatus: "approved" | "pending" | "rejected" | null;
   onSubmit: (taskId: string, watchedSeconds?: number) => Promise<void>;
   submitting: boolean;
+  storageKey: string | null;
 }) {
   const Icon = CATEGORY_ICONS[task.category] ?? FileText;
   const rewardUsd = (task.reward_cents / 100).toFixed(2);
@@ -50,9 +52,45 @@ function TaskCardComponent({
   const estimatedMinutes = task.estimated_minutes ?? 0;
   const requiredSeconds = isVideo ? Math.ceil(estimatedMinutes * 60 * 0.7) : 0;
 
-  const [watched, setWatched] = useState(0);
-  const [started, setStarted] = useState(false);
+  // Hydrate persisted progress (per user + task) on mount so a refresh
+  // resumes the watch timer instead of resetting to zero.
+  const [watched, setWatched] = useState<number>(() => {
+    if (!isVideo || !storageKey || typeof window === "undefined") return 0;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return 0;
+      const parsed = JSON.parse(raw) as { watched?: number };
+      return Math.min(Math.max(0, Number(parsed.watched) || 0), requiredSeconds || Number.MAX_SAFE_INTEGER);
+    } catch {
+      return 0;
+    }
+  });
+  const [started, setStarted] = useState<boolean>(() => {
+    if (!isVideo || !storageKey || typeof window === "undefined") return false;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as { started?: boolean; watched?: number };
+      return Boolean(parsed.started) || (Number(parsed.watched) || 0) > 0;
+    } catch {
+      return false;
+    }
+  });
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Persist progress whenever it changes, and clear once the task is done/pending.
+  useEffect(() => {
+    if (!isVideo || !storageKey || typeof window === "undefined") return;
+    if (completionStatus === "approved" || completionStatus === "pending") {
+      window.localStorage.removeItem(storageKey);
+      return;
+    }
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify({ started, watched }));
+    } catch {
+      // ignore quota / serialization errors
+    }
+  }, [isVideo, storageKey, started, watched, completionStatus]);
 
   // Tick only while our tab is hidden (user is on the video tab).
   useEffect(() => {
@@ -99,6 +137,9 @@ function TaskCardComponent({
 
   const handleClaim = async () => {
     await onSubmit(task.id, watched);
+    if (storageKey && typeof window !== "undefined") {
+      try { window.localStorage.removeItem(storageKey); } catch { /* noop */ }
+    }
   };
 
   const fmt = (s: number) => {
@@ -259,6 +300,7 @@ function TasksPage() {
               completionStatus={completions[task.id] ?? null}
               onSubmit={submitCompletion}
               submitting={submittingId === task.id}
+              storageKey={user ? `cbx:taskwatch:${user.id}:${task.id}` : null}
             />
           ))}
         </div>
