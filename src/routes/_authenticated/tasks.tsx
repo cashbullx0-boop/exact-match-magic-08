@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlayCircle, Smartphone, ClipboardList, FileText, Gift, ExternalLink, Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -39,21 +40,75 @@ function TaskCardComponent({
 }: {
   task: DbTask;
   completionStatus: "approved" | "pending" | "rejected" | null;
-  onSubmit: (taskId: string) => Promise<void>;
+  onSubmit: (taskId: string, watchedSeconds?: number) => Promise<void>;
   submitting: boolean;
 }) {
   const Icon = CATEGORY_ICONS[task.category] ?? FileText;
   const rewardUsd = (task.reward_cents / 100).toFixed(2);
 
+  const isVideo = task.category === "video";
+  const estimatedMinutes = task.estimated_minutes ?? 0;
+  const requiredSeconds = isVideo ? Math.ceil(estimatedMinutes * 60 * 0.7) : 0;
+
+  const [watched, setWatched] = useState(0);
+  const [started, setStarted] = useState(false);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Tick only while our tab is hidden (user is on the video tab).
+  useEffect(() => {
+    if (!started || !isVideo) return;
+
+    const startTicking = () => {
+      if (tickRef.current) return;
+      tickRef.current = setInterval(() => {
+        setWatched((s) => (s < requiredSeconds ? s + 1 : s));
+      }, 1000);
+    };
+    const stopTicking = () => {
+      if (tickRef.current) {
+        clearInterval(tickRef.current);
+        tickRef.current = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) startTicking();
+      else stopTicking();
+    };
+
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      stopTicking();
+    };
+  }, [started, isVideo, requiredSeconds]);
+
+  const done = completionStatus === "approved";
+  const pending = completionStatus === "pending";
+
   const handleStart = async () => {
     if (task.url) {
       window.open(task.url, "_blank", "noopener,noreferrer");
     }
+    if (isVideo) {
+      setStarted(true);
+      return; // wait for the user to come back and claim
+    }
     await onSubmit(task.id);
   };
 
-  const done = completionStatus === "approved";
-  const pending = completionStatus === "pending";
+  const handleClaim = async () => {
+    await onSubmit(task.id, watched);
+  };
+
+  const fmt = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  const canClaim = isVideo && started && watched >= requiredSeconds && !done && !pending;
+  const showProgress = isVideo && started && !done && !pending;
 
   return (
     <Card
@@ -84,21 +139,47 @@ function TaskCardComponent({
           ) : null}
         </div>
 
-        <Button
-          onClick={handleStart}
-          disabled={submitting || done || pending}
-          className="mt-5 w-full btn-primary-gradient"
-        >
-          {submitting ? (
-            <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Submitting…</>
-          ) : done ? (
-            <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Completed</>
-          ) : pending ? (
-            <><Clock className="h-4 w-4 mr-1.5" /> Pending review</>
-          ) : (
-            <>Start Task <ExternalLink className="h-4 w-4 ml-1" /></>
-          )}
-        </Button>
+        {showProgress ? (
+          <div className="mt-4 space-y-1.5">
+            <Progress value={Math.min(100, (watched / Math.max(requiredSeconds, 1)) * 100)} />
+            <p className="text-xs text-muted-foreground">
+              Watched {fmt(Math.min(watched, requiredSeconds))} / {fmt(requiredSeconds)} needed
+              {!document.hidden && watched < requiredSeconds ? " — switch to the video tab to keep watching" : ""}
+            </p>
+          </div>
+        ) : null}
+
+        {canClaim ? (
+          <Button
+            onClick={handleClaim}
+            disabled={submitting}
+            className="mt-5 w-full btn-primary-gradient"
+          >
+            {submitting ? (
+              <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Submitting…</>
+            ) : (
+              <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Claim Reward</>
+            )}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleStart}
+            disabled={submitting || done || pending || (isVideo && started)}
+            className="mt-5 w-full btn-primary-gradient"
+          >
+            {submitting ? (
+              <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Submitting…</>
+            ) : done ? (
+              <><CheckCircle2 className="h-4 w-4 mr-1.5" /> Completed</>
+            ) : pending ? (
+              <><Clock className="h-4 w-4 mr-1.5" /> Pending review</>
+            ) : isVideo && started ? (
+              <><Clock className="h-4 w-4 mr-1.5" /> Keep watching…</>
+            ) : (
+              <>Start Task <ExternalLink className="h-4 w-4 ml-1" /></>
+            )}
+          </Button>
+        )}
       </div>
     </Card>
   );
@@ -134,15 +215,22 @@ function TasksPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const submitCompletion = async (taskId: string) => {
+  const submitCompletion = async (taskId: string, watchedSeconds?: number) => {
     if (!user) { toast.error("Please sign in"); return; }
     setSubmittingId(taskId);
     // reward_cents and status are forced by the task_completions_guard_insert trigger.
-    const { error } = await supabase.from("task_completions").insert({
+    const payload: {
+      user_id: string;
+      task_id: string;
+      reward_cents: number;
+      watched_seconds?: number;
+    } = {
       user_id: user.id,
       task_id: taskId,
       reward_cents: 0,
-    });
+    };
+    if (typeof watchedSeconds === "number") payload.watched_seconds = watchedSeconds;
+    const { error } = await supabase.from("task_completions").insert(payload);
     setSubmittingId(null);
     if (error) { toast.error(error.message); return; }
     setCompletions((prev) => ({ ...prev, [taskId]: "pending" }));
