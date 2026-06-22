@@ -317,7 +317,16 @@ function TasksPage() {
     if (typeof watchedSeconds === "number") payload.watched_seconds = watchedSeconds;
     const { error } = await supabase.from("task_completions").insert(payload);
     setSubmittingId(null);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      // 23505 = unique_violation on (user_id, task_id) — race / double-click
+      if ((error as { code?: string }).code === "23505") {
+        setCompletions((prev) => ({ ...prev, [taskId]: "pending" }));
+        toast.info("Already submitted.");
+        return;
+      }
+      toast.error(error.message);
+      return;
+    }
     setCompletions((prev) => ({ ...prev, [taskId]: "pending" }));
     toast.success("Submitted! Reward will credit after review.");
   };
