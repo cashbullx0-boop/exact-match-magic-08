@@ -77,6 +77,8 @@ function TaskCardComponent({
     }
   });
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastTickRef = useRef<number | null>(null);
+  const claimingRef = useRef<boolean>(false);
 
   // Persist progress whenever it changes, and clear once the task is done/pending.
   useEffect(() => {
@@ -92,31 +94,53 @@ function TaskCardComponent({
     }
   }, [isVideo, storageKey, started, watched, completionStatus]);
 
-  // Tick only while our tab is hidden (user is on the video tab).
+  // Tick only while our app tab is hidden (i.e. user is actually on the
+  // video tab). Uses the Page Visibility API plus window blur/focus and
+  // pageshow/pagehide for robust cross-browser detection. Accumulates with
+  // wall-clock deltas so background throttling cannot inflate the timer.
   useEffect(() => {
     if (!started || !isVideo) return;
 
-    const startTicking = () => {
-      if (tickRef.current) return;
-      tickRef.current = setInterval(() => {
-        setWatched((s) => (s < requiredSeconds ? s + 1 : s));
-      }, 1000);
-    };
+    const isAppBackgrounded = () =>
+      typeof document !== "undefined" &&
+      (document.visibilityState === "hidden" || !document.hasFocus());
+
     const stopTicking = () => {
       if (tickRef.current) {
         clearInterval(tickRef.current);
         tickRef.current = null;
       }
+      lastTickRef.current = null;
     };
-    const onVisibility = () => {
-      if (document.hidden) startTicking();
+    const startTicking = () => {
+      if (tickRef.current) return;
+      lastTickRef.current = Date.now();
+      tickRef.current = setInterval(() => {
+        const now = Date.now();
+        const last = lastTickRef.current ?? now;
+        const deltaSec = Math.max(0, Math.floor((now - last) / 1000));
+        if (deltaSec <= 0) return;
+        lastTickRef.current = last + deltaSec * 1000;
+        setWatched((s) => Math.min(requiredSeconds, s + deltaSec));
+      }, 1000);
+    };
+    const sync = () => {
+      if (isAppBackgrounded()) startTicking();
       else stopTicking();
     };
 
-    onVisibility();
-    document.addEventListener("visibilitychange", onVisibility);
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("blur", sync);
+    window.addEventListener("focus", sync);
+    window.addEventListener("pageshow", sync);
+    window.addEventListener("pagehide", sync);
     return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("blur", sync);
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("pageshow", sync);
+      window.removeEventListener("pagehide", sync);
       stopTicking();
     };
   }, [started, isVideo, requiredSeconds]);
@@ -136,9 +160,19 @@ function TaskCardComponent({
   };
 
   const handleClaim = async () => {
-    await onSubmit(task.id, watched);
-    if (storageKey && typeof window !== "undefined") {
-      try { window.localStorage.removeItem(storageKey); } catch { /* noop */ }
+    // Guard against double-submission (double-click, retried network, etc.).
+    if (claimingRef.current) return;
+    if (submitting || done || pending) return;
+    if (!(watched >= requiredSeconds)) return;
+    claimingRef.current = true;
+    try {
+      await onSubmit(task.id, watched);
+      if (storageKey && typeof window !== "undefined") {
+        try { window.localStorage.removeItem(storageKey); } catch { /* noop */ }
+      }
+    } finally {
+      // Keep the lock if completion now exists; otherwise allow retry on failure.
+      setTimeout(() => { claimingRef.current = false; }, 1500);
     }
   };
 
@@ -185,7 +219,9 @@ function TaskCardComponent({
             <Progress value={Math.min(100, (watched / Math.max(requiredSeconds, 1)) * 100)} />
             <p className="text-xs text-muted-foreground">
               Watched {fmt(Math.min(watched, requiredSeconds))} / {fmt(requiredSeconds)} needed
-              {!document.hidden && watched < requiredSeconds ? " — switch to the video tab to keep watching" : ""}
+              {typeof document !== "undefined" && document.visibilityState === "visible" && document.hasFocus() && watched < requiredSeconds
+                ? " — switch to the video tab to keep watching"
+                : ""}
             </p>
           </div>
         ) : null}
@@ -258,6 +294,14 @@ function TasksPage() {
 
   const submitCompletion = async (taskId: string, watchedSeconds?: number) => {
     if (!user) { toast.error("Please sign in"); return; }
+    // Prevent double-claim: bail if already submitting this task or a
+    // completion (approved/pending) already exists locally.
+    if (submittingId === taskId) return;
+    const existing = completions[taskId];
+    if (existing === "approved" || existing === "pending") {
+      toast.info("Already submitted.");
+      return;
+    }
     setSubmittingId(taskId);
     // reward_cents and status are forced by the task_completions_guard_insert trigger.
     const payload: {
