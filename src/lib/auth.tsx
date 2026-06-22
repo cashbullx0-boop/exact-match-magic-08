@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-
 type Profile = {
   id: string;
   full_name: string | null;
@@ -22,7 +21,6 @@ type Profile = {
   okx_wallet: string | null;
   okx_wallet_locked: boolean;
 };
-
 type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -32,8 +30,17 @@ type AuthContextValue = {
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+async function claimReferralIfPending(uid: string) {
+  let ref: string | null = null;
+  try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+  if (!ref) return;
+  try {
+    await supabase.rpc("claim_referral_code", { p_code: ref });
+  } catch {}
+  try { sessionStorage.removeItem("cbx_ref"); } catch {}
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -41,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const loadExtras = async (uid: string) => {
     const [{ data: p }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
@@ -50,13 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(p as Profile | null);
     setIsAdmin(!!roles?.some((r) => r.role === "admin"));
   };
-
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
         setTimeout(() => loadExtras(sess.user.id), 0);
+        claimReferralIfPending(sess.user.id);
       } else {
         setProfile(null);
         setIsAdmin(false);
@@ -65,20 +71,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadExtras(s.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (s?.user) {
+        claimReferralIfPending(s.user.id);
+        loadExtras(s.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
-
   const refreshProfile = async () => {
     if (user) await loadExtras(user.id);
   };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
-
   // Inactivity auto-logout: sign out after 30 minutes with no user interaction
   useEffect(() => {
     if (!user) return;
@@ -100,14 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", reset);
     };
   }, [user]);
-
   return (
     <AuthContext.Provider value={{ user, session, profile, isAdmin, loading, refreshProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
