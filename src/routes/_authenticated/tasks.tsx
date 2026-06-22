@@ -294,6 +294,14 @@ function TasksPage() {
 
   const submitCompletion = async (taskId: string, watchedSeconds?: number) => {
     if (!user) { toast.error("Please sign in"); return; }
+    // Prevent double-claim: bail if already submitting this task or a
+    // completion (approved/pending) already exists locally.
+    if (submittingId === taskId) return;
+    const existing = completions[taskId];
+    if (existing === "approved" || existing === "pending") {
+      toast.info("Already submitted.");
+      return;
+    }
     setSubmittingId(taskId);
     // reward_cents and status are forced by the task_completions_guard_insert trigger.
     const payload: {
