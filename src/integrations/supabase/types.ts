@@ -1022,6 +1022,7 @@ export type Database = {
           xp_gain: number
         }[]
       }
+      claim_referral_code: { Args: { p_code: string }; Returns: boolean }
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
         Returns: undefined
