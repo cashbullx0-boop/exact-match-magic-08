@@ -14,9 +14,6 @@ import logoAsset from "@/assets/cashbullx-logo.webp.asset.json";
 import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 // Defer heavy below-the-fold sections (chunks load on demand)
-const EarnLottieScene = lazy(() =>
-  import("@/components/marketing/earn-lottie-scene").then((m) => ({ default: m.EarnLottieScene })),
-);
 const Testimonials = lazy(() =>
   import("@/components/marketing/testimonials").then((m) => ({ default: m.Testimonials })),
 );
@@ -187,13 +184,6 @@ function Index() {
 
         {/* FEATURES */}
         <section id="features" className="pb-24">
-          <Reveal>
-            <div className="mb-16">
-              <Suspense fallback={<div className="h-[420px] rounded-3xl bg-zinc-900/50" />}>
-                <EarnLottieScene />
-              </Suspense>
-            </div>
-          </Reveal>
           <Reveal>
             <div className="grid gap-5 md:grid-cols-3">
               <Feature icon={Wallet} title="Real wallet" body="Track every earning. Cash out to USDT (TRC20/BEP20) when you're ready." />
