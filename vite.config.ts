@@ -6,6 +6,13 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
+import { loadEnv } from "vite";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const serverEnv = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
+Object.assign(process.env, serverEnv);
 // NOTE: Cloudflare Pages' build system inspects this file looking for a top-level
 // `plugins` array. The Lovable wrapper resolves plugins internally, so we expose
 // an empty `plugins: []` at the top level to satisfy that check. The TanStack
@@ -54,6 +61,13 @@ export default defineConfig({
     esbuild: {
       // Strip console.* and debugger statements from production builds only
       drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
+    },
+    resolve: {
+      alias: {
+        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
+        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
+        entities: path.resolve(__dirname, "node_modules/entities"),
+      },
     },
   },
 });
