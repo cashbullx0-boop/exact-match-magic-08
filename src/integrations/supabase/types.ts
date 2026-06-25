@@ -1178,6 +1178,7 @@ export type Database = {
           country: string
           full_name: string
           joined_at: string
+          real_bonus_cents: number
           referred_id: string
           slot: number
           status: string
