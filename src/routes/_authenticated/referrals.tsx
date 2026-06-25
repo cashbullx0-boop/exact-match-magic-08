@@ -9,8 +9,6 @@ import { Copy, Users, Gift, Download, TrendingUp, UserPlus, Wallet as WalletIcon
 import { toast } from "sonner";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 
-const BONUS_PERCENT = 10;
-
 type DownlineRow = {
   slot: number;
   referred_id: string;
@@ -23,6 +21,7 @@ type DownlineRow = {
   joined_at: string;
   status: string | null;
   bonus_cents: number | null;
+  real_bonus_cents: number | null;
 };
 
 function countryFlag(code: string | null | undefined) {
@@ -79,7 +78,6 @@ function ReferralsPage() {
 
   const downlineDepositCents = downline.reduce((s, d) => s + Number(d.total_deposit_cents ?? 0), 0);
   const downlineBalanceCents = downline.reduce((s, d) => s + Number(d.balance_cents ?? 0), 0);
-  const downlineEarningsCents = Math.round((downlineDepositCents * BONUS_PERCENT) / 100);
   const slotsFilled = downline.length;
   const slots: (DownlineRow | null)[] = Array.from({ length: 6 }, (_, i) => downline.find((d) => d.slot === i + 1) ?? null);
 
@@ -183,7 +181,6 @@ function ReferralsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="font-semibold flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Your downline · {slotsFilled}/6</h2>
-            <p className="text-xs text-muted-foreground mt-1">Earn <span className="text-primary font-semibold">{BONUS_PERCENT}%</span> on every deposit your first 6 direct referrals make.</p>
           </div>
         </div>
 
@@ -198,14 +195,6 @@ function ReferralsPage() {
               <p className="text-xl font-bold mt-1">{s.value}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2 text-sm">
-            <Gift className="h-4 w-4 text-accent" />
-            Your downline earnings ({BONUS_PERCENT}% of deposits)
-          </div>
-          <p className="text-2xl font-bold brand-text">${(downlineEarningsCents / 100).toFixed(2)}</p>
         </div>
 
         <ul className="mt-5 space-y-2">
@@ -229,7 +218,7 @@ function ReferralsPage() {
             }
             const name = d.full_name || (d.username ? `@${d.username}` : `${d.referred_id.slice(0, 8)}…`);
             const isActive = d.status === "active";
-            const memberBonus = Math.round((Number(d.total_deposit_cents ?? 0) * BONUS_PERCENT) / 100);
+            const memberBonus = Number(d.real_bonus_cents ?? 0);
             return (
               <li key={d.referred_id} className="rounded-xl border border-border bg-white/[0.02] p-3 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
