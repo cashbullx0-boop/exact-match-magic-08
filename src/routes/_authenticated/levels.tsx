@@ -28,39 +28,33 @@ type LevelRow = {
 const TIER_ORDER = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"] as const;
 
 function LevelsPage() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const [levels, setLevels] = useState<LevelRow[]>([]);
-  const [totalDeposit, setTotalDeposit] = useState(0);
   const [filter, setFilter] = useState<string>("All");
   const [loading, setLoading] = useState(true);
+
+  const balance = (profile as { balance_cents?: number } | null)?.balance_cents ?? 0;
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data: rows }, depsRes] = await Promise.all([
-        supabase.from("investment_levels").select("*").order("level"),
-        user
-          ? supabase.from("deposits").select("amount_usd").eq("user_id", user.id).eq("status", "completed")
-          : Promise.resolve({ data: [] as { amount_usd: number }[] }),
-      ]);
+      const { data: rows } = await supabase.from("investment_levels").select("*").order("level");
       setLevels((rows as LevelRow[]) ?? []);
-      const deps = (depsRes as { data: { amount_usd: number }[] | null }).data ?? [];
-      setTotalDeposit(deps.reduce((s, d) => s + Math.round(Number(d.amount_usd) * 100), 0));
       setLoading(false);
     })();
-  }, [user]);
+  }, []);
 
   const current = useMemo(() => {
-    const eligible = levels.filter((l) => l.min_deposit_cents <= totalDeposit);
+    const eligible = levels.filter((l) => l.min_deposit_cents <= balance);
     return eligible.length ? eligible[eligible.length - 1] : null;
-  }, [levels, totalDeposit]);
+  }, [levels, balance]);
 
   const next = useMemo(() => {
     if (!current) return levels[0] ?? null;
     return levels.find((l) => l.level === current.level + 1) ?? null;
   }, [levels, current]);
 
-  const totalUsd = totalDeposit / 100;
+  const totalUsd = balance / 100;
   const baseUsd = (current?.min_deposit_cents ?? 0) / 100;
   const nextUsd = (next?.min_deposit_cents ?? baseUsd) / 100;
   const progressToNext = next
@@ -80,7 +74,7 @@ function LevelsPage() {
           Investment <span className="brand-text">Levels</span>
         </h1>
         <p className="text-muted-foreground max-w-2xl">
-          Deposit more to climb from Bronze to Diamond. Each level unlocks higher daily profit and exclusive perks.
+          Grow your balance to climb from Bronze to Diamond. Each level unlocks higher daily profit and exclusive perks.
         </p>
       </header>
 
@@ -109,7 +103,7 @@ function LevelsPage() {
 
           <div className="min-w-0">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Total deposited</span>
+              <span className="text-muted-foreground">Current balance</span>
               <span className="font-semibold">${totalUsd.toLocaleString()}</span>
             </div>
             <Progress value={progressToNext} className="h-2.5" />
@@ -127,7 +121,7 @@ function LevelsPage() {
             <Link to="/deposit">
               <Button className="btn-primary-gradient" disabled={!next}>
                 <TrendingUp className="h-4 w-4 mr-2" />
-                {next ? `Deposit $${Math.max(0, nextUsd - totalUsd).toLocaleString()} more` : "Maxed out"}
+                {next ? `Add $${Math.max(0, nextUsd - totalUsd).toLocaleString()} balance` : "Maxed out"}
               </Button>
             </Link>
           </div>
@@ -157,9 +151,9 @@ function LevelsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {visible.map((l) => {
-            const unlocked = totalDeposit >= l.min_deposit_cents;
+            const unlocked = balance >= l.min_deposit_cents;
             const isCurrent = current?.level === l.level;
-            const needUsd = Math.max(0, (l.min_deposit_cents - totalDeposit) / 100);
+            const needUsd = Math.max(0, (l.min_deposit_cents - balance) / 100);
             return (
               <Card
                 key={l.id}
@@ -210,7 +204,7 @@ function LevelsPage() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Min deposit: <span className="font-semibold text-foreground">${(l.min_deposit_cents / 100).toLocaleString()}</span>
+                    Min balance: <span className="font-semibold text-foreground">${(l.min_deposit_cents / 100).toLocaleString()}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Daily profit: <span className="font-semibold" style={{ color: l.color }}>${(l.daily_profit_cents / 100).toLocaleString()}</span>
@@ -233,7 +227,7 @@ function LevelsPage() {
                 {!unlocked && (
                   <div className="relative mt-4 pt-3 border-t border-border/50">
                     <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Lock className="h-3 w-3" /> Deposit ${needUsd.toLocaleString()} more to unlock
+                      <Lock className="h-3 w-3" /> Need ${needUsd.toLocaleString()} more balance to unlock
                     </p>
                   </div>
                 )}
