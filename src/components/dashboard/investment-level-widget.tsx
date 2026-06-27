@@ -19,20 +19,15 @@ type UserLevel = {
 };
 
 export function InvestmentLevelWidget() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [lvl, setLvl] = useState<UserLevel | null>(null);
-  const [totalDeposit, setTotalDeposit] = useState(0);
+  const balance = (profile as { balance_cents?: number } | null)?.balance_cents ?? 0;
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data }, { data: deps }] = await Promise.all([
-        supabase.rpc("get_user_level", { _user_id: user.id }),
-        supabase.from("deposits").select("amount_usd").eq("user_id", user.id).eq("status", "completed"),
-      ]);
+      const { data } = await supabase.rpc("get_user_level", { _user_id: user.id });
       if (data && data.length) setLvl(data[0] as UserLevel);
-      const total = (deps ?? []).reduce((s, d: any) => s + Math.round(Number(d.amount_usd) * 100), 0);
-      setTotalDeposit(total);
     })();
   }, [user]);
 
@@ -45,7 +40,7 @@ export function InvestmentLevelWidget() {
             <span className="text-xs uppercase tracking-wider">Investment level</span>
           </div>
           <p className="text-xl font-bold mt-1">Not unlocked yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Deposit $50 to unlock Bronze I</p>
+          <p className="text-xs text-muted-foreground mt-1">Get a $50 balance to unlock Bronze I</p>
         </div>
         <Link to="/levels"><Button variant="outline" size="sm">View levels <ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
       </Card>
@@ -56,7 +51,7 @@ export function InvestmentLevelWidget() {
   const isMax = nextCents <= lvl.min_deposit_cents;
   const progress = isMax
     ? 100
-    : Math.min(100, ((totalDeposit - lvl.min_deposit_cents) / (nextCents - lvl.min_deposit_cents)) * 100);
+    : Math.min(100, ((balance - lvl.min_deposit_cents) / (nextCents - lvl.min_deposit_cents)) * 100);
 
   return (
     <Card className="glass-strong border-border p-6 relative overflow-hidden">
@@ -85,7 +80,7 @@ export function InvestmentLevelWidget() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between text-xs mb-1.5 text-muted-foreground">
-            <span>${(totalDeposit / 100).toLocaleString()} deposited</span>
+            <span>${(balance / 100).toLocaleString()} balance</span>
             {isMax
               ? <span>Max level 👑</span>
               : <span>Next: ${(nextCents / 100).toLocaleString()}</span>}
