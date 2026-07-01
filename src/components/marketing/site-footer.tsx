@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Github, Twitter, Send, MessageCircle, Mail } from "lucide-react";
+import { Facebook } from "lucide-react";
+
+const SOCIALS = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61589574145757&sk=map",
+    Icon: Facebook,
+  },
+];
 
 const COLS = [
   {
@@ -52,8 +60,15 @@ export function SiteFooter() {
               A modern task-based rewards platform. Complete surveys, watch videos, install apps and unlock offers to earn real rewards — paid out to your wallet.
             </p>
             <div className="flex items-center gap-2 pt-1">
-              {[Twitter, Send, MessageCircle, Github, Mail].map((Icon, i) => (
-                <a key={i} href="#" className="h-9 w-9 rounded-full glass flex items-center justify-center text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition">
+              {SOCIALS.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="h-9 w-9 rounded-full glass flex items-center justify-center text-muted-foreground hover:text-primary hover:-translate-y-0.5 transition"
+                >
                   <Icon className="h-4 w-4" />
                 </a>
               ))}
