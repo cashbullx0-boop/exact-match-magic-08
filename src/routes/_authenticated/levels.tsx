@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Lock, TrendingUp, Crown } from "lucide-react";
+import { Lock, TrendingUp, Crown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/levels")({
   head: () => ({ meta: [{ title: "Investment Levels — CashBullX" }] }),
@@ -25,12 +25,17 @@ type LevelRow = {
   perks: string[] | null;
 };
 
-const TIER_ORDER = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"] as const;
+const TIER_COLORS: Record<string, string> = {
+  Bronze: "#CD7F32",
+  Silver: "#C0C0C0",
+  Gold: "#FFD700",
+  Platinum: "#E5E4E2",
+  Diamond: "#B9F2FF",
+};
 
 function LevelsPage() {
   const { profile } = useAuth();
   const [levels, setLevels] = useState<LevelRow[]>([]);
-  const [filter, setFilter] = useState<string>("All");
   const [loading, setLoading] = useState(true);
 
   const balance = (profile as { balance_cents?: number } | null)?.balance_cents ?? 0;
@@ -61,20 +66,20 @@ function LevelsPage() {
     ? Math.min(100, Math.max(0, ((totalUsd - baseUsd) / (nextUsd - baseUsd)) * 100))
     : 100;
 
-  const tiersPresent = ["All", ...TIER_ORDER.filter((t) => levels.some((l) => l.tier === t))];
-  const visible = filter === "All" ? levels : levels.filter((l) => l.tier === filter);
+  const colorFor = (l: LevelRow) => TIER_COLORS[l.name] ?? l.color ?? "#CD7F32";
+  const currentColor = current ? colorFor(current) : "#CD7F32";
 
   return (
     <div className="space-y-8 animate-float-up">
       <header className="space-y-2">
         <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20">
-          15 Investment Levels
+          5 Investment Levels
         </Badge>
         <h1 className="text-3xl md:text-4xl font-bold">
           Investment <span className="brand-text">Levels</span>
         </h1>
         <p className="text-muted-foreground max-w-2xl">
-          Grow your balance to climb from Bronze to Diamond. Each level unlocks higher daily profit and exclusive perks.
+          Grow your balance to climb from Bronze to Diamond. Each level unlocks a higher daily profit.
         </p>
       </header>
 
@@ -82,20 +87,20 @@ function LevelsPage() {
       <Card className="glass-strong border-border p-6 md:p-8 relative overflow-hidden">
         <div
           className="absolute -top-24 -right-24 h-72 w-72 rounded-full opacity-30 blur-3xl"
-          style={{ background: current?.color ?? "#CD7F32" }}
+          style={{ background: currentColor }}
         />
         <div className="relative grid md:grid-cols-[auto_1fr_auto] gap-6 items-center">
           <div className="flex items-center gap-4">
             <div
               className="h-20 w-20 rounded-2xl flex items-center justify-center text-4xl shadow-xl ring-2 ring-white/10"
-              style={{ background: `linear-gradient(135deg, ${current?.color ?? "#CD7F32"}, ${current?.color ?? "#CD7F32"}88)` }}
+              style={{ background: `linear-gradient(135deg, ${currentColor}, ${currentColor}88)` }}
             >
               <span>{current?.icon ?? "🔒"}</span>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Your level</p>
-              <p className="text-3xl font-bold">{current ? `Lv ${current.level}` : "—"}</p>
-              <Badge className="mt-1 border-0 text-black" style={{ background: current?.color ?? "#CD7F32" }}>
+              <p className="text-3xl font-bold">{current?.name ?? "—"}</p>
+              <Badge className="mt-1 border-0 text-black" style={{ background: currentColor }}>
                 {current?.name ?? "Not unlocked"}
               </Badge>
             </div>
@@ -108,9 +113,9 @@ function LevelsPage() {
             </div>
             <Progress value={progressToNext} className="h-2.5" />
             <div className="flex items-center justify-between text-xs mt-2 text-muted-foreground">
-              <span>{current ? `Lv ${current.level} · $${baseUsd.toLocaleString()}` : "Start at $50"}</span>
+              <span>{current ? `${current.name} · $${baseUsd.toLocaleString()}` : "Start at $50"}</span>
               {next ? (
-                <span>Next: Lv {next.level} · ${nextUsd.toLocaleString()}</span>
+                <span>Next: {next.name} · ${nextUsd.toLocaleString()}</span>
               ) : (
                 <span>Max level reached 👑</span>
               )}
@@ -128,29 +133,13 @@ function LevelsPage() {
         </div>
       </Card>
 
-      {/* Tier filter */}
-      <div className="flex flex-wrap gap-2">
-        {tiersPresent.map((name) => (
-          <button
-            key={name}
-            onClick={() => setFilter(name)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-              filter === name
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
-            }`}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
-
       {/* Levels grid */}
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading levels…</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map((l) => {
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {levels.map((l) => {
+            const color = colorFor(l);
             const unlocked = balance >= l.min_deposit_cents;
             const isCurrent = current?.level === l.level;
             const needUsd = Math.max(0, (l.min_deposit_cents - balance) / 100);
@@ -160,69 +149,43 @@ function LevelsPage() {
                 className={`relative overflow-hidden border-border glass-strong p-5 transition-all hover:-translate-y-1 hover:shadow-2xl ${
                   isCurrent ? "level-glow ring-2" : ""
                 } ${!unlocked ? "opacity-90" : ""}`}
-                style={isCurrent ? { boxShadow: `0 0 0 2px ${l.color}, 0 10px 40px -10px ${l.color}` } : undefined}
+                style={isCurrent ? { boxShadow: `0 0 0 2px ${color}, 0 10px 40px -10px ${color}` } : undefined}
               >
                 <div
                   className="absolute -top-16 -right-16 h-40 w-40 rounded-full blur-3xl opacity-30 pointer-events-none"
-                  style={{ background: l.color }}
+                  style={{ background: color }}
                 />
-                {isCurrent && (
-                  <div
-                    className="absolute inset-0 pointer-events-none opacity-20 animate-shimmer"
-                    style={{
-                      background: `linear-gradient(110deg, transparent 30%, ${l.color} 50%, transparent 70%)`,
-                      backgroundSize: "200% 100%",
-                    }}
-                  />
-                )}
-
                 <div className="relative flex items-start justify-between">
                   <div
                     className="h-14 w-14 rounded-xl flex items-center justify-center text-2xl shadow-lg ring-1 ring-white/10"
-                    style={{ background: `linear-gradient(135deg, ${l.color}, ${l.color}88)` }}
+                    style={{ background: `linear-gradient(135deg, ${color}, ${color}88)` }}
                   >
                     <span>{l.icon}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Level</p>
-                    <p className="text-2xl font-bold leading-none">{l.level}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Level {l.level}</p>
+                    <p className="text-lg font-bold leading-none" style={{ color }}>{l.name}</p>
                   </div>
                 </div>
 
-                <div className="relative mt-4">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold" style={{ color: l.color }}>{l.name}</span>
-                    {isCurrent && (
-                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/15 text-primary border border-primary/30">
-                        <Crown className="h-3 w-3 mr-0.5" /> Current
-                      </Badge>
-                    )}
-                    {unlocked && !isCurrent && (
-                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-accent/15 text-accent border border-accent/30">
-                        Unlocked
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                <div className="relative mt-4 space-y-1">
+                  {isCurrent && (
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/15 text-primary border border-primary/30">
+                      <Crown className="h-3 w-3 mr-0.5" /> Current
+                    </Badge>
+                  )}
+                  {unlocked && !isCurrent && (
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-accent/15 text-accent border border-accent/30">
+                      Unlocked
+                    </Badge>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
                     Min balance: <span className="font-semibold text-foreground">${(l.min_deposit_cents / 100).toLocaleString()}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Daily profit: <span className="font-semibold" style={{ color: l.color }}>${(l.daily_profit_cents / 100).toLocaleString()}</span>
+                    Daily profit: <span className="font-semibold" style={{ color }}>${(l.daily_profit_cents / 100).toLocaleString()}</span>
                   </p>
                 </div>
-
-                <ul className="relative mt-4 space-y-1.5 min-h-[60px]">
-                  {(l.perks ?? []).map((b) => (
-                    <li key={b} className="flex items-start gap-2 text-xs text-muted-foreground">
-                      {unlocked ? (
-                        <Check className="h-3.5 w-3.5 text-accent mt-0.5 shrink-0" />
-                      ) : (
-                        <Lock className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
-                      )}
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
 
                 {!unlocked && (
                   <div className="relative mt-4 pt-3 border-t border-border/50">
