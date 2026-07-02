@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RefUsernameRouteImport } from './routes/ref.$username'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedSpinnerRouteImport } from './routes/_authenticated/spinner'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
@@ -122,6 +123,11 @@ const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/spinner': typeof AuthenticatedSpinnerRoute
   '/support': typeof AuthenticatedSupportRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
@@ -362,6 +369,7 @@ export interface FileRoutesByTo {
   '/referrals': typeof AuthenticatedReferralsRoute
   '/spinner': typeof AuthenticatedSpinnerRoute
   '/support': typeof AuthenticatedSupportRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
   '/_authenticated/spinner': typeof AuthenticatedSpinnerRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/ref/$username': typeof RefUsernameRoute
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/spinner'
     | '/support'
+    | '/tasks'
     | '/wallet'
     | '/withdraw'
     | '/ref/$username'
@@ -503,6 +513,7 @@ export interface FileRouteTypes {
     | '/referrals'
     | '/spinner'
     | '/support'
+    | '/tasks'
     | '/wallet'
     | '/withdraw'
     | '/ref/$username'
@@ -550,6 +561,7 @@ export interface FileRouteTypes {
     | '/_authenticated/referrals'
     | '/_authenticated/spinner'
     | '/_authenticated/support'
+    | '/_authenticated/tasks'
     | '/_authenticated/wallet'
     | '/_authenticated/withdraw'
     | '/ref/$username'
@@ -688,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/support': {
@@ -959,6 +978,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
   AuthenticatedSpinnerRoute: typeof AuthenticatedSpinnerRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
 }
@@ -979,6 +999,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,
   AuthenticatedSpinnerRoute: AuthenticatedSpinnerRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
 }
