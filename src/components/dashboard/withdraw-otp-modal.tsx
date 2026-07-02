@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Mail, Phone, ShieldCheck, Clock } from "lucide-react";
+import { Mail, ShieldCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -16,16 +16,14 @@ type Props = {
 };
 
 export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onVerified }: Props) {
-  const [step, setStep] = useState<"email" | "phone">("email");
   const [emailCode, setEmailCode] = useState("");
-  const [phoneCode, setPhoneCode] = useState("");
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
   const reset = () => {
-    setStep("email"); setEmailCode(""); setPhoneCode("");
+    setEmailCode("");
     setExpiresAt(null); setRemaining(0);
   };
 
@@ -48,7 +46,7 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
     if (error) { toast.error(error.message); return; }
     setExpiresAt(Date.now() + 10 * 60 * 1000);
     toast.success(
-      `OTP sent to your email and phone${data ? ` (demo code: ${data})` : ""}`,
+      `OTP sent to your email${data ? ` (demo code: ${data})` : ""}`,
       { duration: 8000 },
     );
   };
@@ -56,21 +54,18 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
   useEffect(() => { if (open && !expiresAt) sendOtp(); /* eslint-disable-next-line */ }, [open]);
 
   const verifyStep = async () => {
-    const code = step === "email" ? emailCode : phoneCode;
+    const code = emailCode;
     if (code.length !== 6) { toast.error("Enter the 6-digit code"); return; }
     if (remaining <= 0) { toast.error("OTP expired. Resend a new code."); return; }
     setVerifying(true);
     const { data, error } = await supabase.rpc("verify_withdrawal_otp", {
-      _user_id: userId, _otp: code, _type: step,
+      _user_id: userId, _otp: code, _type: "email",
     });
     setVerifying(false);
     if (error || !data) { toast.error(error?.message ?? "Invalid code"); return; }
-    if (step === "email") { toast.success("Email verified — now verify phone"); setStep("phone"); }
-    else {
-      toast.success("Both verified — submitting withdrawal");
-      onOpenChange(false);
-      onVerified();
-    }
+    toast.success("Email verified — submitting withdrawal");
+    onOpenChange(false);
+    onVerified();
   };
 
   const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
@@ -85,23 +80,13 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
             <ShieldCheck className="h-5 w-5 text-primary" /> Verify withdrawal
           </DialogTitle>
           <DialogDescription>
-            Two-step OTP verification. Both codes expire in 10 minutes.
+            Email OTP verification. Code expires in 10 minutes.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-between text-xs">
-          <div className={`flex items-center gap-1.5 ${step === "email" ? "text-primary" : "text-accent"}`}>
-            <Mail className="h-3.5 w-3.5" /> Email {step !== "email" && "✓"}
-          </div>
-          <div className="h-px flex-1 mx-3 bg-border" />
-          <div className={`flex items-center gap-1.5 ${step === "phone" ? "text-primary" : "text-muted-foreground"}`}>
-            <Phone className="h-3.5 w-3.5" /> Phone
-          </div>
-        </div>
-
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs flex items-center justify-between">
           <span className="text-muted-foreground">
-            Sent to <span className="text-foreground font-medium">{step === "email" ? mask(email) : mask(phone) || "your phone"}</span>
+            Sent to <span className="text-foreground font-medium inline-flex items-center gap-1"><Mail className="h-3 w-3" />{mask(email)}</span>
           </span>
           <span className="flex items-center gap-1 text-primary font-mono">
             <Clock className="h-3.5 w-3.5" /> {mm}:{ss}
@@ -111,8 +96,8 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
         <div className="flex justify-center py-2">
           <InputOTP
             maxLength={6}
-            value={step === "email" ? emailCode : phoneCode}
-            onChange={(v) => step === "email" ? setEmailCode(v) : setPhoneCode(v)}
+            value={emailCode}
+            onChange={setEmailCode}
             inputMode="numeric"
           >
             <InputOTPGroup>
@@ -128,7 +113,7 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
             {sending ? "Sending…" : remaining > 540 ? `Resend in ${remaining - 540}s` : "Resend code"}
           </Button>
           <Button onClick={verifyStep} disabled={verifying} className="btn-primary-gradient">
-            {verifying ? "Verifying…" : step === "email" ? "Verify email →" : "Verify phone & submit →"}
+            {verifying ? "Verifying…" : "Verify & submit →"}
           </Button>
         </div>
       </DialogContent>
