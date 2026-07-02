@@ -36,6 +36,7 @@ function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [refInput, setRefInput] = useState("");
   const [phoneOtpSent, setPhoneOtpSent] = useState(false);
   const [phoneOtp, setPhoneOtp] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
@@ -60,6 +61,10 @@ function SignupPage() {
 
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
   const pwdError = password.length > 0 && password.length < 6 ? "At least 6 characters" : "";
+
+  useEffect(() => {
+    if (ref) setRefInput(ref);
+  }, [ref]);
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
@@ -121,12 +126,17 @@ function SignupPage() {
     if (!fullName.trim()) { toast.error("Enter your full name"); return; }
     if (!emailValid) { toast.error("Enter a valid email"); return; }
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    const codeTrim = refInput.trim();
+    if (codeTrim) {
+      try { sessionStorage.setItem("cbx_ref", codeTrim); } catch {}
+      setRef(codeTrim);
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin + "/dashboard",
-        data: { full_name: fullName, referral_code: ref ?? null },
+        data: { full_name: fullName, referral_code: codeTrim || ref || null },
       },
     });
     setLoading(false);
@@ -240,6 +250,20 @@ function SignupPage() {
                 </div>
               )}
               {phoneVerified && <p className="text-xs text-accent mt-2">✓ Phone verified</p>}
+            </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Referral code (optional)</Label>
+              <Input
+                value={refInput}
+                onChange={(e) => setRefInput(e.target.value.trim())}
+                className="mt-1 h-11 font-mono tracking-wider"
+                placeholder="Paste your friend's code"
+                maxLength={32}
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              {refInput && <p className="text-xs text-primary mt-1">Referral code will be applied: {refInput}</p>}
             </div>
             <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
               {loading ? "Creating..." : "Create account →"}
