@@ -12,7 +12,6 @@ export function VipBadge({ totalCents, className = "" }: { totalCents: number; c
     >
       <Crown className="h-3 w-3" />
       <span className="uppercase tracking-wider">{tier.name}</span>
-      <span className="opacity-70">· Lv {lvl.level}</span>
     </div>
   );
 }

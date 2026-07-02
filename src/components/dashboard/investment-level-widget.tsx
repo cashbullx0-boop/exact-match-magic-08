@@ -40,7 +40,7 @@ export function InvestmentLevelWidget() {
             <span className="text-xs uppercase tracking-wider">Investment level</span>
           </div>
           <p className="text-xl font-bold mt-1">Not unlocked yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Get a $50 balance to unlock Bronze I</p>
+          <p className="text-xs text-muted-foreground mt-1">Get a $50 balance to unlock Bronze</p>
         </div>
         <Link to="/levels"><Button variant="outline" size="sm">View levels <ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
       </Card>
@@ -72,9 +72,9 @@ export function InvestmentLevelWidget() {
               <Crown className="h-4 w-4 text-primary" />
               <span className="text-xs uppercase tracking-wider text-muted-foreground">Investment level</span>
             </div>
-            <p className="text-xl font-bold mt-0.5">Lv {lvl.level} · {lvl.name}</p>
+            <p className="text-xl font-bold mt-0.5">{lvl.name}</p>
             <p className="text-xs text-muted-foreground">
-              {lvl.tier} · ${(lvl.daily_profit_cents / 100).toFixed(2)} daily profit
+              ${(lvl.daily_profit_cents / 100).toFixed(2)} daily profit
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export function InvestmentLevelWidget() {
         </div>
         <Link to="/levels" className="shrink-0">
           <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
-            All 15 levels <ArrowRight className="h-4 w-4 ml-1" />
+            All levels <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </Link>
       </div>
