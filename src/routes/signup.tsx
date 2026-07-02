@@ -251,6 +251,20 @@ function SignupPage() {
               )}
               {phoneVerified && <p className="text-xs text-accent mt-2">✓ Phone verified</p>}
             </div>
+            <div>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Referral code (optional)</Label>
+              <Input
+                value={refInput}
+                onChange={(e) => setRefInput(e.target.value.trim())}
+                className="mt-1 h-11 font-mono tracking-wider"
+                placeholder="Paste your friend's code"
+                maxLength={32}
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              {refInput && <p className="text-xs text-primary mt-1">Referral code will be applied: {refInput}</p>}
+            </div>
             <Button type="submit" disabled={loading} className="w-full h-11 btn-primary-gradient">
               {loading ? "Creating..." : "Create account →"}
             </Button>
