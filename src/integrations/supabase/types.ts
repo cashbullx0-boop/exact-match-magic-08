@@ -685,6 +685,41 @@ export type Database = {
         }
         Relationships: []
       }
+      spins: {
+        Row: {
+          cost_cents: number
+          created_at: string
+          id: string
+          reward_cents: number
+          spin_date: string
+          user_id: string
+        }
+        Insert: {
+          cost_cents?: number
+          created_at?: string
+          id?: string
+          reward_cents?: number
+          spin_date?: string
+          user_id: string
+        }
+        Update: {
+          cost_cents?: number
+          created_at?: string
+          id?: string
+          reward_cents?: number
+          spin_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           admin_reply: string | null
@@ -1251,6 +1286,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      perform_spin: { Args: never; Returns: Json }
       process_due_trades: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
