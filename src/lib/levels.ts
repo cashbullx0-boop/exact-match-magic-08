@@ -1,4 +1,4 @@
-import { Crown, Gem, Medal, Shield, Sparkles, Star, Trophy } from "lucide-react";
+import { Gem, Medal, Shield, Sparkles, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type LevelTier = {
@@ -13,12 +13,11 @@ export type LevelTier = {
 };
 
 export const TIERS: LevelTier[] = [
-  { name: "Bronze", range: [1, 8], icon: Shield, gradient: "linear-gradient(135deg, #b87333, #f4a460)", ring: "ring-amber-700/40", textGlow: "text-amber-300", label: "Starter" },
-  { name: "Silver", range: [9, 16], icon: Medal, gradient: "linear-gradient(135deg, #9aa3b2, #e6ecf3)", ring: "ring-slate-300/40", textGlow: "text-slate-200", label: "Climber" },
-  { name: "Gold", range: [17, 24], icon: Trophy, gradient: "linear-gradient(135deg, #d4a017, #ffd86b)", ring: "ring-yellow-400/40", textGlow: "text-yellow-300", label: "Earner" },
-  { name: "Platinum", range: [25, 32], icon: Sparkles, gradient: "linear-gradient(135deg, #6ed1ff, #b8e1ff)", ring: "ring-sky-300/40", textGlow: "text-sky-200", label: "Pro" },
-  { name: "Diamond", range: [33, 40], icon: Gem, gradient: "linear-gradient(135deg, #4ee8d0, #6aa9ff)", ring: "ring-cyan-300/50", textGlow: "text-cyan-200", label: "Elite" },
-  { name: "Legend", range: [41, 44], icon: Crown, gradient: "linear-gradient(135deg, #ffb84a, #ff5d8f, #8b5cf6)", ring: "ring-fuchsia-400/50", textGlow: "text-fuchsia-200", label: "Legendary" },
+  { name: "Bronze", range: [1, 9], icon: Shield, gradient: "linear-gradient(135deg, #CD7F32, #f4a460)", ring: "ring-amber-700/40", textGlow: "text-amber-300", label: "Starter" },
+  { name: "Silver", range: [10, 18], icon: Medal, gradient: "linear-gradient(135deg, #C0C0C0, #e6ecf3)", ring: "ring-slate-300/40", textGlow: "text-slate-200", label: "Climber" },
+  { name: "Gold", range: [19, 27], icon: Trophy, gradient: "linear-gradient(135deg, #FFD700, #ffd86b)", ring: "ring-yellow-400/40", textGlow: "text-yellow-300", label: "Earner" },
+  { name: "Platinum", range: [28, 36], icon: Sparkles, gradient: "linear-gradient(135deg, #E5E4E2, #b8e1ff)", ring: "ring-sky-300/40", textGlow: "text-sky-200", label: "Pro" },
+  { name: "Diamond", range: [37, 44], icon: Gem, gradient: "linear-gradient(135deg, #B9F2FF, #6aa9ff)", ring: "ring-cyan-300/50", textGlow: "text-cyan-200", label: "Elite" },
 ];
 
 export type Level = {
