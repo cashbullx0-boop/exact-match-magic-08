@@ -34,11 +34,26 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 async function claimReferralIfPending(uid: string) {
   let ref: string | null = null;
-  try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+  try { ref = localStorage.getItem("pendingReferralCode"); } catch {}
+  if (!ref) {
+    try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+  }
   if (!ref) return;
   try {
-    await supabase.rpc("claim_referral_code", { p_code: ref });
+    // Only claim if this user hasn't already been attributed to a referrer.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("referred_by")
+      .eq("id", uid)
+      .maybeSingle();
+    if (!profile || profile.referred_by == null) {
+      try {
+        await supabase.rpc("claim_referral_code", { p_code: ref });
+      } catch {}
+    }
   } catch {}
+  // Always clear the pending code, success or failure, to avoid retry loops.
+  try { localStorage.removeItem("pendingReferralCode"); } catch {}
   try { sessionStorage.removeItem("cbx_ref"); } catch {}
 }
 
@@ -57,12 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(!!roles?.some((r) => r.role === "admin"));
   };
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
         setTimeout(() => loadExtras(sess.user.id), 0);
-        claimReferralIfPending(sess.user.id);
+        if (event === "SIGNED_IN") {
+          setTimeout(() => {
+            claimReferralIfPending(sess.user.id).then(() => loadExtras(sess.user.id));
+          }, 0);
+        }
       } else {
         setProfile(null);
         setIsAdmin(false);
