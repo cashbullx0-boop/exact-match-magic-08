@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "CashBullX — Earn Rewards Fast" },
       { name: "description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { name: "author", content: "CashBullX" },
       {
@@ -97,12 +97,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "object-src 'none'",
       },
       { name: "referrer", content: "strict-origin-when-cross-origin" },
-      { property: "og:title", content: "Lovable App" },
+      { property: "og:title", content: "CashBullX — Earn Rewards Fast" },
       { property: "og:description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:title", content: "CashBullX — Earn Rewards Fast" },
       { name: "twitter:description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1ffb71d-52d3-449f-8454-95918c8e6436/id-preview-1134533c--c489f98a-61d2-4c49-aeec-988968897d6f.lovable.app-1779977603207.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1ffb71d-52d3-449f-8454-95918c8e6436/id-preview-1134533c--c489f98a-61d2-4c49-aeec-988968897d6f.lovable.app-1779977603207.png" },
