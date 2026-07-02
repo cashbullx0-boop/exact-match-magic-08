@@ -1,11 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook } from "lucide-react";
+import { Facebook, MessageCircle } from "lucide-react";
 
 const SOCIALS = [
   {
     label: "Facebook",
     href: "https://www.facebook.com/profile.php?id=61589574145757&sk=map",
     Icon: Facebook,
+  },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/447868101854",
+    Icon: MessageCircle,
   },
 ];
 
