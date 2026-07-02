@@ -25,6 +25,7 @@ import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
+import { Route as AuthenticatedSpinnerRouteImport } from './routes/_authenticated/spinner'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOfferwallRouteImport } from './routes/_authenticated/offerwall'
@@ -132,6 +133,11 @@ const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
 const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
   id: '/support',
   path: '/support',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSpinnerRoute = AuthenticatedSpinnerRouteImport.update({
+  id: '/spinner',
+  path: '/spinner',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedReferralsRoute = AuthenticatedReferralsRouteImport.update({
@@ -315,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/offerwall': typeof AuthenticatedOfferwallRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/spinner': typeof AuthenticatedSpinnerRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/offerwall': typeof AuthenticatedOfferwallRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
+  '/spinner': typeof AuthenticatedSpinnerRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/_authenticated/offerwall': typeof AuthenticatedOfferwallRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
+  '/_authenticated/spinner': typeof AuthenticatedSpinnerRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
     | '/offerwall'
     | '/profile'
     | '/referrals'
+    | '/spinner'
     | '/support'
     | '/tasks'
     | '/wallet'
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/offerwall'
     | '/profile'
     | '/referrals'
+    | '/spinner'
     | '/support'
     | '/tasks'
     | '/wallet'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offerwall'
     | '/_authenticated/profile'
     | '/_authenticated/referrals'
+    | '/_authenticated/spinner'
     | '/_authenticated/support'
     | '/_authenticated/tasks'
     | '/_authenticated/wallet'
@@ -702,6 +714,13 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/spinner': {
+      id: '/_authenticated/spinner'
+      path: '/spinner'
+      fullPath: '/spinner'
+      preLoaderRoute: typeof AuthenticatedSpinnerRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/referrals': {
@@ -957,6 +976,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedOfferwallRoute: typeof AuthenticatedOfferwallRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
+  AuthenticatedSpinnerRoute: typeof AuthenticatedSpinnerRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
@@ -977,6 +997,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedOfferwallRoute: AuthenticatedOfferwallRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,
+  AuthenticatedSpinnerRoute: AuthenticatedSpinnerRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
