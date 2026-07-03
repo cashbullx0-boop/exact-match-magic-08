@@ -16,25 +16,50 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
 });
 
-const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/offerwall", label: "Offerwall", icon: Sparkles },
-  { to: "/earn", label: "Earn 💰", icon: Sparkles },
-  { to: "/spinner", label: "🎰 Spinner", icon: Sparkles },
-  { to: "/levels", label: "Levels", icon: Crown },
-  { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { to: "/achievements", label: "Achievements", icon: Award },
-  { to: "/wallet", label: "Wallet", icon: Wallet },
-  { to: "/deposit", label: "Deposit", icon: ArrowDownToLine },
-  { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
-  { to: "/invest", label: "Invest", icon: TrendingUp },
-  { to: "/referrals", label: "Referrals", icon: Users },
-  { to: "/downline", label: "Downline", icon: Network },
-  { to: "/notifications", label: "Notifications", icon: Bell },
-  { to: "/profile", label: "Profile", icon: UserIcon },
-  { to: "/kyc", label: "KYC", icon: ShieldCheck },
-  { to: "/support", label: "Support", icon: LifeBuoy },
+const navGroups = [
+  {
+    label: "Overview",
+    items: [
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/notifications", label: "Notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "Earn",
+    items: [
+      { to: "/tasks", label: "Tasks", icon: ListChecks },
+      { to: "/offerwall", label: "Offerwall", icon: Sparkles },
+      { to: "/earn", label: "Earn 💰", icon: Sparkles },
+      { to: "/spinner", label: "🎰 Spinner", icon: Sparkles },
+      { to: "/invest", label: "Invest", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "Money",
+    items: [
+      { to: "/wallet", label: "Wallet", icon: Wallet },
+      { to: "/deposit", label: "Deposit", icon: ArrowDownToLine },
+      { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { to: "/referrals", label: "Referrals", icon: Users },
+      { to: "/downline", label: "Downline", icon: Network },
+      { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
+      { to: "/levels", label: "Levels", icon: Crown },
+      { to: "/achievements", label: "Achievements", icon: Award },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { to: "/profile", label: "Profile", icon: UserIcon },
+      { to: "/kyc", label: "KYC", icon: ShieldCheck },
+      { to: "/support", label: "Support", icon: LifeBuoy },
+    ],
+  },
 ] as const;
 
 function AuthedLayout() {
@@ -126,20 +151,27 @@ function AuthedLayout() {
         </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto">
-        {navItems.map((i) => {
-          const active = pathname === i.to;
-          const isNotif = i.to === "/notifications";
-          return (
-            <Link key={i.to} to={i.to} onClick={() => { setOpen(false); if (isNotif) markAllNotificationsRead(); }}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all hover:translate-x-0.5 ${active ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px] shadow-primary/20" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
-              <i.icon className="h-4 w-4" />
-              <span className="flex-1">{i.label}</span>
-              {isNotif && unread > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground">{unread}</span>
-              )}
-            </Link>
-          );
-        })}
+        {navGroups.map((group) => (
+          <div key={group.label} className="pb-1">
+            <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">
+              {group.label}
+            </div>
+            {group.items.map((i) => {
+              const active = pathname === i.to;
+              const isNotif = i.to === "/notifications";
+              return (
+                <Link key={i.to} to={i.to} onClick={() => { setOpen(false); if (isNotif) markAllNotificationsRead(); }}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all hover:translate-x-0.5 ${active ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px] shadow-primary/20" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+                  <i.icon className="h-4 w-4" />
+                  <span className="flex-1">{i.label}</span>
+                  {isNotif && unread > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground">{unread}</span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
         {isAdmin && (
           <>
             <div className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-amber-300/70 font-semibold">Admin Panel</div>
@@ -255,6 +287,7 @@ function AuthedLayout() {
                 className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-1 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
                 <Icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
                 <span>{i.label}</span>
+                <span className={`h-1 w-1 rounded-full transition-all ${active ? "bg-primary opacity-100 scale-100" : "bg-transparent opacity-0 scale-0"}`} />
               </Link>
             );
           })}
