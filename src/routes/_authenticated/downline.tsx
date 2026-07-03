@@ -1,0 +1,259 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronDown, ChevronRight, Users, Network, RefreshCw } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/downline")({
+  head: () => ({ meta: [{ title: "Downline — CashBullX" }] }),
+  component: DownlinePage,
+});
+
+type LevelRow = {
+  user_id: string;
+  display_name: string;
+  masked_email: string;
+  joined_at: string;
+  referred_by: string | null;
+  referrer_name: string | null;
+  total_count: number;
+};
+
+type ChildRow = {
+  user_id: string;
+  display_name: string;
+  masked_email: string;
+  joined_at: string;
+  child_count: number;
+};
+
+const PAGE_SIZE = 25;
+const LEVELS = [1, 2, 3, 4, 5, 6] as const;
+
+function fmtDate(s: string) {
+  return new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function DownlinePage() {
+  const [summary, setSummary] = useState<Record<number, number>>({});
+  const [loadingSummary, setLoadingSummary] = useState(true);
+
+  const loadSummary = useCallback(async () => {
+    setLoadingSummary(true);
+    const { data } = await supabase.rpc("get_downline_summary");
+    const m: Record<number, number> = {};
+    (data ?? []).forEach((r: any) => { m[r.level] = Number(r.count); });
+    setSummary(m);
+    setLoadingSummary(false);
+  }, []);
+
+  useEffect(() => { loadSummary(); }, [loadSummary]);
+
+  const total = LEVELS.reduce((s, l) => s + (summary[l] ?? 0), 0);
+
+  return (
+    <div className="space-y-6 animate-float-up">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2"><Network className="h-6 w-6 text-primary" /> Your Downline</h1>
+          <p className="text-muted-foreground mt-1">All accounts across 6 referral levels beneath you.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={loadSummary}>
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
+        </Button>
+      </header>
+
+      <Card className="glass-strong border-border p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 mr-2"><Users className="h-4 w-4 text-primary" /><span className="text-sm font-medium">Total: {loadingSummary ? "…" : total}</span></div>
+          {LEVELS.map((l) => (
+            <span key={l} className="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-border">
+              L{l}: <b className="text-foreground">{loadingSummary ? "…" : (summary[l] ?? 0)}</b>
+            </span>
+          ))}
+        </div>
+      </Card>
+
+      <Tabs defaultValue="table">
+        <TabsList>
+          <TabsTrigger value="table">Table view</TabsTrigger>
+          <TabsTrigger value="tree">Tree view</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="table" className="space-y-3 mt-4">
+          {LEVELS.map((l) => (
+            <LevelSection key={l} level={l} count={summary[l] ?? 0} />
+          ))}
+        </TabsContent>
+
+        <TabsContent value="tree" className="mt-4">
+          <Card className="glass-strong border-border p-5">
+            <p className="text-sm text-muted-foreground mb-3">Click any node to load its direct referrals. Children load on demand.</p>
+            <RootNode />
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function LevelSection({ level, count }: { level: number; count: number }) {
+  const [open, setOpen] = useState(level === 1);
+  const [rows, setRows] = useState<LevelRow[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [total, setTotal] = useState(count);
+
+  const load = useCallback(async (p: number) => {
+    setLoading(true);
+    const { data, error } = await supabase.rpc("get_downline_level", {
+      _level: level, _limit: PAGE_SIZE, _offset: p * PAGE_SIZE,
+    });
+    if (!error) {
+      setRows((data ?? []) as LevelRow[]);
+      if (data && data.length > 0) setTotal(Number((data[0] as LevelRow).total_count));
+      else setTotal(0);
+    }
+    setLoading(false);
+    setLoaded(true);
+  }, [level]);
+
+  useEffect(() => {
+    if (open && !loaded) load(0);
+  }, [open, loaded, load]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  return (
+    <Card className="glass-strong border-border">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors">
+          <div className="flex items-center gap-3">
+            {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <span className="font-semibold">Level {level}</span>
+            <span className="text-xs text-muted-foreground">— {count} account{count === 1 ? "" : "s"}</span>
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-5 pb-5">
+          {loading && rows.length === 0 ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No accounts at this level yet.</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-xs uppercase text-muted-foreground">
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 pr-3">Name / Email</th>
+                      <th className="text-left py-2 pr-3">Joined</th>
+                      <th className="text-left py-2 pr-3">Referred by</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r.user_id} className="border-b border-border/40">
+                        <td className="py-2 pr-3">
+                          <div className="font-medium">{r.display_name}</div>
+                          <div className="text-xs text-muted-foreground">{r.masked_email}</div>
+                        </td>
+                        <td className="py-2 pr-3 text-muted-foreground">{fmtDate(r.joined_at)}</td>
+                        <td className="py-2 pr-3 text-muted-foreground">{r.referrer_name ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-xs text-muted-foreground">Page {page + 1} of {totalPages} · {total} total</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" disabled={page === 0 || loading}
+                    onClick={() => { const np = page - 1; setPage(np); load(np); }}>Prev</Button>
+                  <Button variant="outline" size="sm" disabled={page + 1 >= totalPages || loading}
+                    onClick={() => { const np = page + 1; setPage(np); load(np); }}>Next</Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+function RootNode() {
+  return (
+    <div>
+      <div className="font-semibold text-primary mb-2">You</div>
+      <div className="pl-4 border-l border-border">
+        <TreeChildren parentId="__self__" depth={0} />
+      </div>
+    </div>
+  );
+}
+
+function TreeNode({ node, depth }: { node: ChildRow; depth: number }) {
+  const [open, setOpen] = useState(false);
+  const hasChildren = node.child_count > 0 && depth < 5; // depth 0..5 → up to level 6
+  return (
+    <div className="py-1">
+      <button
+        type="button"
+        onClick={() => hasChildren && setOpen((o) => !o)}
+        className={`w-full flex items-center gap-2 text-left rounded-md px-2 py-1.5 hover:bg-white/5 transition-colors ${hasChildren ? "cursor-pointer" : "cursor-default"}`}
+      >
+        {hasChildren ? (open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />) : <span className="w-3.5" />}
+        <span className="text-sm font-medium">{node.display_name}</span>
+        <span className="text-xs text-muted-foreground">{node.masked_email}</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          {fmtDate(node.joined_at)}
+          {node.child_count > 0 && <span className="ml-2 px-1.5 py-0.5 rounded bg-primary/10 text-primary">{node.child_count}</span>}
+        </span>
+      </button>
+      {open && hasChildren && (
+        <div className="pl-4 ml-2 border-l border-border">
+          <TreeChildren parentId={node.user_id} depth={depth + 1} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TreeChildren({ parentId, depth }: { parentId: string; depth: number }) {
+  const [rows, setRows] = useState<ChildRow[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      let effectiveParent = parentId;
+      if (parentId === "__self__") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setRows([]); setLoading(false); return; }
+        effectiveParent = user.id;
+      }
+      const { data, error } = await supabase.rpc("get_downline_children", { _parent_id: effectiveParent });
+      if (!cancelled) {
+        setRows(error ? [] : ((data ?? []) as ChildRow[]));
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [parentId]);
+
+  if (loading) return (
+    <div className="space-y-1 py-1">
+      {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
+    </div>
+  );
+  if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground py-1 pl-2">No referrals.</p>;
+  return <>{rows.map((r) => <TreeNode key={r.user_id} node={r} depth={depth} />)}</>;
+}
