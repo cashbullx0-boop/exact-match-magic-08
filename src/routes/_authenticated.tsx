@@ -287,6 +287,7 @@ function AuthedLayout() {
                 className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] py-1 rounded-lg text-[10px] transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
                 <Icon className={`h-5 w-5 ${active ? "text-primary" : ""}`} />
                 <span>{i.label}</span>
+                <span className={`h-1 w-1 rounded-full transition-all ${active ? "bg-primary opacity-100 scale-100" : "bg-transparent opacity-0 scale-0"}`} />
               </Link>
             );
           })}
