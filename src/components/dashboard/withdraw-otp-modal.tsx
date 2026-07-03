@@ -45,10 +45,35 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
     setSending(false);
     if (error) { toast.error(error.message); return; }
     setExpiresAt(Date.now() + 10 * 60 * 1000);
-    toast.success(
-      `OTP sent to your email${data ? ` (demo code: ${data})` : ""}`,
-      { duration: 8000 },
-    );
+
+    // Fire-and-forget the actual email delivery via Lovable Emails.
+    if (data && email) {
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token;
+        const res = await fetch("/lovable/email/transactional/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            templateName: "withdrawal-otp",
+            recipientEmail: email,
+            idempotencyKey: `withdrawal-otp-${userId}-${Date.now()}`,
+            templateData: { otp: data, siteName: "CashBullX" },
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          console.error("Failed to send withdrawal OTP email", res.status, body);
+        }
+      } catch (err) {
+        console.error("Failed to send withdrawal OTP email", err);
+      }
+    }
+
+    toast.success(`OTP sent to ${email ?? "your email"}`, { duration: 6000 });
   };
 
   useEffect(() => { if (open && !expiresAt) sendOtp(); /* eslint-disable-next-line */ }, [open]);
