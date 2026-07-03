@@ -1110,6 +1110,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _mask_identifier: { Args: { _val: string }; Returns: string }
       admin_approve_deposit: {
         Args: { _deposit_id: string }
         Returns: undefined
@@ -1205,6 +1206,35 @@ export type Database = {
         Returns: number
       }
       generate_withdrawal_otp: { Args: { _user_id: string }; Returns: string }
+      get_downline_children: {
+        Args: { _parent_id: string }
+        Returns: {
+          child_count: number
+          display_name: string
+          joined_at: string
+          masked_email: string
+          user_id: string
+        }[]
+      }
+      get_downline_level: {
+        Args: { _level: number; _limit?: number; _offset?: number }
+        Returns: {
+          display_name: string
+          joined_at: string
+          masked_email: string
+          referred_by: string
+          referrer_name: string
+          total_count: number
+          user_id: string
+        }[]
+      }
+      get_downline_summary: {
+        Args: never
+        Returns: {
+          count: number
+          level: number
+        }[]
+      }
       get_my_downline: {
         Args: never
         Returns: {
