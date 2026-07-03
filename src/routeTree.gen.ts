@@ -36,6 +36,7 @@ import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenti
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedInvestRouteImport } from './routes/_authenticated/invest'
 import { Route as AuthenticatedEarnRouteImport } from './routes/_authenticated/earn'
+import { Route as AuthenticatedDownlineRouteImport } from './routes/_authenticated/downline'
 import { Route as AuthenticatedDepositRouteImport } from './routes/_authenticated/deposit'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -196,6 +197,11 @@ const AuthenticatedEarnRoute = AuthenticatedEarnRouteImport.update({
   path: '/earn',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDownlineRoute = AuthenticatedDownlineRouteImport.update({
+  id: '/downline',
+  path: '/downline',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDepositRoute = AuthenticatedDepositRouteImport.update({
   id: '/deposit',
   path: '/deposit',
@@ -338,6 +344,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/downline': typeof AuthenticatedDownlineRoute
   '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposit': typeof AuthenticatedDepositRoute
+  '/downline': typeof AuthenticatedDownlineRoute
   '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
@@ -441,6 +449,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposit': typeof AuthenticatedDepositRoute
+  '/_authenticated/downline': typeof AuthenticatedDownlineRoute
   '/_authenticated/earn': typeof AuthenticatedEarnRoute
   '/_authenticated/invest': typeof AuthenticatedInvestRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
@@ -494,6 +503,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/deposit'
+    | '/downline'
     | '/earn'
     | '/invest'
     | '/kyc'
@@ -544,6 +554,7 @@ export interface FileRouteTypes {
     | '/achievements'
     | '/dashboard'
     | '/deposit'
+    | '/downline'
     | '/earn'
     | '/invest'
     | '/kyc'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/deposit'
+    | '/_authenticated/downline'
     | '/_authenticated/earn'
     | '/_authenticated/invest'
     | '/_authenticated/kyc'
@@ -847,6 +859,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEarnRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/downline': {
+      id: '/_authenticated/downline'
+      path: '/downline'
+      fullPath: '/downline'
+      preLoaderRoute: typeof AuthenticatedDownlineRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/deposit': {
       id: '/_authenticated/deposit'
       path: '/deposit'
@@ -1049,6 +1068,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositRoute: typeof AuthenticatedDepositRoute
+  AuthenticatedDownlineRoute: typeof AuthenticatedDownlineRoute
   AuthenticatedEarnRoute: typeof AuthenticatedEarnRoute
   AuthenticatedInvestRoute: typeof AuthenticatedInvestRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
@@ -1070,6 +1090,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositRoute: AuthenticatedDepositRoute,
+  AuthenticatedDownlineRoute: AuthenticatedDownlineRoute,
   AuthenticatedEarnRoute: AuthenticatedEarnRoute,
   AuthenticatedInvestRoute: AuthenticatedInvestRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,

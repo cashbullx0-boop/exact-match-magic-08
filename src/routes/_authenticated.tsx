@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone, Network } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +30,7 @@ const navItems = [
   { to: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { to: "/invest", label: "Invest", icon: TrendingUp },
   { to: "/referrals", label: "Referrals", icon: Users },
+  { to: "/downline", label: "Downline", icon: Network },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/profile", label: "Profile", icon: UserIcon },
   { to: "/kyc", label: "KYC", icon: ShieldCheck },
