@@ -207,7 +207,6 @@
     touch-action: manipulation;
   }
   a:active, button:active, [role="button"]:active { transform: scale(0.97); }
-  }
 
   body {
     background-color: var(--color-background);
