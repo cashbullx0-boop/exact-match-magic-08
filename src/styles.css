@@ -175,6 +175,38 @@
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Momentum scrolling + slim themed scrollbars */
+  .overflow-y-auto, .overflow-auto, main, aside, nav {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-primary) 40%, transparent) transparent;
+  }
+  .overflow-y-auto::-webkit-scrollbar,
+  .overflow-auto::-webkit-scrollbar { width: 8px; height: 8px; }
+  .overflow-y-auto::-webkit-scrollbar-thumb,
+  .overflow-auto::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-primary) 35%, transparent);
+    border-radius: 999px;
+  }
+
+  /* Keyboard-only focus ring */
+  :focus { outline: none; }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Snappier tap feedback */
+  a, button, [role="button"] {
+    transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    touch-action: manipulation;
+  }
+  a:active, button:active, [role="button"]:active { transform: scale(0.97); }
   }
 
   body {
