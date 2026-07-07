@@ -76,9 +76,6 @@ function ReferralsPage() {
   const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
   const activeCount = refs.filter((r) => referredProfiles[r.referred_id]?.status === "active").length;
 
-  const downlineDepositCents = downline.reduce((s, d) => s + Number(d.total_deposit_cents ?? 0), 0);
-  const downlineBalanceCents = downline.reduce((s, d) => s + Number(d.balance_cents ?? 0), 0);
-  const slotsFilled = downline.length;
   const slots: (DownlineRow | null)[] = Array.from({ length: 6 }, (_, i) => downline.find((d) => d.slot === i + 1) ?? null);
 
   const downloadQR = () => {
