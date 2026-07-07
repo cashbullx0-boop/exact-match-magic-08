@@ -1,0 +1,1 @@
+UPDATE investment_levels SET icon = '🛡️' WHERE level = 4;

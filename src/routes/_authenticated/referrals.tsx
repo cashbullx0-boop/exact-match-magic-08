@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Users, Gift, Download, TrendingUp, UserPlus, Wallet as WalletIcon, ArrowDownToLine } from "lucide-react";
+import { Copy, Users, Gift, Download, TrendingUp, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 
@@ -76,9 +76,6 @@ function ReferralsPage() {
   const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
   const activeCount = refs.filter((r) => referredProfiles[r.referred_id]?.status === "active").length;
 
-  const downlineDepositCents = downline.reduce((s, d) => s + Number(d.total_deposit_cents ?? 0), 0);
-  const downlineBalanceCents = downline.reduce((s, d) => s + Number(d.balance_cents ?? 0), 0);
-  const slotsFilled = downline.length;
   const slots: (DownlineRow | null)[] = Array.from({ length: 6 }, (_, i) => downline.find((d) => d.slot === i + 1) ?? null);
 
   const downloadQR = () => {
@@ -178,26 +175,7 @@ function ReferralsPage() {
       </div>
 
       <Card className="glass-strong border-border p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="font-semibold flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Your downline · {slotsFilled}/6</h2>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-4">
-          {[
-            { label: "Downline members", value: `${slotsFilled}/6`, icon: Users, accent: "text-primary" },
-            { label: "Downline deposits", value: `$${(downlineDepositCents / 100).toFixed(2)}`, icon: ArrowDownToLine, accent: "text-primary" },
-            { label: "Downline balance", value: `$${(downlineBalanceCents / 100).toFixed(2)}`, icon: WalletIcon, accent: "text-foreground" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-white/[0.02] p-4">
-              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground"><s.icon className={`h-3.5 w-3.5 ${s.accent}`} /> {s.label}</div>
-              <p className="text-xl font-bold mt-1">{s.value}</p>
-            </div>
-          ))}
-        </div>
-
-        <ul className="mt-5 space-y-2">
+        <ul className="space-y-2">
           {slots.map((d, i) => {
             const slotNum = i + 1;
             if (!d) {
