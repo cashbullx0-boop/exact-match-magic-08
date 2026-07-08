@@ -1,0 +1,1 @@
+ALTER FUNCTION public._mask_identifier(text) SET search_path = public;
