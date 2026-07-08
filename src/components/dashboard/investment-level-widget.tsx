@@ -74,7 +74,7 @@ export function InvestmentLevelWidget() {
             </div>
             <p className="text-xl font-bold mt-0.5">{lvl.name}</p>
             <p className="text-xs text-muted-foreground">
-              ${(lvl.daily_profit_cents / 100).toFixed(2)} daily profit
+              ${((balance * 0.02) / 100).toFixed(2)} daily profit (2% of balance)
             </p>
           </div>
         </div>

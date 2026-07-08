@@ -183,7 +183,9 @@ function LevelsPage() {
                     Min balance: <span className="font-semibold text-foreground">${(l.min_deposit_cents / 100).toLocaleString()}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Daily profit: <span className="font-semibold" style={{ color }}>${(l.daily_profit_cents / 100).toLocaleString()}</span>
+                    Daily profit (2%): <span className="font-semibold" style={{ color }}>
+                      ${((balance * 0.02) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
                   </p>
                 </div>
 
