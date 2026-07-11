@@ -217,8 +217,13 @@
       linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
     background-size: auto, auto, 48px 48px, 48px 48px;
-    background-attachment: fixed;
     min-height: 100vh;
+  }
+  /* Fixed backgrounds combined with backdrop-filter cause severe
+     compositor corruption on mobile Chromium (garbled/duplicated text
+     across cards). Only enable on wider viewports where it's safe. */
+  @media (min-width: 1024px) and (hover: hover) {
+    body { background-attachment: fixed; }
   }
 }
 
@@ -331,6 +336,14 @@
     .animate-float-y,
     .btn-glow {
       animation: none !important;
+    }
+    /* Backdrop blur is a major GPU cost + corruption source on mobile
+       Chromium — use an opaque fallback that looks identical at a glance. */
+    .glass,
+    .glass-strong {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: oklch(0.18 0.04 265 / 0.96);
     }
   }
   @media (prefers-reduced-motion: reduce) {
