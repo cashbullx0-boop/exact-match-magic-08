@@ -1326,6 +1326,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      reconcile_financials: { Args: never; Returns: Json }
       request_password_reset_by_email: {
         Args: { _email: string }
         Returns: string
