@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Copy, Users, Gift, Download, TrendingUp, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
-import { Progress } from "@/components/ui/progress";
 import { Trophy, Flame, Sparkles } from "lucide-react";
 
 type DownlineRow = {
