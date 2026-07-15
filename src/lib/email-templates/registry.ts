@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { template as withdrawalOtpTemplate } from './withdrawal-otp'
+import { template as passwordResetLinkTemplate } from './password-reset-link'
 
 export interface TemplateEntry {
   component: ComponentType<any>
@@ -20,4 +21,5 @@ export interface TemplateEntry {
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'withdrawal-otp': withdrawalOtpTemplate,
+  'password-reset-link': passwordResetLinkTemplate,
 }
