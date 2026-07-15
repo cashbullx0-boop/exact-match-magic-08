@@ -2,6 +2,42 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { Sparkles, Rocket } from "lucide-react";
 import { useEffect, useState } from "react";
+import promo5 from "@/assets/promo-5.jpeg.asset.json";
+import promo6 from "@/assets/promo-6.jpeg.asset.json";
+
+const promoSlides = [
+  { src: promo5.url, alt: "Special bonus — open 10 direct accounts, get $50 extra reward" },
+  { src: promo6.url, alt: "Special offer — open 20 accounts in 10 days, get $150 direct bonus" },
+];
+
+function PromoFlipper() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((n) => (n + 1) % promoSlides.length), 4000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="relative mb-6 overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-[#0a0f1e] aspect-[16/9]">
+      {promoSlides.map((s, idx) => (
+        <img
+          key={idx}
+          src={s.src}
+          alt={s.alt}
+          loading={idx === 0 ? "eager" : "lazy"}
+          className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ease-out ${idx === i ? "opacity-100" : "opacity-0"}`}
+        />
+      ))}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {promoSlides.map((_, idx) => (
+          <span
+            key={idx}
+            className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-primary" : "w-1.5 bg-white/50"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/spinner")({
   head: () => ({ meta: [{ title: "Lucky Spinner — CashBullX" }] }),
