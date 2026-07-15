@@ -2,10 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const emailSchema = z.object({ email: z.string().trim().email().max(255) });
-const confirmSchema = z.object({
-  email: z.string().trim().email().max(255),
-  otp: z.string().regex(/^\d{6}$/),
-  newPassword: z.string().min(8).max(128),
+const consumeSchema = z.object({
+  requestId: z.string().uuid(),
+  token: z.string().min(16).max(256),
+  newPassword: z.string().min(6).max(128),
 });
 
 export const requestPasswordReset = createServerFn({ method: "POST" })
@@ -17,15 +17,15 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const confirmPasswordReset = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => confirmSchema.parse(d))
+export const consumePasswordReset = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => consumeSchema.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: userId, error } = await supabaseAdmin.rpc("verify_password_reset_otp", {
-      _email: data.email,
-      _otp: data.otp,
+    const { data: userId, error } = await supabaseAdmin.rpc("consume_password_reset_token", {
+      _request_id: data.requestId,
+      _token: data.token,
     });
-    if (error || !userId) throw new Error(error?.message || "Invalid OTP");
+    if (error || !userId) throw new Error(error?.message || "Invalid or expired reset link");
     const { error: upErr } = await supabaseAdmin.auth.admin.updateUserById(userId as string, {
       password: data.newPassword,
     });
