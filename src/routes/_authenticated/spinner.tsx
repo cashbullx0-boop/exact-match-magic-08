@@ -100,6 +100,8 @@ function SpinnerComingSoon() {
               : "Daily spins & instant cash rewards unlock in:"}
           </p>
 
+          <PromoFlipper />
+
           {!launched && (
             <>
               <div className="grid grid-cols-4 gap-2 md:gap-3 mb-6">
