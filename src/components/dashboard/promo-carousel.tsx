@@ -3,12 +3,16 @@ import promo1 from "@/assets/promo-1.jpeg.asset.json";
 import promo2 from "@/assets/promo-2.jpeg.asset.json";
 import promo3 from "@/assets/promo-3.jpeg.asset.json";
 import promo4 from "@/assets/promo-4.jpeg.asset.json";
+import promo5 from "@/assets/promo-5.jpeg.asset.json";
+import promo6 from "@/assets/promo-6.jpeg.asset.json";
 
 const slides = [
   { src: promo1.url, alt: "CashBullX $50 first deposit, $5 welcome reward, up to $1 daily" },
   { src: promo2.url, alt: "Learn how CashBullX works before joining" },
   { src: promo3.url, alt: "+$1.00 daily profit celebration" },
   { src: promo4.url, alt: "Earn $55+ with CashBullX rewards" },
+  { src: promo5.url, alt: "Special bonus — open 10 direct accounts, get $50 extra reward" },
+  { src: promo6.url, alt: "Special offer — open 20 accounts in 10 days, get $150 direct bonus" },
 ];
 
 export function PromoCarousel() {
