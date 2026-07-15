@@ -22,7 +22,7 @@ export function PromoCarousel() {
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-card/40 aspect-[16/8] md:aspect-[16/6]">
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-card/40 aspect-[16/9]">
       {slides.map((s, idx) => (
         <img
           key={idx}
