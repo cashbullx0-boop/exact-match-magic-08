@@ -1111,6 +1111,10 @@ export type Database = {
     }
     Functions: {
       _mask_identifier: { Args: { _val: string }; Returns: string }
+      admin_adjust_user_balance: {
+        Args: { _delta_cents: number; _reason: string; _user_id: string }
+        Returns: Json
+      }
       admin_approve_deposit: {
         Args: { _deposit_id: string }
         Returns: undefined
@@ -1214,6 +1218,14 @@ export type Database = {
           joined_at: string
           masked_email: string
           user_id: string
+        }[]
+      }
+      get_downline_commission_summary: {
+        Args: never
+        Returns: {
+          count: number
+          level: number
+          total_cents: number
         }[]
       }
       get_downline_level: {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown, ChevronRight, Users, Network, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronRight, Users, Network, RefreshCw, Coins } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/downline")({
   head: () => ({ meta: [{ title: "Downline — CashBullX" }] }),
@@ -41,19 +41,29 @@ function fmtDate(s: string) {
 function DownlinePage() {
   const [summary, setSummary] = useState<Record<number, number>>({});
   const [loadingSummary, setLoadingSummary] = useState(true);
+  const [commissions, setCommissions] = useState<Record<number, { count: number; total_cents: number }>>({});
 
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true);
-    const { data } = await supabase.rpc("get_downline_summary");
+    const [{ data }, { data: comms }] = await Promise.all([
+      supabase.rpc("get_downline_summary"),
+      supabase.rpc("get_downline_commission_summary"),
+    ]);
     const m: Record<number, number> = {};
     (data ?? []).forEach((r: any) => { m[r.level] = Number(r.count); });
     setSummary(m);
+    const cm: Record<number, { count: number; total_cents: number }> = {};
+    (comms ?? []).forEach((r: any) => {
+      cm[Number(r.level)] = { count: Number(r.count), total_cents: Number(r.total_cents) };
+    });
+    setCommissions(cm);
     setLoadingSummary(false);
   }, []);
 
   useEffect(() => { loadSummary(); }, [loadSummary]);
 
   const total = LEVELS.reduce((s, l) => s + (summary[l] ?? 0), 0);
+  const totalCommissionCents = LEVELS.reduce((s, l) => s + (commissions[l]?.total_cents ?? 0), 0);
 
   return (
     <div className="space-y-6 animate-float-up">
@@ -76,6 +86,27 @@ function DownlinePage() {
             </span>
           ))}
         </div>
+      </Card>
+
+      <Card className="glass-strong border-border p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 mr-2">
+            <Coins className="h-4 w-4 text-accent" />
+            <span className="text-sm font-medium">Trade commissions earned: <b className="text-accent">${(totalCommissionCents/100).toFixed(2)}</b></span>
+          </div>
+          {LEVELS.map((l) => {
+            const c = commissions[l];
+            const cents = c?.total_cents ?? 0;
+            const cnt = c?.count ?? 0;
+            return (
+              <span key={l} className="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-border">
+                L{l}: <b className="text-accent">${(cents/100).toFixed(2)}</b>
+                <span className="text-muted-foreground"> · {cnt}</span>
+              </span>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-2">Paid automatically each time a downline user's trade settles (L1 0.10% → L6 0.01% of trade principal).</p>
       </Card>
 
       <Tabs defaultValue="table">
