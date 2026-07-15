@@ -33,7 +33,7 @@ function AdminPasswordResetsPage() {
 
   const approve = async (id: string) => {
     setBusy(id);
-    const { data, error } = await supabase.rpc("admin_approve_password_reset", { _request_id: id });
+    const { data, error } = await supabase.rpc("admin_approve_password_reset" as any, { _request_id: id } as any);
     if (error) { setBusy(null); toast.error(error.message); return; }
     const row = Array.isArray(data) ? data[0] : (data as any);
     const rawToken = row?.token as string | undefined;
