@@ -65,7 +65,14 @@ function SpinnerComingSoon() {
               : "Daily spins & instant cash rewards unlock in:"}
           </p>
 
-          <PromoFlipper />
+          <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 shadow-xl bg-[#0a0f1e]">
+            <img
+              src={spinnerPromo.url}
+              alt="CashBullX Spin & Win Big — just $5 per spin, win up to $100"
+              loading="eager"
+              className="w-full h-auto object-contain"
+            />
+          </div>
 
           {!launched && (
             <>
