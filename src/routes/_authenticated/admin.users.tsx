@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users as UsersIcon, Search, ShieldX, ShieldCheck, Ban } from "lucide-react";
+import { Users as UsersIcon, Search, ShieldX, ShieldCheck, Ban, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({ meta: [{ title: "Users — Admin" }] }),
@@ -49,6 +49,27 @@ function AdminUsersPage() {
     const { error } = await supabase.from("profiles").update(patch).eq("id", id);
     setBusy(null);
     if (error) toast.error(error.message); else { toast.success(`User ${status}`); load(); }
+  };
+
+  const adjustBalance = async (u: Row) => {
+    const raw = window.prompt(
+      `Adjust balance for ${u.full_name ?? u.username ?? u.id.slice(0,8)}\nCurrent: $${(u.balance_cents/100).toFixed(2)}\n\nEnter amount in USD (use negative to deduct, e.g. -25.50):`
+    );
+    if (raw === null) return;
+    const amount = Number(raw.trim());
+    if (!Number.isFinite(amount) || amount === 0) { toast.error("Invalid amount"); return; }
+    const reason = window.prompt("Reason (shown in transaction history):") ?? "";
+    if (!reason.trim()) { toast.error("Reason required"); return; }
+    const cents = Math.round(amount * 100);
+    setBusy(u.id);
+    const { data, error } = await supabase.rpc("admin_adjust_user_balance", {
+      _user_id: u.id, _delta_cents: cents, _reason: reason.trim(),
+    });
+    setBusy(null);
+    if (error) { toast.error(error.message); return; }
+    const newBal = (data as any)?.new_balance_cents;
+    toast.success(`Balance updated to $${(Number(newBal)/100).toFixed(2)}`);
+    load();
   };
 
   if (loading || !isAdmin) return <div className="text-muted-foreground">Checking access…</div>;
@@ -94,6 +115,9 @@ function AdminUsersPage() {
                     {u.ban_reason && <p className="text-[10px] text-muted-foreground mt-1">{u.ban_reason}</p>}
                   </td>
                   <td className="p-3 text-right space-x-1">
+                    <Button size="sm" variant="outline" disabled={busy === u.id} onClick={() => adjustBalance(u)}>
+                      <Wallet className="h-3.5 w-3.5" /> Adjust
+                    </Button>
                     {u.status !== "active" && (
                       <Button size="sm" variant="outline" disabled={busy === u.id} onClick={() => setStatus(u.id, "active")}><ShieldCheck className="h-3.5 w-3.5" /> Activate</Button>
                     )}
