@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Copy, Users, Gift, Download, TrendingUp, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
+import { Trophy, Flame, Sparkles } from "lucide-react";
 
 type DownlineRow = {
   slot: number;
@@ -42,6 +43,22 @@ function ReferralsPage() {
   const [referredProfiles, setReferredProfiles] = useState<Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; status: string }>>({});
   const [downline, setDownline] = useState<DownlineRow[]>([]);
   const qrRef = useRef<HTMLDivElement | null>(null);
+  const [challenge, setChallenge] = useState<{
+    total_direct_last_7d: number;
+    deposited_last_7d: number;
+    target: number;
+    reward_cents: number;
+    last_claim_at: string | null;
+    next_eligible_at: string | null;
+    can_claim: boolean;
+  } | null>(null);
+  const [claiming, setClaiming] = useState(false);
+
+  const loadChallenge = async () => {
+    const { data } = await supabase.rpc("get_weekly_referral_challenge");
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row) setChallenge(row as any);
+  };
 
   const slug = profile?.username || profile?.referral_code || user?.id || "";
   const [origin, setOrigin] = useState("");
@@ -66,6 +83,7 @@ function ReferralsPage() {
     supabase.rpc("get_my_downline").then(({ data }) => {
       setDownline(((data ?? []) as DownlineRow[]).sort((a, b) => a.slot - b.slot));
     });
+    loadChallenge();
   }, [user]);
 
   const copy = (text: string) => {
@@ -95,6 +113,95 @@ function ReferralsPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Refer & earn</h1>
         <p className="text-muted-foreground mt-1">Invite friends with your code. You both win.</p>
       </header>
+
+      {/* Weekly Referral Challenge */}
+      {challenge && (
+        <Card className="relative overflow-hidden border-0 p-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-fuchsia-500/15 to-primary/25" />
+          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-amber-400/30 blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl" />
+          <div className="relative p-6 md:p-7">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-fuchsia-500 grid place-items-center shadow-lg shadow-amber-500/30">
+                  <Trophy className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-amber-400" />
+                    <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-amber-300">Weekly Challenge</span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-bold mt-1">Bring 10 depositing referrals · win <span className="brand-text">$50</span></h2>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1 max-w-lg">
+                    Refer 10 friends in any 7-day window who each make a deposit — instant $50 bonus, auto-credited. Resets weekly. 🚀
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 flex flex-col items-start md:items-end gap-1">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Reward</span>
+                <span className="text-3xl md:text-4xl font-black bg-gradient-to-r from-amber-300 to-fuchsia-400 bg-clip-text text-transparent">
+                  +${(challenge.reward_cents / 100).toFixed(0)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  <span className="font-bold text-foreground">{challenge.deposited_last_7d}</span> / {challenge.target} depositing referrals · last 7 days
+                </span>
+                <span className="text-muted-foreground">
+                  {challenge.total_direct_last_7d} signed up
+                </span>
+              </div>
+              <div className="relative h-3 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10">
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-400 via-fuchsia-500 to-primary transition-all duration-700"
+                  style={{ width: `${Math.min(100, (challenge.deposited_last_7d / challenge.target) * 100)}%` }}
+                />
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className="absolute inset-y-0 w-px bg-black/40" style={{ left: `${(i + 1) * 10}%` }} />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center gap-3">
+              {challenge.can_claim ? (
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-amber-400 to-fuchsia-500 hover:from-amber-300 hover:to-fuchsia-400 text-black font-bold shadow-lg shadow-amber-500/30 animate-pulse"
+                  disabled={claiming}
+                  onClick={async () => {
+                    setClaiming(true);
+                    const { data, error } = await supabase.rpc("claim_weekly_referral_bonus");
+                    setClaiming(false);
+                    if (error) { toast.error(error.message); return; }
+                    if (data === true) {
+                      toast.success("🎉 $50 credited to your wallet!");
+                      loadChallenge();
+                    } else {
+                      toast.info("Not eligible yet — keep referring!");
+                    }
+                  }}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" /> Claim $50 now
+                </Button>
+              ) : challenge.deposited_last_7d >= challenge.target ? (
+                <div className="text-xs text-amber-300 flex items-center gap-2">
+                  <Trophy className="h-4 w-4" /> Reward already claimed this week — next eligible {challenge.next_eligible_at ? new Date(challenge.next_eligible_at).toLocaleDateString() : "soon"}
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground">
+                  {challenge.target - challenge.deposited_last_7d} more depositing referrals to unlock the reward
+                </div>
+              )}
+              <Button variant="outline" size="lg" onClick={() => link && copy(link)} disabled={!link}>
+                <UserPlus className="h-4 w-4 mr-2" /> Share invite link
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="glass-strong border-border p-5">

@@ -1027,6 +1027,39 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_referral_rewards: {
+        Row: {
+          amount_cents: number
+          awarded_at: string
+          created_at: string
+          id: string
+          qualifying_referral_count: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          amount_cents?: number
+          awarded_at?: string
+          created_at?: string
+          id?: string
+          qualifying_referral_count: number
+          user_id: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          amount_cents?: number
+          awarded_at?: string
+          created_at?: string
+          id?: string
+          qualifying_referral_count?: number
+          user_id?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       withdrawal_otps: {
         Row: {
           created_at: string
@@ -1178,6 +1211,7 @@ export type Database = {
         }[]
       }
       claim_referral_code: { Args: { p_code: string }; Returns: boolean }
+      claim_weekly_referral_bonus: { Args: never; Returns: boolean }
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
         Returns: undefined
@@ -1298,6 +1332,18 @@ export type Database = {
           tier: string
         }[]
       }
+      get_weekly_referral_challenge: {
+        Args: never
+        Returns: {
+          can_claim: boolean
+          deposited_last_7d: number
+          last_claim_at: string
+          next_eligible_at: string
+          reward_cents: number
+          target: number
+          total_direct_last_7d: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1388,6 +1434,10 @@ export type Database = {
         Returns: undefined
       }
       trade_cooldown_seconds: { Args: never; Returns: number }
+      try_claim_weekly_referral_bonus: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       verify_password_reset_otp: {
         Args: { _email: string; _otp: string }
         Returns: string
