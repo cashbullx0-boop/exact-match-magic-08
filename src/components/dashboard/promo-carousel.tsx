@@ -22,14 +22,14 @@ export function PromoCarousel() {
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-card/40 aspect-[16/9]">
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-[#0a0f1e] aspect-[16/10] sm:aspect-[16/9]">
       {slides.map((s, idx) => (
         <img
           key={idx}
           src={s.src}
           alt={s.alt}
           loading={idx === 0 ? "eager" : "lazy"}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out ${idx === i ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-700 ease-out ${idx === i ? "opacity-100" : "opacity-0"}`}
         />
       ))}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
