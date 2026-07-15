@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { consumePasswordReset } from "@/lib/password-reset.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +19,19 @@ function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const consume = useServerFn(consumePasswordReset);
+
+  // Read approval token from URL: /reset-password?rid=<uuid>&token=<hex>
+  const { rid, token } = useMemo(() => {
+    if (typeof window === "undefined") return { rid: "", token: "" };
+    const p = new URLSearchParams(window.location.search);
+    return { rid: p.get("rid") ?? "", token: p.get("token") ?? "" };
+  }, []);
+  const adminApprovedFlow = Boolean(rid && token);
 
   useEffect(() => {
-    // Supabase sets the recovery session automatically from the URL hash.
+    if (adminApprovedFlow) { setReady(true); return; }
+    // Fallback: legacy Supabase recovery session (from hash).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
@@ -27,18 +39,29 @@ function ResetPasswordPage() {
       if (data.session) setReady(true);
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [adminApprovedFlow]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     if (password !== confirm) { toast.error("Passwords do not match"); return; }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Password updated. You're signed in.");
-    navigate({ to: "/dashboard", replace: true });
+    try {
+      if (adminApprovedFlow) {
+        await consume({ data: { requestId: rid, token, newPassword: password } });
+        toast.success("Password updated. Please sign in with your new password.");
+        navigate({ to: "/login", replace: true });
+      } else {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        toast.success("Password updated. You're signed in.");
+        navigate({ to: "/dashboard", replace: true });
+      }
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not reset password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

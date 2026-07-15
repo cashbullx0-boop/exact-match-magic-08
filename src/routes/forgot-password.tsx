@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { requestPasswordReset } from "@/lib/password-reset.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,17 +16,20 @@ function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const submitReset = useServerFn(requestPasswordReset);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    setSent(true);
-    toast.success("Reset link sent — check your email");
+    try {
+      await submitReset({ data: { email: email.trim() } });
+      setSent(true);
+      toast.success("Request submitted");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,12 +37,12 @@ function ForgotPasswordPage() {
       <div className="w-full max-w-md glass-strong rounded-3xl p-8 animate-float-up">
         <Link to="/" className="block text-center text-2xl font-bold brand-text mb-2">CashBullX</Link>
         <h1 className="text-2xl font-bold text-center mt-4">
-          {sent ? "Check your email" : "Reset your password"}
+          {sent ? "Request submitted" : "Reset your password"}
         </h1>
         <p className="text-sm text-muted-foreground text-center mt-1">
           {sent
-            ? `We sent a password reset link to ${email}. Click the link in the email to choose a new password.`
-            : "Enter your account email and we'll send you a secure reset link."}
+            ? `Your reset request has been sent to the admin for approval. Once approved, a secure reset link will be emailed to ${email}. Please wait — this usually happens shortly.`
+            : "Enter your account email. Your request will be reviewed by admin, and a reset link will be emailed to you once approved."}
         </p>
 
         {sent ? (

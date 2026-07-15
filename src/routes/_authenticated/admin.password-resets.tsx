@@ -33,9 +33,45 @@ function AdminPasswordResetsPage() {
 
   const approve = async (id: string) => {
     setBusy(id);
-    const { error } = await supabase.rpc("admin_approve_password_reset", { _request_id: id });
-    setBusy(null);
-    if (error) toast.error(error.message); else { toast.success("Approved — OTP sent"); load(); }
+    const { data, error } = await supabase.rpc("admin_approve_password_reset" as any, { _request_id: id } as any);
+    if (error) { setBusy(null); toast.error(error.message); return; }
+    const row = Array.isArray(data) ? data[0] : (data as any);
+    const rawToken = row?.token as string | undefined;
+    const email = row?.email as string | undefined;
+    if (!rawToken || !email) { setBusy(null); toast.error("Approval returned no token"); return; }
+
+    // Send the reset link via Lovable Emails.
+    try {
+      const resetUrl = `${window.location.origin}/reset-password?rid=${encodeURIComponent(id)}&token=${encodeURIComponent(rawToken)}`;
+      const { data: sess } = await supabase.auth.getSession();
+      const accessToken = sess.session?.access_token;
+      const res = await fetch("/lovable/email/transactional/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          templateName: "password-reset-link",
+          recipientEmail: email,
+          idempotencyKey: `pwd-reset-link-${id}`,
+          templateData: { resetUrl, siteName: "CashBullX" },
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        console.error("Failed to send reset link email", res.status, body);
+        toast.error("Approved, but email failed to send");
+      } else {
+        toast.success(`Approved — reset link emailed to ${email}`);
+      }
+    } catch (err) {
+      console.error("Failed to send reset link email", err);
+      toast.error("Approved, but email failed to send");
+    } finally {
+      setBusy(null);
+      load();
+    }
   };
 
   if (loading || !isAdmin) return <div className="text-muted-foreground">Checking access…</div>;
@@ -46,7 +82,7 @@ function AdminPasswordResetsPage() {
         <KeyRound className="h-6 w-6 text-amber-400" />
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Password reset requests</h1>
-          <p className="text-muted-foreground text-sm">Approve user password reset requests; an OTP will be sent.</p>
+          <p className="text-muted-foreground text-sm">Approve a request to email the user a secure single-use reset link (valid 1 hour).</p>
         </div>
       </header>
 
@@ -61,7 +97,9 @@ function AdminPasswordResetsPage() {
           <div className="flex items-center gap-2">
             <Badge variant={r.status === "pending" ? "secondary" : "default"} className="capitalize">{r.status}</Badge>
             {r.status === "pending" && (
-              <Button disabled={busy === r.id} onClick={() => approve(r.id)} className="bg-gradient-to-r from-amber-400 to-amber-600 text-[#2a1a00] font-semibold">Approve & send OTP</Button>
+              <Button disabled={busy === r.id} onClick={() => approve(r.id)} className="bg-gradient-to-r from-amber-400 to-amber-600 text-[#2a1a00] font-semibold">
+                {busy === r.id ? "Approving…" : "Approve & send link"}
+              </Button>
             )}
           </div>
         </Card>

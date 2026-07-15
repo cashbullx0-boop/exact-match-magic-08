@@ -1121,7 +1121,11 @@ export type Database = {
       }
       admin_approve_password_reset: {
         Args: { _request_id: string }
-        Returns: undefined
+        Returns: {
+          email: string
+          token: string
+          user_id: string
+        }[]
       }
       admin_approve_wallet_change: {
         Args: { _request_id: string }
@@ -1177,6 +1181,10 @@ export type Database = {
       confirm_wallet_change: {
         Args: { _otp: string; _request_id: string }
         Returns: undefined
+      }
+      consume_password_reset_token: {
+        Args: { _request_id: string; _token: string }
+        Returns: string
       }
       create_investment: {
         Args: {
