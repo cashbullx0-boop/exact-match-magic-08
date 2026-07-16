@@ -29,7 +29,12 @@ function SignupPage() {
   const { ref: refSearch } = Route.useSearch();
   const [ref, setRef] = useState<string | undefined>(refSearch);
   useEffect(() => {
-    if (refSearch) { setRef(refSearch); try { sessionStorage.setItem("cbx_ref", refSearch); } catch { } return; }
+    if (refSearch) {
+      setRef(refSearch);
+      try { sessionStorage.setItem("cbx_ref", refSearch); } catch { }
+      try { localStorage.setItem("pendingReferralCode", refSearch); } catch { }
+      return;
+    }
     try { const v = sessionStorage.getItem("cbx_ref"); if (v) setRef(v); } catch { }
   }, [refSearch]);
   const [fullName, setFullName] = useState("");
@@ -73,27 +78,9 @@ function SignupPage() {
   const attachReferral = async (uid: string) => {
     if (!ref) return;
     try {
-      const { data: referrer } = await supabase
-        .from("profiles")
-        .select("id")
-        .or(`username.eq.${ref},referral_code.eq.${ref}`)
-        .single();
-
-      if (referrer?.id && referrer.id !== uid) {
-        const { count } = await supabase
-          .from("referrals")
-          .select("*", { count: "exact", head: true })
-          .eq("referrer_id", referrer.id);
-
-        if ((count ?? 0) < 6) {
-          await supabase.from("referrals").insert({
-            referrer_id: referrer.id,
-            referred_id: uid,
-            bonus_cents: 0,
-          });
-        }
-      }
+      await supabase.rpc("claim_referral_code", { p_code: ref });
       sessionStorage.removeItem("cbx_ref");
+      localStorage.removeItem("pendingReferralCode");
     } catch (err) {
       console.error("Referral attach error:", err);
     }
@@ -129,6 +116,7 @@ function SignupPage() {
     const codeTrim = refInput.trim();
     if (codeTrim) {
       try { sessionStorage.setItem("cbx_ref", codeTrim); } catch {}
+      try { localStorage.setItem("pendingReferralCode", codeTrim); } catch {}
       setRef(codeTrim);
     }
     setLoading(true);
@@ -176,6 +164,11 @@ function SignupPage() {
   };
 
   const google = async () => {
+    const codeTrim = refInput.trim() || ref;
+    if (codeTrim) {
+      try { sessionStorage.setItem("cbx_ref", codeTrim); } catch {}
+      try { localStorage.setItem("pendingReferralCode", codeTrim); } catch {}
+    }
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });

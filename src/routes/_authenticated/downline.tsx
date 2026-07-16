@@ -21,6 +21,9 @@ type LevelRow = {
   referred_by: string | null;
   referrer_name: string | null;
   total_count: number;
+  balance_cents: number;
+  status: string;
+  commission_cents: number;
 };
 
 type ChildRow = {
@@ -29,6 +32,9 @@ type ChildRow = {
   masked_email: string;
   joined_at: string;
   child_count: number;
+  balance_cents: number;
+  status: string;
+  commission_cents: number;
 };
 
 const PAGE_SIZE = 25;
@@ -38,10 +44,15 @@ function fmtDate(s: string) {
   return new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
+function fmtMoney(cents = 0) {
+  return `$${(Number(cents || 0) / 100).toFixed(2)}`;
+}
+
 function DownlinePage() {
   const [summary, setSummary] = useState<Record<number, number>>({});
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [commissions, setCommissions] = useState<Record<number, { count: number; total_cents: number }>>({});
+  const [refreshToken, setRefreshToken] = useState(0);
 
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true);
@@ -61,6 +72,24 @@ function DownlinePage() {
   }, []);
 
   useEffect(() => { loadSummary(); }, [loadSummary]);
+
+  useEffect(() => {
+    const refresh = () => {
+      loadSummary();
+      setRefreshToken((v) => v + 1);
+    };
+    const channel = supabase
+      .channel("downline-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "referrals" }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "transactions" }, refresh)
+      .subscribe();
+    const fallback = window.setInterval(refresh, 30000);
+    return () => {
+      window.clearInterval(fallback);
+      supabase.removeChannel(channel);
+    };
+  }, [loadSummary]);
 
   const total = LEVELS.reduce((s, l) => s + (summary[l] ?? 0), 0);
   const totalCommissionCents = LEVELS.reduce((s, l) => s + (commissions[l]?.total_cents ?? 0), 0);
@@ -117,14 +146,14 @@ function DownlinePage() {
 
         <TabsContent value="table" className="space-y-3 mt-4">
           {LEVELS.map((l) => (
-            <LevelSection key={l} level={l} count={summary[l] ?? 0} />
+            <LevelSection key={l} level={l} count={summary[l] ?? 0} refreshToken={refreshToken} />
           ))}
         </TabsContent>
 
         <TabsContent value="tree" className="mt-4">
           <Card className="glass-strong border-border p-5">
             <p className="text-sm text-muted-foreground mb-3">Click any node to load its direct referrals. Children load on demand.</p>
-            <RootNode />
+            <RootNode refreshToken={refreshToken} />
           </Card>
         </TabsContent>
       </Tabs>
@@ -132,7 +161,7 @@ function DownlinePage() {
   );
 }
 
-function LevelSection({ level, count }: { level: number; count: number }) {
+function LevelSection({ level, count, refreshToken }: { level: number; count: number; refreshToken: number }) {
   const [open, setOpen] = useState(level === 1);
   const [rows, setRows] = useState<LevelRow[]>([]);
   const [page, setPage] = useState(0);
@@ -157,6 +186,10 @@ function LevelSection({ level, count }: { level: number; count: number }) {
   useEffect(() => {
     if (open && !loaded) load(0);
   }, [open, loaded, load]);
+
+  useEffect(() => {
+    if (open && loaded) load(page);
+  }, [refreshToken, open, loaded, page, load]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -186,6 +219,9 @@ function LevelSection({ level, count }: { level: number; count: number }) {
                       <th className="text-left py-2 pr-3">Name / Email</th>
                       <th className="text-left py-2 pr-3">Joined</th>
                       <th className="text-left py-2 pr-3">Referred by</th>
+                      <th className="text-left py-2 pr-3">Balance</th>
+                      <th className="text-left py-2 pr-3">Commission</th>
+                      <th className="text-left py-2 pr-3">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -197,6 +233,11 @@ function LevelSection({ level, count }: { level: number; count: number }) {
                         </td>
                         <td className="py-2 pr-3 text-muted-foreground">{fmtDate(r.joined_at)}</td>
                         <td className="py-2 pr-3 text-muted-foreground">{r.referrer_name ?? "—"}</td>
+                        <td className="py-2 pr-3 font-semibold text-foreground">{fmtMoney(r.balance_cents)}</td>
+                        <td className="py-2 pr-3 font-semibold text-accent">{fmtMoney(r.commission_cents)}</td>
+                        <td className="py-2 pr-3">
+                          <span className="rounded-full border border-border px-2 py-0.5 text-xs capitalize text-muted-foreground">{r.status ?? "active"}</span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -219,18 +260,18 @@ function LevelSection({ level, count }: { level: number; count: number }) {
   );
 }
 
-function RootNode() {
+function RootNode({ refreshToken }: { refreshToken: number }) {
   return (
     <div>
       <div className="font-semibold text-primary mb-2">You</div>
       <div className="pl-4 border-l border-border">
-        <TreeChildren parentId="__self__" depth={0} />
+        <TreeChildren parentId="__self__" depth={0} refreshToken={refreshToken} />
       </div>
     </div>
   );
 }
 
-function TreeNode({ node, depth }: { node: ChildRow; depth: number }) {
+function TreeNode({ node, depth, refreshToken }: { node: ChildRow; depth: number; refreshToken: number }) {
   const [open, setOpen] = useState(false);
   const hasChildren = node.child_count > 0 && depth < 5; // depth 0..5 → up to level 6
   return (
@@ -243,21 +284,23 @@ function TreeNode({ node, depth }: { node: ChildRow; depth: number }) {
         {hasChildren ? (open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />) : <span className="w-3.5" />}
         <span className="text-sm font-medium">{node.display_name}</span>
         <span className="text-xs text-muted-foreground">{node.masked_email}</span>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {fmtDate(node.joined_at)}
+        <span className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="hidden sm:inline">{fmtDate(node.joined_at)}</span>
+          <span className="rounded-full bg-white/5 px-2 py-0.5 text-foreground">{fmtMoney(node.balance_cents)}</span>
+          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-accent">+{fmtMoney(node.commission_cents)}</span>
           {node.child_count > 0 && <span className="ml-2 px-1.5 py-0.5 rounded bg-primary/10 text-primary">{node.child_count}</span>}
         </span>
       </button>
       {open && hasChildren && (
         <div className="pl-4 ml-2 border-l border-border">
-          <TreeChildren parentId={node.user_id} depth={depth + 1} />
+          <TreeChildren parentId={node.user_id} depth={depth + 1} refreshToken={refreshToken} />
         </div>
       )}
     </div>
   );
 }
 
-function TreeChildren({ parentId, depth }: { parentId: string; depth: number }) {
+function TreeChildren({ parentId, depth, refreshToken }: { parentId: string; depth: number; refreshToken: number }) {
   const [rows, setRows] = useState<ChildRow[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -278,7 +321,7 @@ function TreeChildren({ parentId, depth }: { parentId: string; depth: number }) 
       }
     })();
     return () => { cancelled = true; };
-  }, [parentId]);
+  }, [parentId, refreshToken]);
 
   if (loading) return (
     <div className="space-y-1 py-1">
@@ -286,5 +329,5 @@ function TreeChildren({ parentId, depth }: { parentId: string; depth: number }) 
     </div>
   );
   if (!rows || rows.length === 0) return <p className="text-xs text-muted-foreground py-1 pl-2">No referrals.</p>;
-  return <>{rows.map((r) => <TreeNode key={r.user_id} node={r} depth={depth} />)}</>;
+  return <>{rows.map((r) => <TreeNode key={r.user_id} node={r} depth={depth} refreshToken={refreshToken} />)}</>;
 }

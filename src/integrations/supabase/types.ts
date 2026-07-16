@@ -1255,10 +1255,13 @@ export type Database = {
       get_downline_children: {
         Args: { _parent_id: string }
         Returns: {
+          balance_cents: number
           child_count: number
+          commission_cents: number
           display_name: string
           joined_at: string
           masked_email: string
+          status: string
           user_id: string
         }[]
       }
@@ -1273,11 +1276,14 @@ export type Database = {
       get_downline_level: {
         Args: { _level: number; _limit?: number; _offset?: number }
         Returns: {
+          balance_cents: number
+          commission_cents: number
           display_name: string
           joined_at: string
           masked_email: string
           referred_by: string
           referrer_name: string
+          status: string
           total_count: number
           user_id: string
         }[]

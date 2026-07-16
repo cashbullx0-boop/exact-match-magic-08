@@ -24,6 +24,7 @@ function RefLanding() {
 
   useEffect(() => {
     try { sessionStorage.setItem("cbx_ref", username); } catch {}
+    try { localStorage.setItem("pendingReferralCode", username); } catch {}
     supabase.rpc("get_referrer_public_info", { _value: username })
       .then(({ data }) => { setInfo(Array.isArray(data) ? data[0] ?? null : null); setLoading(false); });
   }, [username]);
