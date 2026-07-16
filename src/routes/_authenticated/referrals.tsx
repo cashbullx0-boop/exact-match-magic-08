@@ -19,7 +19,6 @@ function ReferralsPage() {
   const { user, profile } = useAuth();
   const [refs, setRefs] = useState<any[]>([]);
   const [referredProfiles, setReferredProfiles] = useState<Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; status: string }>>({});
-  const [downline, setDownline] = useState<DownlineRow[]>([]);
   const qrRef = useRef<HTMLDivElement | null>(null);
   const [challenge, setChallenge] = useState<{
     total_direct_last_7d: number;
