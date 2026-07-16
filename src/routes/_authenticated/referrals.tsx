@@ -10,28 +10,6 @@ import { toast } from "sonner";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import { Trophy, Flame, Sparkles } from "lucide-react";
 
-type DownlineRow = {
-  slot: number;
-  referred_id: string;
-  full_name: string | null;
-  username: string | null;
-  avatar_url: string | null;
-  country: string | null;
-  balance_cents: number | null;
-  total_deposit_cents: number | null;
-  joined_at: string;
-  status: string | null;
-  bonus_cents: number | null;
-  real_bonus_cents: number | null;
-};
-
-function countryFlag(code: string | null | undefined) {
-  if (!code) return "🌐";
-  const c = code.trim().toUpperCase();
-  if (c.length !== 2 || !/^[A-Z]{2}$/.test(c)) return "🌐";
-  return String.fromCodePoint(...c.split("").map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
-}
-
 export const Route = createFileRoute("/_authenticated/referrals")({
   head: () => ({ meta: [{ title: "Referrals — CashBullX" }] }),
   component: ReferralsPage,
