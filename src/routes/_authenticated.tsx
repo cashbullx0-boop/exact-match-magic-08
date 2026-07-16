@@ -75,7 +75,9 @@ function AuthedLayout() {
     if (!user) return;
     let ref: string | null = null;
     try { ref = localStorage.getItem("pendingReferralCode"); } catch {}
-    try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+    if (!ref) {
+      try { ref = sessionStorage.getItem("cbx_ref"); } catch {}
+    }
     if (!ref) return;
     (async () => {
       try {
