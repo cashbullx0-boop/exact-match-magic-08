@@ -253,33 +253,6 @@ function ReferralsPage() {
         </Card>
       </div>
 
-
-      <Card className="glass-strong border-border p-6">
-        <h2 className="font-semibold mb-4">All referred users</h2>
-        {refs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">You haven't referred anyone yet. Share your link to start earning.</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {refs.map((r) => {
-              const p = referredProfiles[r.referred_id];
-              const name = p?.full_name || (p?.username ? `@${p.username}` : `${r.referred_id.slice(0, 8)}…`);
-              const active = p?.status === "active";
-              return (
-                <li key={r.id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{name}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</p>
-                  </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full border ${active ? "border-primary/40 text-primary bg-primary/10" : "border-border text-muted-foreground"}`}>
-                    {active ? "Active" : "Pending"}
-                  </span>
-                  <span className="text-sm font-semibold text-accent">+${(r.bonus_cents / 100).toFixed(2)}</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Card>
     </div>
   );
 }
