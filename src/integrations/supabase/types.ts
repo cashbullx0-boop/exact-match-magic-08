@@ -1295,6 +1295,17 @@ export type Database = {
           level: number
         }[]
       }
+      get_my_direct_referrals: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          full_name: string
+          id: string
+          status: string
+          username: string
+        }[]
+      }
       get_my_downline: {
         Args: never
         Returns: {
