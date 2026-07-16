@@ -46,17 +46,16 @@ function ReferralsPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("referrals").select("*").eq("referrer_id", user.id).order("created_at", { ascending: false }).then(async ({ data }) => {
-      const rows = data ?? [];
-      setRefs(rows);
-      const ids = Array.from(new Set(rows.map((r) => r.referred_id)));
-      if (ids.length) {
-        const { data: profs } = await supabase.from("profiles").select("id, full_name, username, avatar_url, status").in("id", ids);
-        const map: Record<string, any> = {};
-        (profs ?? []).forEach((p) => { map[p.id] = p; });
-        setReferredProfiles(map);
-      }
-    });
+    (async () => {
+      const [{ data: refRows }, { data: directProfs }] = await Promise.all([
+        supabase.from("referrals").select("*").eq("referrer_id", user.id).order("created_at", { ascending: false }),
+        supabase.rpc("get_my_direct_referrals"),
+      ]);
+      setRefs(refRows ?? []);
+      const map: Record<string, any> = {};
+      (directProfs ?? []).forEach((p: any) => { map[p.id] = p; });
+      setReferredProfiles(map);
+    })();
     loadChallenge();
   }, [user]);
 
