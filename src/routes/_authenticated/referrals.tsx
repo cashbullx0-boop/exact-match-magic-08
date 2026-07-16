@@ -57,9 +57,6 @@ function ReferralsPage() {
         setReferredProfiles(map);
       }
     });
-    supabase.rpc("get_my_downline").then(({ data }) => {
-      setDownline(((data ?? []) as DownlineRow[]).sort((a, b) => a.slot - b.slot));
-    });
     loadChallenge();
   }, [user]);
 
@@ -68,10 +65,8 @@ function ReferralsPage() {
     toast.success("Copied to clipboard");
   };
 
-  const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
   const activeCount = refs.filter((r) => referredProfiles[r.referred_id]?.status === "active").length;
-
-  const slots: (DownlineRow | null)[] = Array.from({ length: 6 }, (_, i) => downline.find((d) => d.slot === i + 1) ?? null);
+  const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
 
   const downloadQR = () => {
     const canvas = qrRef.current?.querySelector("canvas") as HTMLCanvasElement | null;
