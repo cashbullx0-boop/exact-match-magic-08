@@ -281,65 +281,6 @@ function ReferralsPage() {
         </Card>
       </div>
 
-      <Card className="glass-strong border-border p-6">
-        <ul className="space-y-2">
-          {slots.map((d, i) => {
-            const slotNum = i + 1;
-            if (!d) {
-              return (
-                <li key={`empty-${slotNum}`} className="rounded-xl border border-dashed border-border/70 p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-10 w-10 rounded-full bg-muted/30 grid place-items-center text-muted-foreground text-xs font-bold">{slotNum}</div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">Empty slot</p>
-                      <p className="text-xs text-muted-foreground">Invite a friend to fill slot {slotNum}</p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline" onClick={() => link && copy(link)} disabled={!link}>
-                    <UserPlus className="h-4 w-4 mr-1" /> Invite
-                  </Button>
-                </li>
-              );
-            }
-            const name = d.full_name || (d.username ? `@${d.username}` : `${d.referred_id.slice(0, 8)}…`);
-            const isActive = d.status === "active";
-            const memberBonus = Number(d.real_bonus_cents ?? 0);
-            return (
-              <li key={d.referred_id} className="rounded-xl border border-border bg-white/[0.02] p-3 flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="h-10 w-10 rounded-full bg-primary/15 text-primary grid place-items-center text-xs font-bold ring-1 ring-primary/30">{slotNum}</div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate flex items-center gap-1.5">
-                      <span className="text-base leading-none">{countryFlag(d.country)}</span>
-                      <span className="truncate">{name}</span>
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">Joined {new Date(d.joined_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Balance</span>
-                  <span className="text-sm font-semibold">${((d.balance_cents ?? 0) / 100).toFixed(2)}</span>
-                </div>
-                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Deposits</span>
-                  <span className="text-sm font-semibold">${(Number(d.total_deposit_cents ?? 0) / 100).toFixed(2)}</span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Your bonus</span>
-                  <span className="text-sm font-semibold text-accent">+${(memberBonus / 100).toFixed(2)}</span>
-                </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${isActive ? "border-primary/40 text-primary bg-primary/10" : "border-border text-muted-foreground"}`}>
-                  {isActive ? "Active" : "Inactive"}
-                </span>
-                <div className="w-full sm:hidden flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/50 mt-1">
-                  <span>Balance ${((d.balance_cents ?? 0) / 100).toFixed(2)}</span>
-                  <span>Deposits ${(Number(d.total_deposit_cents ?? 0) / 100).toFixed(2)}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
 
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold mb-4">All referred users</h2>
