@@ -354,6 +354,23 @@
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
     }
+    /* Mobile Chromium leaves ghost pixels on stat cards that use
+       transform-based hover/animation. Force each card into its own
+       compositor layer with paint containment so siblings can't bleed. */
+    .glass,
+    .glass-strong {
+      isolation: isolate;
+      contain: paint;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    /* Disable transform-based hover lift on touch devices — it's the main
+       trigger for the ghost-trail artifact on the wallet/earned cards. */
+    .hover\:-translate-y-0\.5:hover {
+      transform: none !important;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .animate-aurora,
