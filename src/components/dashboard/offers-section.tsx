@@ -73,9 +73,10 @@ export function OffersSection() {
     return () => clearInterval(t);
   }, []);
 
-  const { idx, nextAt } = useMemo(() => getSlot(now), [now]);
-  const offer = OFFERS[idx];
-  const nextOffer = OFFERS[(idx + 1) % OFFERS.length];
+  const { dayIndex, slotIdx, nextAt } = useMemo(() => getSlot(now), [now]);
+  const todays = useMemo(() => dailyOffers(dayIndex), [dayIndex]);
+  const offer = todays[slotIdx];
+  const nextOffer = todays[(slotIdx + 1) % todays.length];
   const remaining = nextAt - now;
   const pct = Math.max(0, Math.min(100, ((CYCLE_MS - remaining) / CYCLE_MS) * 100));
   const Icon = offer.icon;
