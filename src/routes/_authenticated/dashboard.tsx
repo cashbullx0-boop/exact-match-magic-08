@@ -12,6 +12,7 @@ import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
+import { OffersSection } from "@/components/dashboard/offers-section";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -79,6 +80,8 @@ function DashboardPage() {
       <DepositDeadlineRing />
 
       <PromoCarousel />
+
+      <OffersSection />
 
       {/* Level progress */}
       <div className="grid gap-4 md:grid-cols-2">
