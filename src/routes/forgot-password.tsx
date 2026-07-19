@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { requestPasswordReset } from "@/lib/password-reset.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,13 +15,15 @@ function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const submitReset = useServerFn(requestPasswordReset);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await submitReset({ data: { email: email.trim() } });
+      const { error } = await supabase.rpc("request_password_reset_by_email", {
+        _email: email.trim(),
+      });
+      if (error) throw error;
       setSent(true);
       toast.success("Request submitted");
     } catch (err: any) {
