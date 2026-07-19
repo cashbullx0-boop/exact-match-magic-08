@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/referrals")({
 function ReferralsPage() {
   const { user, profile } = useAuth();
   const [refs, setRefs] = useState<any[]>([]);
-  const [referredProfiles, setReferredProfiles] = useState<Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; status: string }>>({});
+  const [referredProfiles, setReferredProfiles] = useState<Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; status: string; has_deposited?: boolean; has_active_trade?: boolean }>>({});
   const qrRef = useRef<HTMLDivElement | null>(null);
   const [challenge, setChallenge] = useState<{
     total_direct_last_7d: number;
@@ -64,7 +64,12 @@ function ReferralsPage() {
     toast.success("Copied to clipboard");
   };
 
-  const activeCount = refs.filter((r) => referredProfiles[r.referred_id]?.status === "active").length;
+  // A referral counts as "active" when they've made at least one deposit
+  // OR currently have an active/open trade — not just based on account status.
+  const activeCount = refs.filter((r) => {
+    const rp = referredProfiles[r.referred_id];
+    return !!rp && (rp.has_deposited === true || rp.has_active_trade === true);
+  }).length;
   const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
 
   const downloadQR = () => {
