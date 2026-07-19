@@ -117,6 +117,17 @@ export function OffersSection() {
           </div>
         </div>
 
+        {offer.image && (
+          <div className="mt-4 rounded-xl overflow-hidden border border-border/60">
+            <img
+              src={offer.image}
+              alt={offer.title}
+              loading="lazy"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
+
         <div className="mt-4">
           <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
             <div
