@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Gift, Clock, Sparkles, TrendingUp, Users, Wallet, Zap, Flame, Crown, Rocket, Star, Trophy, Gem, HandCoins } from "lucide-react";
+import offerTeam1000 from "@/assets/offer-team-1000.jpeg.asset.json";
 
 type Offer = {
   title: string;
@@ -8,10 +9,12 @@ type Offer = {
   reward: string;
   icon: any;
   gradient: string;
+  image?: string;
 };
 
 // Pool of offers — 6 rotate per day (one every 4h), pool reshuffles daily.
 const OFFER_POOL: Offer[] = [
+  { title: "Build Your Team — $1000 Reward", desc: "Invite 100 accounts within one month and receive a $1000 reward.", reward: "+$1000", icon: Trophy, gradient: "from-yellow-500/30 to-amber-600/10", image: offerTeam1000.url },
   { title: "Deposit Boost", desc: "Get 10% bonus on your first deposit — auto credited.", reward: "+10%", icon: Wallet, gradient: "from-amber-400/30 to-orange-500/10" },
   { title: "Refer & Earn", desc: "Invite a friend and earn a flat $5 on their first deposit.", reward: "+$5", icon: Users, gradient: "from-emerald-400/30 to-teal-500/10" },
   { title: "Daily Trade ROI", desc: "Open a trade today and earn a fixed 2% ROI.", reward: "2% ROI", icon: TrendingUp, gradient: "from-sky-400/30 to-indigo-500/10" },
@@ -113,6 +116,17 @@ export function OffersSection() {
             <p className="text-sm text-muted-foreground mt-1">{offer.desc}</p>
           </div>
         </div>
+
+        {offer.image && (
+          <div className="mt-4 rounded-xl overflow-hidden border border-border/60">
+            <img
+              src={offer.image}
+              alt={offer.title}
+              loading="lazy"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
 
         <div className="mt-4">
           <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
