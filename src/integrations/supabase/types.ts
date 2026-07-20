@@ -1143,6 +1143,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _current_referral_challenge_window: {
+        Args: never
+        Returns: {
+          window_end: string
+          window_start: string
+        }[]
+      }
       _mask_identifier: { Args: { _val: string }; Returns: string }
       admin_adjust_user_balance: {
         Args: { _delta_cents: number; _reason: string; _user_id: string }
@@ -1301,6 +1308,8 @@ export type Database = {
           avatar_url: string
           created_at: string
           full_name: string
+          has_active_trade: boolean
+          has_deposited: boolean
           id: string
           status: string
           username: string
@@ -1400,6 +1409,10 @@ export type Database = {
         }
       }
       perform_spin: { Args: never; Returns: Json }
+      process_daily_referral_challenge_rewards: {
+        Args: never
+        Returns: undefined
+      }
       process_due_trades: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
