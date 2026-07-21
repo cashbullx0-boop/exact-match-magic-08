@@ -74,11 +74,40 @@ function fmt(ms: number) {
 }
 
 export function OffersSection() {
+  const { user } = useAuth();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  const [progress, setProgress] = useState<{ total_30d: number; deposited_7d: number; total_all: number }>({
+    total_30d: 0,
+    deposited_7d: 0,
+    total_all: 0,
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const nowIso = new Date();
+      const d30 = new Date(nowIso.getTime() - 30 * 86400000).toISOString();
+      const [{ data: challenge }, { count: total30 }, { count: totalAll }] = await Promise.all([
+        supabase.rpc("get_weekly_referral_challenge"),
+        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).gte("created_at", d30),
+        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id),
+      ]);
+      const row: any = Array.isArray(challenge) ? challenge[0] : challenge;
+      if (cancelled) return;
+      setProgress({
+        total_30d: total30 ?? 0,
+        deposited_7d: row?.deposited_last_7d ?? 0,
+        total_all: totalAll ?? 0,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const { dayIndex, slotIdx, nextAt } = useMemo(() => getSlot(now), [now]);
   const todays = useMemo(() => dailyOffers(dayIndex), [dayIndex]);
@@ -87,6 +116,14 @@ export function OffersSection() {
   const remaining = nextAt - now;
   const pct = Math.max(0, Math.min(100, ((CYCLE_MS - remaining) / CYCLE_MS) * 100));
   const Icon = offer.icon;
+
+  const currentValue = offer.progressKey === "team100_30d" ? progress.total_30d
+    : offer.progressKey === "weekly10_7d" ? progress.deposited_7d
+    : offer.progressKey === "refer_any" ? progress.total_all
+    : null;
+  const showProgress = offer.progressKey && offer.target && currentValue !== null;
+  const progressPct = showProgress ? Math.min(100, (currentValue! / offer.target!) * 100) : 0;
+  const completed = showProgress && currentValue! >= offer.target!;
 
   return (
     <Card className="glass-strong border-border p-5 md:p-6 relative overflow-hidden">
@@ -118,6 +155,22 @@ export function OffersSection() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{offer.desc}</p>
+            {showProgress && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Your progress</span>
+                  <span className={`font-semibold tabular-nums ${completed ? "text-accent" : "text-foreground"}`}>
+                    {currentValue}/{offer.target}{completed ? " ✓" : ""}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full transition-[width] duration-500 ease-out ${completed ? "bg-accent" : "bg-gradient-to-r from-primary to-accent"}`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
