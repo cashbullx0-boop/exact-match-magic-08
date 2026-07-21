@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone, Network } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone, Network, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,6 +68,7 @@ function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [maintenanceOn, setMaintenanceOn] = useState(false);
 
   // Attach a pending referral once the user is authenticated — works for all
   // signup methods, including Google OAuth redirects.
@@ -105,6 +106,20 @@ function AuthedLayout() {
     load();
     const ch = supabase.channel(`notif:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user]);
+
+  // Site-wide maintenance mode banner — checks on load and stays live via realtime.
+  useEffect(() => {
+    if (!user) return;
+    const loadMaintenance = () => {
+      supabase.rpc("get_maintenance_status").then(({ data }) => setMaintenanceOn(!!data));
+    };
+    loadMaintenance();
+    const ch = supabase
+      .channel("maintenance-mode-watch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, loadMaintenance)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [user]);
@@ -208,6 +223,10 @@ function AuthedLayout() {
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/pwa" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <Smartphone className="h-4 w-4" />PWA Settings
             </Link>
+            <Link to="/admin/maintenance" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/maintenance" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <AlertTriangle className="h-4 w-4" />Maintenance Mode
+            </Link>
           </>
         )}
       </nav>
@@ -247,6 +266,17 @@ function AuthedLayout() {
       )}
 
       <main className="flex-1 min-w-0 max-w-full overflow-x-hidden px-4 sm:px-6 md:px-8 py-6 md:py-10 pt-20 md:pt-10 pb-24 md:pb-10">
+        {maintenanceOn && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/15 px-4 py-3 text-destructive-foreground animate-float-up">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-red-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-300">CashBullX is under maintenance</p>
+              <p className="text-xs text-red-200/80 mt-0.5">
+                Deposits, withdrawals, trades, spins and tasks are temporarily paused while we perform updates. Your balance and data are safe — please check back shortly.
+              </p>
+            </div>
+          </div>
+        )}
         <Outlet />
       </main>
 
