@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Gift, Clock, Sparkles, TrendingUp, Users, Wallet, Zap, Flame, Crown, Rocket, Star, Trophy, Gem, HandCoins } from "lucide-react";
 import offerTeam1000 from "@/assets/offer-team-1000.jpeg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 type Offer = {
   title: string;
@@ -10,13 +12,15 @@ type Offer = {
   icon: any;
   gradient: string;
   image?: string;
+  progressKey?: "team100_30d" | "weekly10_7d" | "refer_any";
+  target?: number;
 };
 
 // Pool of offers — 6 rotate per day (one every 4h), pool reshuffles daily.
 const OFFER_POOL: Offer[] = [
-  { title: "Build Your Team — $1000 Reward", desc: "Invite 100 accounts within one month and receive a $1000 reward.", reward: "+$1000", icon: Trophy, gradient: "from-yellow-500/30 to-amber-600/10", image: offerTeam1000.url },
+  { title: "Build Your Team — $1000 Reward", desc: "Invite 100 accounts within one month and receive a $1000 reward.", reward: "+$1000", icon: Trophy, gradient: "from-yellow-500/30 to-amber-600/10", image: offerTeam1000.url, progressKey: "team100_30d", target: 100 },
   { title: "Deposit Boost", desc: "Get 10% bonus on your first deposit — auto credited.", reward: "+10%", icon: Wallet, gradient: "from-amber-400/30 to-orange-500/10" },
-  { title: "Refer & Earn", desc: "Invite a friend and earn a flat $5 on their first deposit.", reward: "+$5", icon: Users, gradient: "from-emerald-400/30 to-teal-500/10" },
+  { title: "Refer & Earn", desc: "Invite a friend and earn a flat $5 on their first deposit.", reward: "+$5", icon: Users, gradient: "from-emerald-400/30 to-teal-500/10", progressKey: "refer_any", target: 1 },
   { title: "Daily Trade ROI", desc: "Open a trade today and earn a fixed 2% ROI.", reward: "2% ROI", icon: TrendingUp, gradient: "from-sky-400/30 to-indigo-500/10" },
   { title: "Level Up Reward", desc: "Reach the next investment tier for bigger daily profit.", reward: "Bronze → Diamond", icon: Zap, gradient: "from-fuchsia-400/30 to-purple-500/10" },
   { title: "Downline Commission", desc: "Earn up to 6 levels deep on every trade your referrals settle.", reward: "6 Levels", icon: Sparkles, gradient: "from-rose-400/30 to-pink-500/10" },
@@ -24,7 +28,7 @@ const OFFER_POOL: Offer[] = [
   { title: "VIP Perks", desc: "Unlock premium perks as your lifetime earnings grow.", reward: "VIP", icon: Crown, gradient: "from-yellow-400/30 to-amber-500/10" },
   { title: "Fast Start", desc: "Complete your first deposit within 7 days to keep bonuses.", reward: "7 Days", icon: Rocket, gradient: "from-cyan-400/30 to-blue-500/10" },
   { title: "Star Investor", desc: "Grow your balance and climb the Investment Levels.", reward: "5 Tiers", icon: Star, gradient: "from-indigo-400/30 to-violet-500/10" },
-  { title: "Weekly Challenge", desc: "10 active referrals in 7 days = $50 bonus.", reward: "+$50", icon: Trophy, gradient: "from-lime-400/30 to-green-500/10" },
+  { title: "Weekly Challenge", desc: "10 active referrals in 7 days = $50 bonus.", reward: "+$50", icon: Trophy, gradient: "from-lime-400/30 to-green-500/10", progressKey: "weekly10_7d", target: 10 },
   { title: "Diamond Club", desc: "Hit $10,000 balance and unlock the Diamond tier.", reward: "Diamond", icon: Gem, gradient: "from-teal-400/30 to-cyan-500/10" },
   { title: "Instant Rewards", desc: "Trade profits credit automatically at settlement.", reward: "Auto", icon: HandCoins, gradient: "from-orange-400/30 to-rose-500/10" },
 ];
