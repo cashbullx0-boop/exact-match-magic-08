@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Gift, Clock, Sparkles, TrendingUp, Users, Wallet, Zap, Flame, Crown, Rocket, Star, Trophy, Gem, HandCoins } from "lucide-react";
 import offerTeam1000 from "@/assets/offer-team-1000.jpeg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 type Offer = {
   title: string;
@@ -10,13 +12,15 @@ type Offer = {
   icon: any;
   gradient: string;
   image?: string;
+  progressKey?: "team100_30d" | "weekly10_7d" | "refer_any";
+  target?: number;
 };
 
 // Pool of offers — 6 rotate per day (one every 4h), pool reshuffles daily.
 const OFFER_POOL: Offer[] = [
-  { title: "Build Your Team — $1000 Reward", desc: "Invite 100 accounts within one month and receive a $1000 reward.", reward: "+$1000", icon: Trophy, gradient: "from-yellow-500/30 to-amber-600/10", image: offerTeam1000.url },
+  { title: "Build Your Team — $1000 Reward", desc: "Invite 100 accounts within one month and receive a $1000 reward.", reward: "+$1000", icon: Trophy, gradient: "from-yellow-500/30 to-amber-600/10", image: offerTeam1000.url, progressKey: "team100_30d", target: 100 },
   { title: "Deposit Boost", desc: "Get 10% bonus on your first deposit — auto credited.", reward: "+10%", icon: Wallet, gradient: "from-amber-400/30 to-orange-500/10" },
-  { title: "Refer & Earn", desc: "Invite a friend and earn a flat $5 on their first deposit.", reward: "+$5", icon: Users, gradient: "from-emerald-400/30 to-teal-500/10" },
+  { title: "Refer & Earn", desc: "Invite a friend and earn a flat $5 on their first deposit.", reward: "+$5", icon: Users, gradient: "from-emerald-400/30 to-teal-500/10", progressKey: "refer_any", target: 1 },
   { title: "Daily Trade ROI", desc: "Open a trade today and earn a fixed 2% ROI.", reward: "2% ROI", icon: TrendingUp, gradient: "from-sky-400/30 to-indigo-500/10" },
   { title: "Level Up Reward", desc: "Reach the next investment tier for bigger daily profit.", reward: "Bronze → Diamond", icon: Zap, gradient: "from-fuchsia-400/30 to-purple-500/10" },
   { title: "Downline Commission", desc: "Earn up to 6 levels deep on every trade your referrals settle.", reward: "6 Levels", icon: Sparkles, gradient: "from-rose-400/30 to-pink-500/10" },
@@ -24,7 +28,7 @@ const OFFER_POOL: Offer[] = [
   { title: "VIP Perks", desc: "Unlock premium perks as your lifetime earnings grow.", reward: "VIP", icon: Crown, gradient: "from-yellow-400/30 to-amber-500/10" },
   { title: "Fast Start", desc: "Complete your first deposit within 7 days to keep bonuses.", reward: "7 Days", icon: Rocket, gradient: "from-cyan-400/30 to-blue-500/10" },
   { title: "Star Investor", desc: "Grow your balance and climb the Investment Levels.", reward: "5 Tiers", icon: Star, gradient: "from-indigo-400/30 to-violet-500/10" },
-  { title: "Weekly Challenge", desc: "10 active referrals in 7 days = $50 bonus.", reward: "+$50", icon: Trophy, gradient: "from-lime-400/30 to-green-500/10" },
+  { title: "Weekly Challenge", desc: "10 active referrals in 7 days = $50 bonus.", reward: "+$50", icon: Trophy, gradient: "from-lime-400/30 to-green-500/10", progressKey: "weekly10_7d", target: 10 },
   { title: "Diamond Club", desc: "Hit $10,000 balance and unlock the Diamond tier.", reward: "Diamond", icon: Gem, gradient: "from-teal-400/30 to-cyan-500/10" },
   { title: "Instant Rewards", desc: "Trade profits credit automatically at settlement.", reward: "Auto", icon: HandCoins, gradient: "from-orange-400/30 to-rose-500/10" },
 ];
@@ -70,11 +74,40 @@ function fmt(ms: number) {
 }
 
 export function OffersSection() {
+  const { user } = useAuth();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  const [progress, setProgress] = useState<{ total_30d: number; deposited_7d: number; total_all: number }>({
+    total_30d: 0,
+    deposited_7d: 0,
+    total_all: 0,
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const nowIso = new Date();
+      const d30 = new Date(nowIso.getTime() - 30 * 86400000).toISOString();
+      const [{ data: challenge }, { count: total30 }, { count: totalAll }] = await Promise.all([
+        supabase.rpc("get_weekly_referral_challenge"),
+        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).gte("created_at", d30),
+        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id),
+      ]);
+      const row: any = Array.isArray(challenge) ? challenge[0] : challenge;
+      if (cancelled) return;
+      setProgress({
+        total_30d: total30 ?? 0,
+        deposited_7d: row?.deposited_last_7d ?? 0,
+        total_all: totalAll ?? 0,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const { dayIndex, slotIdx, nextAt } = useMemo(() => getSlot(now), [now]);
   const todays = useMemo(() => dailyOffers(dayIndex), [dayIndex]);
@@ -83,6 +116,14 @@ export function OffersSection() {
   const remaining = nextAt - now;
   const pct = Math.max(0, Math.min(100, ((CYCLE_MS - remaining) / CYCLE_MS) * 100));
   const Icon = offer.icon;
+
+  const currentValue = offer.progressKey === "team100_30d" ? progress.total_30d
+    : offer.progressKey === "weekly10_7d" ? progress.deposited_7d
+    : offer.progressKey === "refer_any" ? progress.total_all
+    : null;
+  const showProgress = offer.progressKey && offer.target && currentValue !== null;
+  const progressPct = showProgress ? Math.min(100, (currentValue! / offer.target!) * 100) : 0;
+  const completed = showProgress && currentValue! >= offer.target!;
 
   return (
     <Card className="glass-strong border-border p-5 md:p-6 relative overflow-hidden">
@@ -114,6 +155,22 @@ export function OffersSection() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{offer.desc}</p>
+            {showProgress && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Your progress</span>
+                  <span className={`font-semibold tabular-nums ${completed ? "text-accent" : "text-foreground"}`}>
+                    {currentValue}/{offer.target}{completed ? " ✓" : ""}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={`h-full transition-[width] duration-500 ease-out ${completed ? "bg-accent" : "bg-gradient-to-r from-primary to-accent"}`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
