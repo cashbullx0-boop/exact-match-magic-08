@@ -197,6 +197,43 @@ export function OffersSection() {
             <span>Up next: <span className="text-foreground/80">{nextOffer.title}</span></span>
           </div>
         </div>
+
+        {user && (
+          <div className="mt-5 pt-4 border-t border-border/60">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="h-4 w-4 text-primary" />
+              <h4 className="text-sm font-semibold">Your referral progress</h4>
+            </div>
+            <div className="space-y-3">
+              {[
+                { label: "Refer & Earn", reward: "+$5", value: progress.total_all, target: 1 },
+                { label: "Weekly Challenge (7d)", reward: "+$50", value: progress.deposited_7d, target: 10 },
+                { label: "Build Your Team (30d)", reward: "+$1000", value: progress.total_30d, target: 100 },
+              ].map((row) => {
+                const done = row.value >= row.target;
+                const p = Math.min(100, (row.value / row.target) * 100);
+                return (
+                  <div key={row.label}>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-muted-foreground truncate">
+                        {row.label} <span className="text-foreground/60">· {row.reward}</span>
+                      </span>
+                      <span className={`font-semibold tabular-nums ${done ? "text-accent" : "text-foreground"}`}>
+                        {row.value}/{row.target}{done ? " ✓" : ""}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className={`h-full transition-[width] duration-500 ease-out ${done ? "bg-accent" : "bg-gradient-to-r from-primary to-accent"}`}
+                        style={{ width: `${p}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );
