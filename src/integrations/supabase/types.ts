@@ -1302,6 +1302,7 @@ export type Database = {
           level: number
         }[]
       }
+      get_maintenance_status: { Args: never; Returns: boolean }
       get_my_direct_referrals: {
         Args: never
         Returns: {
@@ -1377,6 +1378,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_maintenance_mode: { Args: never; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1428,6 +1430,7 @@ export type Database = {
         Returns: string
       }
       request_wallet_change: { Args: { _new_wallet: string }; Returns: string }
+      set_maintenance_mode: { Args: { _enabled: boolean }; Returns: undefined }
       set_okx_wallet: { Args: { _address: string }; Returns: undefined }
       settle_trade: {
         Args: { _trade_id: string }
