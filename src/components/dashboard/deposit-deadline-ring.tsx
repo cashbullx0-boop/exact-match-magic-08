@@ -31,8 +31,7 @@ export function DepositDeadlineRing() {
       const { count } = await supabase
         .from("deposits")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .in("status", ["approved", "completed"]);
+        .eq("user_id", user.id);
       if (!cancelled) setHasDeposit((count ?? 0) > 0);
     })();
     return () => { cancelled = true; };
