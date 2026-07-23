@@ -52,6 +52,7 @@ import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
 import { Route as AuthenticatedAdminPwaRouteImport } from './routes/_authenticated/admin.pwa'
 import { Route as AuthenticatedAdminPasswordResetsRouteImport } from './routes/_authenticated/admin.password-resets'
+import { Route as AuthenticatedAdminMaintenanceRouteImport } from './routes/_authenticated/admin.maintenance'
 import { Route as AuthenticatedAdminKycRouteImport } from './routes/_authenticated/admin.kyc'
 import { Route as AuthenticatedAdminJobsRouteImport } from './routes/_authenticated/admin.jobs'
 import { Route as AuthenticatedAdminInvestmentsRouteImport } from './routes/_authenticated/admin.investments'
@@ -284,6 +285,12 @@ const AuthenticatedAdminPasswordResetsRoute =
     path: '/password-resets',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMaintenanceRoute =
+  AuthenticatedAdminMaintenanceRouteImport.update({
+    id: '/maintenance',
+    path: '/maintenance',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminKycRoute = AuthenticatedAdminKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -372,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
+  '/admin/maintenance': typeof AuthenticatedAdminMaintenanceRoute
   '/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -424,6 +432,7 @@ export interface FileRoutesByTo {
   '/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
   '/admin/kyc': typeof AuthenticatedAdminKycRoute
+  '/admin/maintenance': typeof AuthenticatedAdminMaintenanceRoute
   '/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -479,6 +488,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/investments': typeof AuthenticatedAdminInvestmentsRoute
   '/_authenticated/admin/jobs': typeof AuthenticatedAdminJobsRoute
   '/_authenticated/admin/kyc': typeof AuthenticatedAdminKycRoute
+  '/_authenticated/admin/maintenance': typeof AuthenticatedAdminMaintenanceRoute
   '/_authenticated/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/_authenticated/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
@@ -534,6 +544,7 @@ export interface FileRouteTypes {
     | '/admin/investments'
     | '/admin/jobs'
     | '/admin/kyc'
+    | '/admin/maintenance'
     | '/admin/password-resets'
     | '/admin/pwa'
     | '/admin/referrals'
@@ -586,6 +597,7 @@ export interface FileRouteTypes {
     | '/admin/investments'
     | '/admin/jobs'
     | '/admin/kyc'
+    | '/admin/maintenance'
     | '/admin/password-resets'
     | '/admin/pwa'
     | '/admin/referrals'
@@ -640,6 +652,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/investments'
     | '/_authenticated/admin/jobs'
     | '/_authenticated/admin/kyc'
+    | '/_authenticated/admin/maintenance'
     | '/_authenticated/admin/password-resets'
     | '/_authenticated/admin/pwa'
     | '/_authenticated/admin/referrals'
@@ -983,6 +996,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPasswordResetsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/maintenance': {
+      id: '/_authenticated/admin/maintenance'
+      path: '/maintenance'
+      fullPath: '/admin/maintenance'
+      preLoaderRoute: typeof AuthenticatedAdminMaintenanceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/kyc': {
       id: '/_authenticated/admin/kyc'
       path: '/kyc'
@@ -1054,6 +1074,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminInvestmentsRoute: typeof AuthenticatedAdminInvestmentsRoute
   AuthenticatedAdminJobsRoute: typeof AuthenticatedAdminJobsRoute
   AuthenticatedAdminKycRoute: typeof AuthenticatedAdminKycRoute
+  AuthenticatedAdminMaintenanceRoute: typeof AuthenticatedAdminMaintenanceRoute
   AuthenticatedAdminPasswordResetsRoute: typeof AuthenticatedAdminPasswordResetsRoute
   AuthenticatedAdminPwaRoute: typeof AuthenticatedAdminPwaRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
@@ -1069,6 +1090,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminInvestmentsRoute: AuthenticatedAdminInvestmentsRoute,
   AuthenticatedAdminJobsRoute: AuthenticatedAdminJobsRoute,
   AuthenticatedAdminKycRoute: AuthenticatedAdminKycRoute,
+  AuthenticatedAdminMaintenanceRoute: AuthenticatedAdminMaintenanceRoute,
   AuthenticatedAdminPasswordResetsRoute: AuthenticatedAdminPasswordResetsRoute,
   AuthenticatedAdminPwaRoute: AuthenticatedAdminPwaRoute,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
