@@ -14,7 +14,8 @@ import { parsePhoneNumber } from "react-phone-number-input";
 import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 export const Route = createFileRoute("/signup")({
-  validateSearch: (s) => ({ ref: typeof s.ref === "string" ? s.ref : undefined }),
+  validateSearch: (s): { ref?: string } =>
+    typeof s.ref === "string" && s.ref.length > 0 ? { ref: s.ref } : {},
   head: () => ({ meta: [{ title: "Create account — CashBullX" }] }),
   component: () => (
     <RedirectIfAuthenticated>
