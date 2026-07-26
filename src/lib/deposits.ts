@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type DepositNetwork = "USDT_TRC20" | "USDT_BEP20";
+export type DepositNetwork = "USDT_TRC20";
 
 export type DepositStatus = "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
 
@@ -33,19 +33,6 @@ export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
     fee: "~1 USDT",
     color: "from-red-500/30 to-orange-500/20",
     enabled: true,
-  },
-  USDT_BEP20: {
-    id: "USDT_BEP20",
-    label: "USDT (BEP20)",
-    chain: "BNB Smart Chain",
-    symbol: "USDT",
-    address: "0xAbCdEf0123456789AbCdEf0123456789AbCdEf01",
-    minAmount: 50,
-    confirmations: 15,
-    estTime: "~1 min",
-    fee: "~0.3 USDT",
-    color: "from-yellow-500/30 to-amber-500/20",
-    enabled: false,
   },
 };
 
