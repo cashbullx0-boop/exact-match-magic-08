@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type DepositNetwork = "USDT_TRC20" | "USDT_BEP20";
+export type DepositNetwork = "USDT_TRC20";
 
 export type DepositStatus = "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
 
