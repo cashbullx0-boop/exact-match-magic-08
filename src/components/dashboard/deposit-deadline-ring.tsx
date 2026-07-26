@@ -22,10 +22,16 @@ export function DepositDeadlineRing() {
   const [hasDeposit, setHasDeposit] = useState<boolean | null>(null);
   const [now, setNow] = useState(Date.now());
 
-  const deadlineISO = profile?.deposit_deadline as string | null | undefined;
+  // Always compute a deadline: prefer explicit profile.deposit_deadline,
+  // else fall back to signup date + 7 days so every non-depositor sees the banner.
+  const explicitDeadline = profile?.deposit_deadline as string | null | undefined;
+  const signupISO = user?.created_at as string | undefined;
+  const deadlineISO =
+    explicitDeadline ??
+    (signupISO ? new Date(new Date(signupISO).getTime() + TOTAL_MS).toISOString() : null);
 
   useEffect(() => {
-    if (!user || !deadlineISO) return;
+    if (!user) return;
     let cancelled = false;
     (async () => {
       const { count } = await supabase
@@ -35,7 +41,7 @@ export function DepositDeadlineRing() {
       if (!cancelled) setHasDeposit((count ?? 0) > 0);
     })();
     return () => { cancelled = true; };
-  }, [user, deadlineISO]);
+  }, [user]);
 
   useEffect(() => {
     if (!deadlineISO) return;
