@@ -1199,6 +1199,7 @@ export type Database = {
         Args: { _country_code: string; _phone: string }
         Returns: undefined
       }
+      auto_suspend_non_depositors: { Args: never; Returns: number }
       ban_expired_kyc_accounts: { Args: never; Returns: undefined }
       check_banned_documents: {
         Args: { _email: string; _id_number: string; _phone: string }
