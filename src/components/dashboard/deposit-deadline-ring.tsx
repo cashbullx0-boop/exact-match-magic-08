@@ -24,6 +24,9 @@ export function DepositDeadlineRing() {
 
   const status = (profile as any)?.status as string | undefined;
   const isSuspended = status === "suspended" || status === "banned";
+  // Nothing renders until BOTH the profile and the deposit lookup have resolved.
+  // This prevents the "Account Suspended" card from flashing for depositors.
+  const ready = !!profile && hasDeposit !== null;
 
   // Always compute a deadline: prefer explicit profile.deposit_deadline,
   // else fall back to signup date + 7 days so every non-depositor sees the banner.
@@ -52,7 +55,10 @@ export function DepositDeadlineRing() {
     return () => clearInterval(id);
   }, [deadlineISO]);
 
-  // Suspension is manual only — shown when an admin sets the account status.
+  if (!ready) return null;
+
+  // Suspension comes from the account status (auto-suspended after the 7-day
+  // window with no deposit, or set manually by an admin).
   if (isSuspended) {
     return (
       <Card className="glass-strong border-destructive/30 p-5 md:p-6 animate-fade-in">
@@ -71,7 +77,7 @@ export function DepositDeadlineRing() {
     );
   }
 
-  // Hide entirely for depositors, while loading deposit state, or with no deadline.
+  // Hide entirely for depositors or with no deadline.
   if (!deadlineISO || hasDeposit !== false) return null;
 
   const deadline = new Date(deadlineISO).getTime();
