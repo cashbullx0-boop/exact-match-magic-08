@@ -22,6 +22,9 @@ export function DepositDeadlineRing() {
   const [hasDeposit, setHasDeposit] = useState<boolean | null>(null);
   const [now, setNow] = useState(Date.now());
 
+  const status = (profile as any)?.status as string | undefined;
+  const isSuspended = status === "suspended" || status === "banned";
+
   // Always compute a deadline: prefer explicit profile.deposit_deadline,
   // else fall back to signup date + 7 days so every non-depositor sees the banner.
   const explicitDeadline = profile?.deposit_deadline as string | null | undefined;
@@ -49,11 +52,33 @@ export function DepositDeadlineRing() {
     return () => clearInterval(id);
   }, [deadlineISO]);
 
-  if (!deadlineISO || hasDeposit) return null;
+  // Suspension is manual only — shown when an admin sets the account status.
+  if (isSuspended) {
+    return (
+      <Card className="glass-strong border-destructive/30 p-5 md:p-6 animate-fade-in">
+        <div className="flex items-center justify-center sm:justify-start gap-2 text-destructive font-semibold">
+          <ShieldOff className="h-4 w-4" /> Account Suspended
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Your account has been suspended by an administrator. Contact support for assistance.
+        </p>
+        <Link to="/support" className="inline-block mt-3">
+          <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10">
+            Contact Support
+          </Button>
+        </Link>
+      </Card>
+    );
+  }
+
+  // Hide entirely for depositors, while loading deposit state, or with no deadline.
+  if (!deadlineISO || hasDeposit !== false) return null;
 
   const deadline = new Date(deadlineISO).getTime();
   const { ms, days, hours, minutes, seconds } = diff(deadline);
   const expired = ms <= 0;
+  // Deadline passed: no automatic suspension — just stop nagging.
+  if (expired) return null;
   const pct = Math.max(0, Math.min(100, (ms / TOTAL_MS) * 100));
 
   // SVG ring
