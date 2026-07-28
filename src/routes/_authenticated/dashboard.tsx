@@ -82,6 +82,8 @@ function DashboardPage() {
 
       <DepositDeadlineRing />
 
+      <KycAnnouncement status={kycStatus} />
+
       <PromoCarousel />
 
       <Link
