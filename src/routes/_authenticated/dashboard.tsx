@@ -27,6 +27,7 @@ function DashboardPage() {
   const [series, setSeries] = useState<{ day: string; earned: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [kycStatus, setKycStatus] = useState<"unverified" | "pending" | "verified" | "rejected" | null>(null);
 
   useEffect(() => {
     if (!user) return;
