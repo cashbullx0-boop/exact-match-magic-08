@@ -12,6 +12,7 @@ import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
+import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -26,18 +27,21 @@ function DashboardPage() {
   const [series, setSeries] = useState<{ day: string; earned: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [kycStatus, setKycStatus] = useState<"unverified" | "pending" | "verified" | "rejected" | null>(null);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       setLoadingData(true);
-      const [{ count: completed }, { count: referrals }, { data: txns }] = await Promise.all([
+      const [{ count: completed }, { count: referrals }, { data: txns }, { data: kyc }] = await Promise.all([
         supabase.from("task_completions").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
         supabase.from("referrals").select("*", { count: "exact", head: true }).eq("referrer_id", user.id),
         supabase.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
+        supabase.from("kyc_submissions").select("status").eq("user_id", user.id).maybeSingle(),
       ]);
       setStats({ completed: completed ?? 0, referrals: referrals ?? 0 });
       setRecent(txns ?? []);
+      setKycStatus((kyc?.status as typeof kycStatus) ?? "unverified");
 
       // Build 7-day earnings series
       const days: Record<string, number> = {};
@@ -77,6 +81,8 @@ function DashboardPage() {
       </header>
 
       <DepositDeadlineRing />
+
+      <KycAnnouncement status={kycStatus} />
 
       <PromoCarousel />
 
