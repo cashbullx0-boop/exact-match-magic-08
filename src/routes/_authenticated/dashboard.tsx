@@ -12,6 +12,7 @@ import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
+import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
