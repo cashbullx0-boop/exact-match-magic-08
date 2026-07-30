@@ -37,17 +37,18 @@ export function DepositDeadlineRing() {
     (signupISO ? new Date(new Date(signupISO).getTime() + TOTAL_MS).toISOString() : null);
 
   useEffect(() => {
+    setHasDeposit(null);
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("deposits")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id);
-      if (!cancelled) setHasDeposit((count ?? 0) > 0);
+      if (!cancelled) setHasDeposit(error ? null : (count ?? 0) > 0);
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!deadlineISO) return;
@@ -57,9 +58,14 @@ export function DepositDeadlineRing() {
 
   if (!ready) return null;
 
+  // Depositors must never see the suspension/deadline banner, even if a stale
+  // profile status briefly arrives before the latest profile refresh completes.
+  if (hasDeposit === true) return null;
+
   // Suspension comes from the account status (auto-suspended after the 7-day
-  // window with no deposit, or set manually by an admin).
-  if (isSuspended) {
+  // window with no deposit, or set manually by an admin). Only show it after
+  // confirming this account still has no deposits to avoid millisecond flashes.
+  if (isSuspended && hasDeposit === false) {
     return (
       <Card className="glass-strong border-destructive/30 p-5 md:p-6 animate-fade-in">
         <div className="flex items-center justify-center sm:justify-start gap-2 text-destructive font-semibold">
