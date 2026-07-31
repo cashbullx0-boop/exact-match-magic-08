@@ -19,14 +19,26 @@ function diff(deadline: number) {
 
 export function DepositDeadlineRing() {
   const { user, profile } = useAuth();
-  const [hasDeposit, setHasDeposit] = useState<boolean | null>(null);
+  const [depositCheck, setDepositCheck] = useState<{
+    userId: string;
+    hasDeposit: boolean;
+  } | null>(null);
   const [now, setNow] = useState(Date.now());
 
   const status = (profile as any)?.status as string | undefined;
   const isSuspended = status === "suspended" || status === "banned";
-  // Nothing renders until BOTH the profile and the deposit lookup have resolved.
-  // This prevents the "Account Suspended" card from flashing for depositors.
-  const ready = !!profile && hasDeposit !== null;
+  const currentUserId = user?.id;
+  const profileIsCurrent = !!currentUserId && profile?.id === currentUserId;
+  const depositCheckIsCurrent =
+    !!currentUserId && depositCheck?.userId === currentUserId;
+  const hasDeposit = depositCheckIsCurrent
+    ? depositCheck.hasDeposit
+    : null;
+
+  // React effects run after paint, so clearing a plain boolean inside the effect
+  // is too late when the authenticated user changes. Bind both async results to
+  // the current user ID so stale profile/deposit state can never render a frame.
+  const ready = profileIsCurrent && depositCheckIsCurrent;
 
   // Always compute a deadline: prefer explicit profile.deposit_deadline,
   // else fall back to signup date + 7 days so every non-depositor sees the banner.
@@ -37,18 +49,22 @@ export function DepositDeadlineRing() {
     (signupISO ? new Date(new Date(signupISO).getTime() + TOTAL_MS).toISOString() : null);
 
   useEffect(() => {
-    setHasDeposit(null);
-    if (!user) return;
+    if (!currentUserId) return;
     let cancelled = false;
     (async () => {
       const { count, error } = await supabase
         .from("deposits")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
-      if (!cancelled) setHasDeposit(error ? null : (count ?? 0) > 0);
+        .eq("user_id", currentUserId);
+      if (!cancelled && !error) {
+        setDepositCheck({
+          userId: currentUserId,
+          hasDeposit: (count ?? 0) > 0,
+        });
+      }
     })();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [currentUserId]);
 
   useEffect(() => {
     if (!deadlineISO) return;
