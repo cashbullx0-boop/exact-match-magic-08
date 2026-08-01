@@ -23,6 +23,7 @@ export function DepositDeadlineRing() {
     userId: string;
     hasDeposit: boolean;
   } | null>(null);
+  const [confirmedSuspendedUserId, setConfirmedSuspendedUserId] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
 
   const status = (profile as any)?.status as string | undefined;
@@ -72,6 +73,19 @@ export function DepositDeadlineRing() {
     return () => clearInterval(id);
   }, [deadlineISO]);
 
+  // A profile refresh and the independent deposit query can resolve a few
+  // milliseconds apart. Never paint a suspension alert from that transient
+  // overlap: require the same user's suspended/no-deposit state to remain
+  // stable before allowing the alert to render.
+  useEffect(() => {
+    setConfirmedSuspendedUserId(null);
+    if (!currentUserId || !ready || !isSuspended || hasDeposit !== false) return;
+    const id = window.setTimeout(() => {
+      setConfirmedSuspendedUserId(currentUserId);
+    }, 1200);
+    return () => window.clearTimeout(id);
+  }, [currentUserId, ready, isSuspended, hasDeposit]);
+
   if (!ready) return null;
 
   // Depositors must never see the suspension/deadline banner, even if a stale
@@ -81,7 +95,11 @@ export function DepositDeadlineRing() {
   // Suspension comes from the account status (auto-suspended after the 7-day
   // window with no deposit, or set manually by an admin). Only show it after
   // confirming this account still has no deposits to avoid millisecond flashes.
-  if (isSuspended && hasDeposit === false) {
+  if (
+    isSuspended &&
+    hasDeposit === false &&
+    confirmedSuspendedUserId === currentUserId
+  ) {
     return (
       <Card className="glass-strong border-destructive/30 p-5 md:p-6 animate-fade-in">
         <div className="flex items-center justify-center sm:justify-start gap-2 text-destructive font-semibold">
