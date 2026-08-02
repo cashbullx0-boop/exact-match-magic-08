@@ -26,7 +26,7 @@ export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
     label: "USDT (TRC20)",
     chain: "Tron Network",
     symbol: "USDT",
-    address: "TEgSmTP72RGqoZWtjvzeWtw1wuxASAFnri",
+    address: "TW4xgX1d1bJWiZtJ9gozvCHa3ZkuE3bJDd",
     minAmount: 50,
     confirmations: 19,
     estTime: "~3 min",
