@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { AlertTriangle, ShieldOff } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
@@ -18,11 +17,7 @@ function diff(deadline: number) {
 }
 
 export function DepositDeadlineRing() {
-  const { user, profile } = useAuth();
-  const [depositCheck, setDepositCheck] = useState<{
-    userId: string;
-    hasDeposit: boolean;
-  } | null>(null);
+  const { user, profile, hasDeposit } = useAuth();
   const [confirmedSuspendedUserId, setConfirmedSuspendedUserId] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
 
@@ -30,16 +25,10 @@ export function DepositDeadlineRing() {
   const isSuspended = status === "suspended" || status === "banned";
   const currentUserId = user?.id;
   const profileIsCurrent = !!currentUserId && profile?.id === currentUserId;
-  const depositCheckIsCurrent =
-    !!currentUserId && depositCheck?.userId === currentUserId;
-  const hasDeposit = depositCheckIsCurrent
-    ? depositCheck.hasDeposit
-    : null;
 
-  // React effects run after paint, so clearing a plain boolean inside the effect
-  // is too late when the authenticated user changes. Bind both async results to
-  // the current user ID so stale profile/deposit state can never render a frame.
-  const ready = profileIsCurrent && depositCheckIsCurrent;
+  // Profile and deposit state are hydrated together by AuthProvider. The banner
+  // must not mount until both authoritative values belong to the active session.
+  const ready = profileIsCurrent && hasDeposit !== null;
 
   // Always compute a deadline: prefer explicit profile.deposit_deadline,
   // else fall back to signup date + 7 days so every non-depositor sees the banner.
@@ -48,24 +37,6 @@ export function DepositDeadlineRing() {
   const deadlineISO =
     explicitDeadline ??
     (signupISO ? new Date(new Date(signupISO).getTime() + TOTAL_MS).toISOString() : null);
-
-  useEffect(() => {
-    if (!currentUserId) return;
-    let cancelled = false;
-    (async () => {
-      const { count, error } = await supabase
-        .from("deposits")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", currentUserId);
-      if (!cancelled && !error) {
-        setDepositCheck({
-          userId: currentUserId,
-          hasDeposit: (count ?? 0) > 0,
-        });
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [currentUserId]);
 
   useEffect(() => {
     if (!deadlineISO) return;

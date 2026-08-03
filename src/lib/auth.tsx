@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 type Profile = {
@@ -25,6 +25,7 @@ type AuthContextValue = {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  hasDeposit: boolean | null;
   isAdmin: boolean;
   loading: boolean;
   refreshProfile: () => Promise<void>;
@@ -61,22 +62,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [depositState, setDepositState] = useState<{
+    userId: string;
+    hasDeposit: boolean;
+  } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const authGeneration = useRef(0);
   const loadExtras = async (uid: string) => {
-    const [{ data: p }, { data: roles }] = await Promise.all([
+    const generation = authGeneration.current;
+    const [{ data: p }, { data: roles }, { count: depositCount, error: depositError }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("deposits").select("id", { count: "exact", head: true }).eq("user_id", uid),
     ]);
+    if (generation !== authGeneration.current) return;
     setProfile(p as Profile | null);
+    setDepositState(depositError ? null : {
+      userId: uid,
+      hasDeposit: (depositCount ?? 0) > 0,
+    });
     setIsAdmin(!!roles?.some((r) => r.role === "admin"));
   };
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+      authGeneration.current += 1;
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
-        setTimeout(() => loadExtras(sess.user.id), 0);
+        setLoading(true);
+        setProfile(null);
+        setDepositState(null);
+        setTimeout(() => loadExtras(sess.user.id).finally(() => setLoading(false)), 0);
         if (event === "SIGNED_IN") {
           setTimeout(() => {
             claimReferralIfPending(sess.user.id).then(() => loadExtras(sess.user.id));
@@ -84,13 +101,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } else {
         setProfile(null);
+        setDepositState(null);
         setIsAdmin(false);
+        setLoading(false);
       }
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
+      authGeneration.current += 1;
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
+        setProfile(null);
+        setDepositState(null);
         claimReferralIfPending(s.user.id);
         loadExtras(s.user.id).finally(() => setLoading(false));
       } else {
@@ -105,6 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
   };
+  const hasDeposit = user && depositState?.userId === user.id
+    ? depositState.hasDeposit
+    : null;
   // Inactivity auto-logout: sign out after 30 minutes with no user interaction
   useEffect(() => {
     if (!user) return;
@@ -127,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
   return (
-    <AuthContext.Provider value={{ user, session, profile, isAdmin, loading, refreshProfile, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, hasDeposit, isAdmin, loading, refreshProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   );
