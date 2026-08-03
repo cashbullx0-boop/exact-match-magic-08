@@ -240,6 +240,32 @@ export function Testimonials() {
           Fresh deposit, withdrawal and trade stories from our members — updated every day.
         </p>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-12">
+        <div className="glass rounded-2xl p-5 flex items-center gap-4">
+          <div className="h-11 w-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Users className="h-5 w-5 text-emerald-300" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold brand-text">
+              <AnimatedCounter value={stats.activeEarners} suffix="+" />
+            </p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Active earners</p>
+          </div>
+        </div>
+        <div className="glass rounded-2xl p-5 flex items-center gap-4">
+          <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Banknote className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold brand-text">
+              <AnimatedCounter value={stats.totalPayoutUsd} prefix="$" suffix="+" />
+            </p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Total payouts</p>
+          </div>
+        </div>
+      </div>
+
       <Carousel opts={{ align: "start", loop: true }} className="px-2 md:px-12">
         <CarouselContent>
           {items.map((t, i) => (
