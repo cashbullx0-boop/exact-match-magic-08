@@ -31,6 +31,12 @@ export function KycAnnouncement({ status }: { status: "unverified" | "pending" |
     };
   }, [status]);
 
+  // status === null means the dashboard hasn't finished loading the real KYC
+  // status from the database yet. Never render the alert during that gap —
+  // otherwise every user (including already-verified ones) briefly sees a
+  // "not verified" flash until the real status arrives a moment later.
+  if (status === null) return null;
+
   if (status === "verified" || !visible) return null;
 
   const isPending = status === "pending";
