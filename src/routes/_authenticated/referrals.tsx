@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -31,11 +31,12 @@ function ReferralsPage() {
   } | null>(null);
   const [claiming, setClaiming] = useState(false);
 
-  const loadChallenge = async () => {
+  const loadChallenge = useCallback(async () => {
+    if (!user) return;
     const { data } = await supabase.rpc("get_weekly_referral_challenge");
     const row = Array.isArray(data) ? data[0] : data;
     if (row) setChallenge(row as any);
-  };
+  }, [user]);
 
   const slug = profile?.username || profile?.referral_code || user?.id || "";
   const [origin, setOrigin] = useState("");
@@ -56,8 +57,29 @@ function ReferralsPage() {
       (directProfs ?? []).forEach((p: any) => { map[p.id] = p; });
       setReferredProfiles(map);
     })();
-    loadChallenge();
-  }, [user]);
+    void loadChallenge();
+  }, [loadChallenge, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const refresh = () => { void loadChallenge(); };
+    const channel = supabase
+      .channel(`weekly-referral-banner-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "referrals", filter: `referrer_id=eq.${user.id}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `referred_by=eq.${user.id}` }, refresh)
+      .subscribe();
+    const interval = window.setInterval(refresh, 30_000);
+    const handleVisibility = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      void supabase.removeChannel(channel);
+    };
+  }, [loadChallenge, user]);
 
   const copy = (text: string) => {
     navigator.clipboard.writeText(text);
