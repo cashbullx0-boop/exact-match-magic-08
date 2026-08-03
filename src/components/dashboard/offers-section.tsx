@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Gift, Clock, Sparkles, TrendingUp, Users, Wallet, Zap, Flame, Crown, Rocket, Star, Trophy, Gem, HandCoins } from "lucide-react";
 import offerTeam1000 from "@/assets/offer-team-1000.jpeg.asset.json";
@@ -87,27 +87,47 @@ export function OffersSection() {
     total_all: 0,
   });
 
+  const loadProgress = useCallback(async () => {
+    if (!user) return;
+    const nowIso = new Date();
+    const d30 = new Date(nowIso.getTime() - 30 * 86400000).toISOString();
+    const [{ data: challenge }, { count: total30 }, { count: totalAll }] = await Promise.all([
+      supabase.rpc("get_weekly_referral_challenge"),
+      supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).gte("created_at", d30),
+      supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id),
+    ]);
+    const row = Array.isArray(challenge) ? challenge[0] : challenge;
+    setProgress({
+      total_30d: total30 ?? 0,
+      deposited_7d: row?.deposited_last_7d ?? 0,
+      total_all: totalAll ?? 0,
+    });
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    (async () => {
-      const nowIso = new Date();
-      const d30 = new Date(nowIso.getTime() - 30 * 86400000).toISOString();
-      const [{ data: challenge }, { count: total30 }, { count: totalAll }] = await Promise.all([
-        supabase.rpc("get_weekly_referral_challenge"),
-        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).gte("created_at", d30),
-        supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id),
-      ]);
-      const row: any = Array.isArray(challenge) ? challenge[0] : challenge;
-      if (cancelled) return;
-      setProgress({
-        total_30d: total30 ?? 0,
-        deposited_7d: row?.deposited_last_7d ?? 0,
-        total_all: totalAll ?? 0,
-      });
-    })();
-    return () => { cancelled = true; };
-  }, [user]);
+    const refresh = () => { if (!cancelled) void loadProgress(); };
+    refresh();
+
+    const channel = supabase
+      .channel(`offers-referrals-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "referrals", filter: `referrer_id=eq.${user.id}` }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `referred_by=eq.${user.id}` }, refresh)
+      .subscribe();
+    const interval = window.setInterval(refresh, 30_000);
+    const handleVisibility = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      void supabase.removeChannel(channel);
+    };
+  }, [loadProgress, user]);
 
   const { dayIndex, slotIdx, nextAt } = useMemo(() => getSlot(now), [now]);
   const todays = useMemo(() => dailyOffers(dayIndex), [dayIndex]);
