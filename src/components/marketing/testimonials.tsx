@@ -1,5 +1,6 @@
-import { Star, BadgeCheck, ArrowDownToLine, ArrowUpFromLine, TrendingUp } from "lucide-react";
+import { Star, BadgeCheck, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Users, Banknote } from "lucide-react";
 import { useMemo } from "react";
+import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 type Activity = "withdraw" | "deposit" | "trade";
@@ -169,6 +170,14 @@ function fmtDate(d: Date) {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// Daily-growing community stats, derived from the same day key so they tick up once per day.
+function dailyStats() {
+  const d = dayIndex();
+  const activeEarners = 120_000 + ((d * 137) % 900) + d * 12;
+  const totalPayoutUsd = 2_400_000 + ((d * 911) % 15_000) + d * 3_100;
+  return { activeEarners, totalPayoutUsd };
+}
+
 function Card({ t }: { t: Testimonial & { date: Date } }) {
   const meta = ACTIVITY_META[t.activity];
   const ActivityIcon = meta.icon;
@@ -217,6 +226,7 @@ function Card({ t }: { t: Testimonial & { date: Date } }) {
 
 export function Testimonials() {
   const items = useMemo(pickDaily, []);
+  const stats = useMemo(dailyStats, []);
   return (
     <section id="reviews" className="py-20 md:py-28">
       <div className="text-center max-w-2xl mx-auto mb-12">
