@@ -91,11 +91,15 @@ export function OffersSection() {
     if (!user) return;
     const nowIso = new Date();
     const d30 = new Date(nowIso.getTime() - 30 * 86400000).toISOString();
-    const [{ data: challenge }, { count: total30 }, { count: totalAll }] = await Promise.all([
+    // Count from get_my_direct_referrals (profiles.referred_by) so the numbers
+    // always match the Referrals page and can never drift from the referrals table.
+    const [{ data: challenge }, { data: directRefs }] = await Promise.all([
       supabase.rpc("get_weekly_referral_challenge"),
-      supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).gte("created_at", d30),
-      supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id),
+      supabase.rpc("get_my_direct_referrals"),
     ]);
+    const list = (directRefs ?? []) as any[];
+    const totalAll = list.length;
+    const total30 = list.filter((r) => r.created_at && r.created_at >= d30).length;
     const row = Array.isArray(challenge) ? challenge[0] : challenge;
     setProgress({
       total_30d: total30 ?? 0,
