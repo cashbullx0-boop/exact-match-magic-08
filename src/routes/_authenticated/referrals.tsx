@@ -45,24 +45,42 @@ function ReferralsPage() {
   }, []);
   const link = useMemo(() => (slug && origin ? `${origin}/ref/${slug}` : ""), [origin, slug]);
 
-  useEffect(() => {
+  const [referralEarningsCents, setReferralEarningsCents] = useState(0);
+
+  const loadReferrals = useCallback(async () => {
     if (!user) return;
-    (async () => {
-      const [{ data: refRows }, { data: directProfs }] = await Promise.all([
-        supabase.from("referrals").select("*").eq("referrer_id", user.id).order("created_at", { ascending: false }),
-        supabase.rpc("get_my_direct_referrals"),
-      ]);
-      setRefs(refRows ?? []);
-      const map: Record<string, any> = {};
-      (directProfs ?? []).forEach((p: any) => { map[p.id] = p; });
-      setReferredProfiles(map);
-    })();
+    const [{ data: directProfs }, { data: txns }] = await Promise.all([
+      supabase.rpc("get_my_direct_referrals"),
+      supabase
+        .from("transactions")
+        .select("amount_cents, description")
+        .eq("user_id", user.id)
+        .eq("type", "bonus"),
+    ]);
+    // Single source of truth: profiles.referred_by via get_my_direct_referrals
+    const list = (directProfs ?? []) as any[];
+    setRefs(list.map((p) => ({ referred_id: p.id, created_at: p.created_at })));
+    const map: Record<string, any> = {};
+    list.forEach((p: any) => { map[p.id] = p; });
+    setReferredProfiles(map);
+    // Real referral earnings live in the ledger, not referrals.bonus_cents
+    const earned = (txns ?? [])
+      .filter((t: any) => {
+        const d = (t.description ?? "").toLowerCase();
+        return d.includes("referral") || d.includes("downline");
+      })
+      .reduce((s: number, t: any) => s + (t.amount_cents ?? 0), 0);
+    setReferralEarningsCents(earned);
+  }, [user]);
+
+  useEffect(() => {
+    void loadReferrals();
     void loadChallenge();
-  }, [loadChallenge, user]);
+  }, [loadChallenge, loadReferrals, user]);
 
   useEffect(() => {
     if (!user) return;
-    const refresh = () => { void loadChallenge(); };
+    const refresh = () => { void loadChallenge(); void loadReferrals(); };
     const channel = supabase
       .channel(`weekly-referral-banner-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "referrals", filter: `referrer_id=eq.${user.id}` }, refresh)
@@ -79,7 +97,7 @@ function ReferralsPage() {
       document.removeEventListener("visibilitychange", handleVisibility);
       void supabase.removeChannel(channel);
     };
-  }, [loadChallenge, user]);
+  }, [loadChallenge, loadReferrals, user]);
 
   const copy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -92,7 +110,7 @@ function ReferralsPage() {
     const rp = referredProfiles[r.referred_id];
     return !!rp && (rp.has_deposited === true || rp.has_active_trade === true);
   }).length;
-  const totalEarned = refs.reduce((s, r) => s + (r.bonus_cents ?? 0), 0);
+  const totalEarned = referralEarningsCents;
 
   const downloadQR = () => {
     const canvas = qrRef.current?.querySelector("canvas") as HTMLCanvasElement | null;
