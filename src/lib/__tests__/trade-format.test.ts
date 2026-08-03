@@ -1,6 +1,4 @@
-/// <reference types="bun-types" />
-// @ts-ignore -- bun:test is provided at runtime by `bun test`
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect } from "vitest";
 import {
   tradeProfitCents,
   validateTradeAmount,
