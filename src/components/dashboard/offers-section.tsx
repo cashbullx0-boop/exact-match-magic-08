@@ -120,7 +120,6 @@ export function OffersSection() {
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    return () => { cancelled = true; };
     return () => {
       cancelled = true;
       window.clearInterval(interval);
