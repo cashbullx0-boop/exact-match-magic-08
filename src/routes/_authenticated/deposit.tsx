@@ -17,6 +17,7 @@ import {
   createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
   deleteDepositIfPending, getDepositAddress,
 } from "@/lib/deposits";
+import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({ meta: [{ title: "Deposit USDT — CashBullX" }] }),
@@ -83,25 +84,22 @@ function DepositPage() {
     return () => { cancelled = true; };
   }, [network]);
 
-  const MAX_SLIP_BYTES = 5 * 1024 * 1024;
-
   const handleSlipChange = (file: File | null) => {
     if (!file) {
       setSlipFile(null);
       setSlipPreview(null);
       return;
     }
-    const okType = file.type.startsWith("image/") || file.type === "application/pdf";
-    if (!okType) {
+    if (!isAcceptedSlip(file)) {
       toast.error("Only images or PDF files are allowed");
       return;
     }
     if (file.size > MAX_SLIP_BYTES) {
-      toast.error("File is too large (max 5MB)");
+      toast.error("File is too large (max 15MB)");
       return;
     }
     setSlipFile(file);
-    if (file.type.startsWith("image/")) {
+    if (canPreview(file)) {
       setSlipPreview(URL.createObjectURL(file));
     } else {
       setSlipPreview(null);
@@ -341,12 +339,12 @@ function DepositPage() {
           <div className="space-y-1.5">
             <Label htmlFor="slip" className="text-xs">
               Payment slip / screenshot <span className="text-destructive">*</span>{" "}
-              <span className="text-muted-foreground">(max 5MB)</span>
+              <span className="text-muted-foreground">(image or PDF, max 15MB)</span>
             </Label>
             <Input
               id="slip"
               type="file"
-              accept="image/*,application/pdf"
+              accept="image/*,.heic,.heif,application/pdf"
               onChange={(e) => handleSlipChange(e.target.files?.[0] ?? null)}
               className="text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
             />
