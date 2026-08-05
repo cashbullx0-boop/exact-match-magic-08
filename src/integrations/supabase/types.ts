@@ -1183,6 +1183,28 @@ export type Database = {
         Args: { _id: string; _return_percent: number }
         Returns: undefined
       }
+      admin_list_password_reset_requests: {
+        Args: never
+        Returns: {
+          admin_note: string
+          id: string
+          requested_at: string
+          status: string
+          user_id: string
+        }[]
+      }
+      admin_list_wallet_change_requests: {
+        Args: never
+        Returns: {
+          admin_note: string
+          id: string
+          new_wallet: string
+          old_wallet: string
+          requested_at: string
+          status: string
+          user_id: string
+        }[]
+      }
       admin_mark_withdrawal_paid: {
         Args: { _id: string; _tx_hash: string }
         Returns: undefined
