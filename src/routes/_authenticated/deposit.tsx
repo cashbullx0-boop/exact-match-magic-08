@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
   createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
-  deleteDepositIfPending, getDepositAddress,
+  deleteDepositIfPending, getDepositAddress, depositErrorMessage,
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 
@@ -30,10 +30,13 @@ type DepositRow = {
   network: DepositNetwork;
   wallet_address: string;
   tx_hash: string | null;
+  slip_path: string | null;
   status: DepositStatus;
   created_at: string;
   expires_at: string | null;
 };
+
+const DRAFT_KEY = "cbx.depositDraft";
 
 const statusMeta: Record<DepositStatus, { label: string; icon: typeof Clock; cls: string }> = {
   pending:    { label: "Pending",     icon: Clock,        cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
