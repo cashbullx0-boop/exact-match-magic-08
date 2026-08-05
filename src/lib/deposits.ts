@@ -177,19 +177,6 @@ export async function attachSenderAddress(depositId: string, senderAddress: stri
  * steps (sender address / slip / tx hash) fail. RLS restricts this to the
  * owner's own pending rows. Errors are swallowed and logged.
  */
-export async function deleteDepositIfPending(depositId: string) {
-  try {
-    const { error } = await supabase
-      .from("deposits")
-      .delete()
-      .eq("id", depositId)
-      .eq("status", "pending");
-    if (error) console.warn("[deposits] cleanup failed", error);
-  } catch (e) {
-    console.warn("[deposits] cleanup threw", e);
-  }
-}
-
 export async function uploadDepositSlip(userId: string, depositId: string, file: File) {
   const { compressSlipIfNeeded, fileExt, isPdf } = await import("@/lib/slip-file");
   const prepared = await compressSlipIfNeeded(file);
@@ -205,8 +192,10 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
   await withRetry("uploadDepositSlip", async () => {
     const { error: upErr } = await supabase.storage
       .from("deposit-slips")
-      .upload(path, prepared, { upsert: true, contentType });
-    if (upErr) throw upErr;
+      .upload(path, prepared, { upsert: false, contentType });
+    // A lost response can make a successful first upload look like a failure.
+    // The retry then sees the same object; that means the proof is already safe.
+    if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
   }, 4);
 
   await withRetry("submitDepositSlip", async () => {
