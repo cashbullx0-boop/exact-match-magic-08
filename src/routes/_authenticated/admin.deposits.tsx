@@ -50,6 +50,7 @@ function AdminDepositsPage() {
   const [selected, setSelected] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [slipUrl, setSlipUrl] = useState<string | undefined>();
+  const [slipError, setSlipError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -83,8 +84,14 @@ function AdminDepositsPage() {
     setSelected(r);
     setReason(r.rejection_reason ?? "");
     setSlipUrl(undefined);
+    setSlipError(false);
     if (r.slip_path) {
-      const { data } = await supabase.storage.from("deposit-slips").createSignedUrl(r.slip_path, 600);
+      const { data, error } = await supabase.storage.from("deposit-slips").createSignedUrl(r.slip_path, 600);
+      if (error) {
+        setSlipError(true);
+        toast.error("Could not securely load this payment slip");
+        return;
+      }
       setSlipUrl(data?.signedUrl);
     }
   };
@@ -222,11 +229,22 @@ function AdminDepositsPage() {
               <div>
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Deposit slip</div>
                 {slipUrl ? (
-                  <a href={slipUrl} target="_blank" rel="noopener noreferrer">
-                    <img src={slipUrl} alt="slip" loading="lazy" decoding="async" className="w-full max-h-80 object-contain rounded-md border border-border/50 bg-black/30" />
-                  </a>
+                  selected.slip_path?.toLowerCase().endsWith(".pdf") ? (
+                    <div className="space-y-2">
+                      <iframe src={slipUrl} title="Payment slip PDF" className="h-80 w-full rounded-md border border-border/50 bg-muted/20" />
+                      <Button asChild variant="outline" size="sm">
+                        <a href={slipUrl} target="_blank" rel="noopener noreferrer">Open PDF in new tab</a>
+                      </Button>
+                    </div>
+                  ) : (
+                    <a href={slipUrl} target="_blank" rel="noopener noreferrer">
+                      <img src={slipUrl} alt="Payment slip" loading="lazy" decoding="async" className="w-full max-h-80 object-contain rounded-md border border-border/50 bg-black/30" />
+                    </a>
+                  )
+                ) : slipError ? (
+                  <div className="w-full h-32 rounded-md border border-destructive/40 flex items-center justify-center text-xs text-destructive bg-destructive/5">Payment slip could not be loaded — retry opening this deposit.</div>
                 ) : (
-                  <div className="w-full h-32 rounded-md border border-dashed border-border/40 flex items-center justify-center text-xs text-muted-foreground bg-muted/20">No slip uploaded</div>
+                  <div className="w-full h-32 rounded-md border border-dashed border-border/40 flex items-center justify-center text-xs text-muted-foreground bg-muted/20">{selected.slip_path ? "Loading payment slip…" : "No slip uploaded"}</div>
                 )}
               </div>
 
