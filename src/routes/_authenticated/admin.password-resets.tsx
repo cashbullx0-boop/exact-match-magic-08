@@ -24,9 +24,8 @@ function AdminPasswordResetsPage() {
   useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [isAdmin, loading, navigate]);
 
   const load = async () => {
-    const { data, error } = await supabase.from("password_reset_requests")
-      .select("id,user_id,status,requested_at")
-      .order("requested_at", { ascending: false }).limit(100);
+    // Admin-only reader: internal admin notes are not selectable by regular users.
+    const { data, error } = await supabase.rpc("admin_list_password_reset_requests" as any);
     if (error) toast.error(error.message); else setRows((data as Row[]) ?? []);
   };
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);

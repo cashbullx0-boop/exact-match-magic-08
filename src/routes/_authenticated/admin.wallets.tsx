@@ -24,10 +24,9 @@ function AdminWalletsPage() {
   useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [isAdmin, loading, navigate]);
 
   const load = async () => {
-    const { data, error } = await supabase.from("wallet_change_requests")
-      .select("id,user_id,old_wallet,new_wallet,status,requested_at,admin_note")
-      .order("requested_at", { ascending: false }).limit(100);
-    if (error) toast.error(error.message); else setRows((data as Row[]) ?? []);
+    // Admin-only reader: internal admin notes are not selectable by regular users.
+    const { data, error } = await supabase.rpc("admin_list_wallet_change_requests" as any);
+    if (error) toast.error(error.message); else setRows(((data as Row[]) ?? []));
   };
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
