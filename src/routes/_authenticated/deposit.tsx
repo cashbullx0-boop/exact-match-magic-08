@@ -38,6 +38,26 @@ type DepositRow = {
 
 const DRAFT_KEY = "cbx.depositDraft";
 
+/**
+ * Users often paste a full explorer URL or a hash with spaces/quotes.
+ * The server only accepts [A-Za-z0-9_-]{6,128}, so normalise first —
+ * otherwise a perfectly valid payment fails at the very last step.
+ */
+export function normalizeTxHash(raw: string): string {
+  let v = raw.trim().replace(/^["']|["']$/g, "");
+  if (v.includes("/")) v = v.split(/[?#]/)[0]!.split("/").filter(Boolean).pop() ?? v;
+  return v.replace(/^0x/i, (m) => m).replace(/\s+/g, "");
+}
+
+export function txHashError(raw: string): string | null {
+  const v = normalizeTxHash(raw);
+  if (v.length === 0) return "Enter the transaction hash";
+  if (v.length < 6) return "Transaction hash looks too short";
+  if (v.length > 128) return "Transaction hash looks too long";
+  if (!/^[A-Za-z0-9_-]+$/.test(v)) return "Transaction hash can only contain letters and numbers";
+  return null;
+}
+
 const statusMeta: Record<DepositStatus, { label: string; icon: typeof Clock; cls: string }> = {
   pending:    { label: "Pending",     icon: Clock,        cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
   confirming: { label: "Confirming",  icon: Loader2,      cls: "bg-blue-500/15 text-blue-300 border-blue-500/30" },
