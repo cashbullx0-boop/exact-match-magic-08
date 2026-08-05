@@ -381,22 +381,15 @@ function DepositPage() {
     }
   };
 
-  const submitLabel = !amountValid
-    ? "Enter a valid amount"
-    : !slipFile
-    ? "Upload payment slip"
-    : senderAddressError(senderAddress)
-    ? (senderAddressError(senderAddress) as string)
-    : txHashError(txHash)
-    ? (txHashError(txHash) as string)
-    : "Submit deposit";
-
-  const submitDisabled =
-    submitting ||
-    !amountValid ||
-    !slipFile ||
-    !!senderAddressError(senderAddress) ||
-    !!txHashError(txHash);
+  // Keep the action clickable so mobile users get the exact missing-field
+  // message from handleSubmit. Previously any incomplete field left this
+  // disabled even after a valid slip was selected, which looked like the
+  // upload itself had failed.
+  const submitLabel = submitting
+    ? "Submitting deposit…"
+    : slipFile
+    ? "Submit deposit"
+    : "Attach slip & submit";
 
   return (
     <div className="space-y-6 animate-float-up">
@@ -577,7 +570,7 @@ function DepositPage() {
             )}
           </div>
 
-          <Button onClick={handleSubmit} disabled={submitDisabled} className="w-full h-11" size="lg">
+          <Button onClick={handleSubmit} disabled={submitting} className="w-full h-11" size="lg">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
             {submitLabel}
           </Button>
