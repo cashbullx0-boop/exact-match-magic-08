@@ -59,6 +59,14 @@ export function txHashError(raw: string): string | null {
   return null;
 }
 
+export function senderAddressError(raw: string): string | null {
+  const value = raw.trim();
+  if (!value) return "Enter your sending wallet address";
+  if (value.length < 26 || value.length > 128) return "Sending wallet address looks invalid";
+  if (!/^[A-Za-z0-9]+$/.test(value)) return "Sending wallet address can only contain letters and numbers";
+  return null;
+}
+
 const statusMeta: Record<DepositStatus, { label: string; icon: typeof Clock; cls: string }> = {
   pending:    { label: "Pending",     icon: Clock,        cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
   confirming: { label: "Confirming",  icon: Loader2,      cls: "bg-blue-500/15 text-blue-300 border-blue-500/30" },
