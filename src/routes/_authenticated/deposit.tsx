@@ -504,7 +504,8 @@ function DepositPage() {
                       <span>Date</span><span>Amount</span><span>Network</span><span>Tx hash</span><span>Address</span><span>Status</span>
                     </div>
                     {rows.map((d) => (
-                      <div key={d.id} className="grid grid-cols-2 md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-2 md:gap-3 items-start md:items-center rounded-lg border border-border p-3 text-sm hover:bg-white/[0.02] transition">
+                      <div key={d.id} className="rounded-lg border border-border p-3 hover:bg-white/[0.02] transition">
+                      <div className="grid grid-cols-2 md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-2 md:gap-3 items-start md:items-center text-sm">
                         <div className="text-xs text-muted-foreground col-span-2 md:col-span-1">{new Date(d.created_at).toLocaleString()}</div>
                         <div className="font-medium">${Number(d.amount_usd).toFixed(2)}</div>
                         <div className="text-xs"><Badge variant="secondary" className="text-[10px]">{NETWORKS[d.network].label}</Badge></div>
@@ -522,6 +523,15 @@ function DepositPage() {
                         </div>
                         <div className="font-mono text-xs text-muted-foreground truncate">{shortHash(d.wallet_address, 4)}</div>
                         <div className="justify-self-end md:justify-self-auto"><StatusBadge status={d.status} /></div>
+                      </div>
+                      {d.status === "pending" && (!d.slip_path || !d.tx_hash) && (
+                        <IncompleteDeposit
+                          deposit={d}
+                          busy={fixing === d.id}
+                          onSlip={(f) => fixSlip(d, f)}
+                          onTxHash={(v) => fixTxHash(d, v)}
+                        />
+                      )}
                       </div>
                     ))}
                   </div>
