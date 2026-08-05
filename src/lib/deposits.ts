@@ -43,12 +43,24 @@ export interface CreateDepositInput {
 }
 
 /**
+ * Canonical receiving address, read from server-side settings.
+ * Never trust the bundled constant for anything money-related — a tampered
+ * bundle/CDN could swap it. The DB also overrides wallet_address on insert.
+ */
+export async function getDepositAddress(network: DepositNetwork): Promise<string> {
+  const { data, error } = await supabase.rpc("get_deposit_address", { _network: network });
+  if (error) throw error;
+  if (!data) throw new Error("Deposit address unavailable. Please try again.");
+  return data as string;
+}
+
+/**
  * Creates a deposit request row. In a live integration this would also call
  * the payment gateway to create an invoice and return its payment id + address.
  * See createGatewayInvoice() below for the integration shape.
  */
 export async function createDepositRequest(input: CreateDepositInput) {
-  const net = NETWORKS[input.network];
+  const address = await getDepositAddress(input.network);
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
   // Placeholder for gateway call — see createGatewayInvoice.
@@ -60,7 +72,7 @@ export async function createDepositRequest(input: CreateDepositInput) {
       user_id: input.userId,
       amount_usd: input.amountUsd,
       network: input.network,
-      wallet_address: net.address,
+      wallet_address: address,
       status: "pending",
       provider: "manual",
       expires_at: expiresAt,
