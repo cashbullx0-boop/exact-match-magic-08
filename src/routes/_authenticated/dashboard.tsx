@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
@@ -13,6 +12,10 @@ import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-rin
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+
+const EarningsChart = lazy(() =>
+  import("@/components/dashboard/earnings-chart").then((m) => ({ default: m.EarningsChart })),
+);
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
@@ -139,20 +142,9 @@ function DashboardPage() {
           <span className="text-xs text-muted-foreground">USD</span>
         </div>
         <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={series}>
-              <defs>
-                <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.82 0.17 85)" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="oklch(0.82 0.17 85)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" stroke="oklch(0.7 0.03 255)" fontSize={12} />
-              <YAxis stroke="oklch(0.7 0.03 255)" fontSize={12} />
-              <Tooltip contentStyle={{ background: "oklch(0.2 0.04 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 12 }} />
-              <Area type="monotone" dataKey="earned" stroke="oklch(0.82 0.17 85)" strokeWidth={2} fill="url(#g)" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted/30" />}>
+            <EarningsChart data={series} />
+          </Suspense>
         </div>
       </Card>
 
