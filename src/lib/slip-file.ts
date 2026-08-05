@@ -26,10 +26,15 @@ export function isPdf(file: File): boolean {
 }
 
 export function isAcceptedSlip(file: File): boolean {
+  if (!file || file.size <= 0) return false;
   if (file.type.startsWith("image/")) return true;
   if (isPdf(file)) return true;
   // Empty or generic MIME → fall back to the extension.
-  return IMAGE_EXTS.includes(fileExt(file.name));
+  if (IMAGE_EXTS.includes(fileExt(file.name))) return true;
+  // Some phones/file managers hand over an unknown MIME *and* an unusual
+  // extension for a perfectly valid screenshot. Never block the deposit for
+  // that — accept the file and let the admin review it.
+  return true;
 }
 
 export function canPreview(file: File): boolean {
