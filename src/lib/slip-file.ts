@@ -6,9 +6,12 @@
  * rejected outright, which is what users saw as "slip upload not working".
  */
 
-const IMAGE_EXTS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "bmp"];
+const IMAGE_EXTS = [
+  "jpg", "jpeg", "jfif", "png", "webp", "gif", "avif",
+  "heic", "heif", "bmp", "tif", "tiff",
+];
 
-export const MAX_SLIP_BYTES = 15 * 1024 * 1024; // hard limit before compression
+export const MAX_SLIP_BYTES = 25 * 1024 * 1024; // hard limit before compression
 const COMPRESS_OVER_BYTES = 2 * 1024 * 1024; // compress anything bigger
 const MAX_DIMENSION = 1800;
 

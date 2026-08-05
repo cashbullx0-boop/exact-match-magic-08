@@ -210,12 +210,12 @@ function DepositPage() {
       return;
     }
     if (!isAcceptedSlip(file)) {
-      toast.error("Only images or PDF files are allowed");
-      return;
+      toast.error("Unsupported slip format. Upload a JPG, PNG, HEIC, WebP, or PDF file.");
+      return false;
     }
     if (file.size > MAX_SLIP_BYTES) {
-      toast.error("File is too large (max 15MB)");
-      return;
+      toast.error("File is too large (max 25MB)");
+      return false;
     }
     setSlipFile(file);
     if (canPreview(file)) {
@@ -223,6 +223,7 @@ function DepositPage() {
     } else {
       setSlipPreview(null);
     }
+    return true;
   };
 
   useEffect(() => () => {
@@ -336,7 +337,7 @@ function DepositPage() {
   const fixSlip = async (d: DepositRow, file: File | null) => {
     if (!user || !file) return;
     if (!isAcceptedSlip(file)) return toast.error("Only images or PDF files are allowed");
-    if (file.size > MAX_SLIP_BYTES) return toast.error("File is too large (max 15MB)");
+    if (file.size > MAX_SLIP_BYTES) return toast.error("File is too large (max 25MB)");
     setFixing(d.id);
     try {
       await uploadDepositSlip(user.id, d.id, file);
@@ -545,13 +546,16 @@ function DepositPage() {
           <div className="space-y-1.5">
             <Label htmlFor="slip" className="text-xs">
               Payment slip / screenshot <span className="text-destructive">*</span>{" "}
-              <span className="text-muted-foreground">(image or PDF, max 15MB)</span>
+              <span className="text-muted-foreground">(image or PDF, max 25MB)</span>
             </Label>
             <Input
               id="slip"
               type="file"
-              accept="image/*,.heic,.heif,application/pdf"
-              onChange={(e) => handleSlipChange(e.target.files?.[0] ?? null)}
+              accept="image/*,.jpg,.jpeg,.jfif,.png,.webp,.avif,.heic,.heif,.tif,.tiff,application/pdf"
+              onChange={(e) => {
+                const accepted = handleSlipChange(e.target.files?.[0] ?? null);
+                if (accepted === false) e.currentTarget.value = "";
+              }}
               className="text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
             />
             {slipFile && (

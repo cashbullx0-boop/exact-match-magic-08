@@ -60,7 +60,10 @@ export function depositErrorMessage(e: any): string {
     return "Session expired. Please refresh the page and submit again.";
   }
   if (msg.includes("payload too large") || msg.includes("exceeded the maximum")) {
-    return "Your slip image is too large. Try a smaller screenshot.";
+    return "Your slip is too large to upload. Try a smaller screenshot or PDF.";
+  }
+  if (msg.includes("mime") || msg.includes("content type") || msg.includes("file type")) {
+    return "This slip format is not supported. Please upload a JPG, PNG, HEIC, WebP, or PDF file.";
   }
   return raw || "Something went wrong. Please try again — nothing was charged.";
 }
@@ -189,6 +192,10 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
       : `image/${ext === "jpg" ? "jpeg" : ext}`;
   const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
 
+  if (prepared.size > MAX_UPLOAD_BYTES) {
+    throw new Error("Your slip is too large to upload. Try a smaller screenshot or PDF.");
+  }
+
   await withRetry("uploadDepositSlip", async () => {
     const { error: upErr } = await supabase.storage
       .from("deposit-slips")
@@ -207,6 +214,8 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
   });
   return path;
 }
+
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 export async function listUserDeposits(userId: string) {
   return withRetry("listUserDeposits", async () => {
