@@ -1303,6 +1303,19 @@ export type Database = {
           level: number
         }[]
       }
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          alltime_cents: number
+          avatar_url: string
+          full_name: string
+          level: number
+          referral_count: number
+          user_id: string
+          weekly_cents: number
+          xp: number
+        }[]
+      }
       get_maintenance_status: { Args: never; Returns: boolean }
       get_my_direct_referrals: {
         Args: never
