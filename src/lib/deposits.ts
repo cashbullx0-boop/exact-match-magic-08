@@ -205,8 +205,10 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
   await withRetry("uploadDepositSlip", async () => {
     const { error: upErr } = await supabase.storage
       .from("deposit-slips")
-      .upload(path, prepared, { upsert: true, contentType });
-    if (upErr) throw upErr;
+      .upload(path, prepared, { upsert: false, contentType });
+    // A lost response can make a successful first upload look like a failure.
+    // The retry then sees the same object; that means the proof is already safe.
+    if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
   }, 4);
 
   await withRetry("submitDepositSlip", async () => {
