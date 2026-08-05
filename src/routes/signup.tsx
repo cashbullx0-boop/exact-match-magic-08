@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
@@ -9,8 +9,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Mail, Phone, Eye, EyeOff } from "lucide-react";
-import { PhoneField } from "@/components/auth/phone-field";
-import { parsePhoneNumber } from "react-phone-number-input";
+const PhoneField = lazy(() =>
+  import("@/components/auth/phone-field").then((m) => ({ default: m.PhoneField })),
+);
+const parsePhoneNumberAsync = async (value: string) =>
+  (await import("react-phone-number-input")).parsePhoneNumber(value);
 import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
 
 export const Route = createFileRoute("/signup")({
@@ -88,7 +91,7 @@ function SignupPage() {
   };
 
   const sendPhoneOtp = async () => {
-    const parsed = phone ? parsePhoneNumber(phone) : null;
+    const parsed = phone ? await parsePhoneNumberAsync(phone) : null;
     if (!parsed || !parsed.isValid()) { toast.error("Enter a valid phone number"); return; }
     setLoading(true);
     const { data, error } = await supabase.rpc("create_signup_phone_otp", { _phone: phone });
@@ -145,7 +148,7 @@ function SignupPage() {
     if (data.user) await attachReferral(data.user.id);
     if (phoneVerified && phone) {
       try {
-        const parsed = parsePhoneNumber(phone);
+        const parsed = await parsePhoneNumberAsync(phone);
         const cc = parsed?.countryCallingCode ? `+${parsed.countryCallingCode}` : "";
         await supabase.rpc("attach_verified_phone", { _phone: phone, _country_code: cc });
       } catch { }
@@ -219,7 +222,9 @@ function SignupPage() {
             <div>
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number (optional)</Label>
               <div className="mt-1 rounded-md border border-input bg-transparent px-3 h-11 flex items-center [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:text-sm [&_.PhoneInputInput]:flex-1 [&_.PhoneInputCountry]:mr-2">
-                <PhoneField value={phone} onChange={(v) => { setPhone(v); setPhoneOtpSent(false); setPhoneVerified(false); setPhoneOtp(""); }} placeholder="Phone number" />
+                <Suspense fallback={<div className="h-5 w-full animate-pulse rounded bg-muted/40" />}>
+                  <PhoneField value={phone} onChange={(v) => { setPhone(v); setPhoneOtpSent(false); setPhoneVerified(false); setPhoneOtp(""); }} placeholder="Phone number" />
+                </Suspense>
               </div>
               {!phoneVerified && (
                 <div className="mt-2 space-y-2">
