@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
   createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
-  deleteDepositIfPending, getDepositAddress,
+  deleteDepositIfPending, getDepositAddress, depositErrorMessage,
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 
@@ -30,10 +30,13 @@ type DepositRow = {
   network: DepositNetwork;
   wallet_address: string;
   tx_hash: string | null;
+  slip_path: string | null;
   status: DepositStatus;
   created_at: string;
   expires_at: string | null;
 };
+
+const DRAFT_KEY = "cbx.depositDraft";
 
 const statusMeta: Record<DepositStatus, { label: string; icon: typeof Clock; cls: string }> = {
   pending:    { label: "Pending",     icon: Clock,        cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
@@ -59,6 +62,54 @@ function shortHash(h: string, n = 6) {
   return h.length > n * 2 + 3 ? `${h.slice(0, n)}…${h.slice(-n)}` : h;
 }
 
+/**
+ * Recovery panel: lets a user finish a pending deposit whose slip or tx hash
+ * never made it through (dropped connection, closed tab, etc.).
+ */
+function IncompleteDeposit({
+  deposit, busy, onSlip, onTxHash,
+}: {
+  deposit: DepositRow;
+  busy: boolean;
+  onSlip: (file: File | null) => void;
+  onTxHash: (value: string) => void;
+}) {
+  const [hash, setHash] = useState("");
+  return (
+    <div className="mt-3 space-y-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5">
+      <p className="text-[11px] text-amber-300 flex items-start gap-1.5">
+        <AlertCircle className="h-3.5 w-3.5 mt-px shrink-0" />
+        This deposit is missing {!deposit.slip_path ? "your payment slip" : ""}
+        {!deposit.slip_path && !deposit.tx_hash ? " and " : ""}
+        {!deposit.tx_hash ? "the transaction hash" : ""}. Add it here so our team can approve it.
+      </p>
+      {!deposit.slip_path && (
+        <Input
+          type="file"
+          accept="image/*,.heic,.heif,application/pdf"
+          disabled={busy}
+          onChange={(e) => onSlip(e.target.files?.[0] ?? null)}
+          className="text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
+        />
+      )}
+      {!deposit.tx_hash && (
+        <div className="flex gap-2">
+          <Input
+            placeholder="Transaction hash"
+            value={hash}
+            disabled={busy}
+            onChange={(e) => setHash(e.target.value)}
+            className="font-mono text-xs"
+          />
+          <Button size="sm" disabled={busy || !hash.trim()} onClick={() => onTxHash(hash)}>
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DepositPage() {
   const { user } = useAuth();
   const [network, setNetwork] = useState<DepositNetwork>("USDT_TRC20");
@@ -69,6 +120,24 @@ function DepositPage() {
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [fixing, setFixing] = useState<string | null>(null);
+
+  // Restore an in-progress amount/tx hash so a refresh or crash never loses it.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw) as { amount?: string; txHash?: string };
+      if (d.amount) setAmount(d.amount);
+      if (d.txHash) setTxHash(d.txHash);
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    try {
+      if (!amount && !txHash) localStorage.removeItem(DRAFT_KEY);
+      else localStorage.setItem(DRAFT_KEY, JSON.stringify({ amount, txHash }));
+    } catch { /* ignore */ }
+  }, [amount, txHash]);
 
   const net = NETWORKS[network];
   // Address is fetched from the server on every visit — never trusted from the bundle.
@@ -143,6 +212,7 @@ function DepositPage() {
     setTxHash("");
     setSlipFile(null);
     setSlipPreview(null);
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
   };
 
   const handleSubmit = async () => {
@@ -153,6 +223,7 @@ function DepositPage() {
 
     setSubmitting(true);
     let createdId: string | null = null;
+    let slipDone = false;
     console.info("[deposit:submit] start", {
       amount: amt, network,
       txHashLength: txHash.trim().length,
@@ -168,6 +239,7 @@ function DepositPage() {
 
       // 2. Attach remaining artifacts. Any failure → roll the row back.
       await uploadDepositSlip(user.id, row.id, slipFile);
+      slipDone = true;
       console.info("[deposit:submit] slip uploaded", { depositId: row.id });
       await attachTxHash(row.id, txHash);
       console.info("[deposit:submit] tx hash attached", { depositId: row.id });
@@ -182,13 +254,54 @@ function DepositPage() {
         message: e?.message,
         code: e?.code,
       });
-      if (createdId) {
-        // Avoid leaving an orphaned pending row with no proof attached.
-        await deleteDepositIfPending(createdId);
+      if (createdId && slipDone) {
+        // Proof is already stored — never throw the user's money proof away.
+        // Keep the row and let them finish the tx hash from history.
+        toast.warning(
+          "Your deposit and payment slip were saved. Add the transaction hash from your deposit history below.",
+          { duration: 8000 },
+        );
+        refresh();
+      } else {
+        if (createdId) {
+          // Nothing was attached yet — avoid an orphaned pending row.
+          await deleteDepositIfPending(createdId);
+        }
+        toast.error(depositErrorMessage(e), { duration: 8000 });
       }
-      toast.error(e?.message ?? "Failed to submit deposit");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // ---- Recovery actions for incomplete pending deposits ----
+  const fixSlip = async (d: DepositRow, file: File | null) => {
+    if (!user || !file) return;
+    if (!isAcceptedSlip(file)) return toast.error("Only images or PDF files are allowed");
+    if (file.size > MAX_SLIP_BYTES) return toast.error("File is too large (max 15MB)");
+    setFixing(d.id);
+    try {
+      await uploadDepositSlip(user.id, d.id, file);
+      toast.success("Payment slip attached");
+      refresh();
+    } catch (e: any) {
+      toast.error(depositErrorMessage(e), { duration: 8000 });
+    } finally {
+      setFixing(null);
+    }
+  };
+
+  const fixTxHash = async (d: DepositRow, value: string) => {
+    if (!value.trim()) return toast.error("Enter the transaction hash");
+    setFixing(d.id);
+    try {
+      await attachTxHash(d.id, value);
+      toast.success("Transaction hash attached");
+      refresh();
+    } catch (e: any) {
+      toast.error(depositErrorMessage(e), { duration: 8000 });
+    } finally {
+      setFixing(null);
     }
   };
 
@@ -439,7 +552,8 @@ function DepositPage() {
                       <span>Date</span><span>Amount</span><span>Network</span><span>Tx hash</span><span>Address</span><span>Status</span>
                     </div>
                     {rows.map((d) => (
-                      <div key={d.id} className="grid grid-cols-2 md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-2 md:gap-3 items-start md:items-center rounded-lg border border-border p-3 text-sm hover:bg-white/[0.02] transition">
+                      <div key={d.id} className="rounded-lg border border-border p-3 hover:bg-white/[0.02] transition">
+                      <div className="grid grid-cols-2 md:grid-cols-[1fr_120px_140px_1fr_140px_120px] gap-2 md:gap-3 items-start md:items-center text-sm">
                         <div className="text-xs text-muted-foreground col-span-2 md:col-span-1">{new Date(d.created_at).toLocaleString()}</div>
                         <div className="font-medium">${Number(d.amount_usd).toFixed(2)}</div>
                         <div className="text-xs"><Badge variant="secondary" className="text-[10px]">{NETWORKS[d.network].label}</Badge></div>
@@ -457,6 +571,15 @@ function DepositPage() {
                         </div>
                         <div className="font-mono text-xs text-muted-foreground truncate">{shortHash(d.wallet_address, 4)}</div>
                         <div className="justify-self-end md:justify-self-auto"><StatusBadge status={d.status} /></div>
+                      </div>
+                      {d.status === "pending" && (!d.slip_path || !d.tx_hash) && (
+                        <IncompleteDeposit
+                          deposit={d}
+                          busy={fixing === d.id}
+                          onSlip={(f) => fixSlip(d, f)}
+                          onTxHash={(v) => fixTxHash(d, v)}
+                        />
+                      )}
                       </div>
                     ))}
                   </div>

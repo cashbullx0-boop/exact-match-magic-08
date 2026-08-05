@@ -1,5 +1,70 @@
 import { supabase } from "@/integrations/supabase/client";
 
+/* ------------------------------------------------------------------ */
+/* Resilience helpers                                                   */
+/* ------------------------------------------------------------------ */
+
+/** True for errors that are worth retrying (network blips, 5xx, timeouts). */
+function isTransient(e: any): boolean {
+  const msg = String(e?.message ?? e ?? "").toLowerCase();
+  const status = Number(e?.status ?? e?.statusCode ?? 0);
+  if (status >= 500 || status === 408 || status === 429) return true;
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("timeout") ||
+    msg.includes("timed out") ||
+    msg.includes("load failed") ||
+    msg.includes("connection") ||
+    msg.includes("fetch failed") ||
+    msg.includes("socket") ||
+    msg.includes("502") ||
+    msg.includes("503") ||
+    msg.includes("504")
+  );
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Runs `fn`, retrying transient failures with exponential backoff.
+ * Deposits are trust-critical: a flaky mobile connection must never look
+ * like "deposit failed" to the user.
+ */
+export async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (i === attempts - 1 || !isTransient(e)) break;
+      console.warn(`[deposits] ${label} attempt ${i + 1} failed, retrying`, e);
+      await sleep(600 * 2 ** i);
+    }
+  }
+  throw lastError;
+}
+
+/** Human-friendly message for anything that can go wrong in the deposit flow. */
+export function depositErrorMessage(e: any): string {
+  const raw = String(e?.message ?? "").trim();
+  const msg = raw.toLowerCase();
+  if (isTransient(e)) {
+    return "Connection problem — your deposit was not lost. Check your internet and tap submit again.";
+  }
+  if (msg.includes("duplicate") || msg.includes("already")) {
+    return "This payment proof was already submitted. Check your deposit history below.";
+  }
+  if (msg.includes("row-level security") || msg.includes("permission")) {
+    return "Session expired. Please refresh the page and submit again.";
+  }
+  if (msg.includes("payload too large") || msg.includes("exceeded the maximum")) {
+    return "Your slip image is too large. Try a smaller screenshot.";
+  }
+  return raw || "Something went wrong. Please try again — nothing was charged.";
+}
+
 export type DepositNetwork = "USDT_TRC20";
 
 export type DepositStatus = "pending" | "confirming" | "approved" | "completed" | "failed" | "expired";
@@ -48,10 +113,12 @@ export interface CreateDepositInput {
  * bundle/CDN could swap it. The DB also overrides wallet_address on insert.
  */
 export async function getDepositAddress(network: DepositNetwork): Promise<string> {
-  const { data, error } = await supabase.rpc("get_deposit_address", { _network: network });
-  if (error) throw error;
-  if (!data) throw new Error("Deposit address unavailable. Please try again.");
-  return data as string;
+  return withRetry("getDepositAddress", async () => {
+    const { data, error } = await supabase.rpc("get_deposit_address", { _network: network });
+    if (error) throw error;
+    if (!data) throw new Error("Deposit address unavailable. Please try again.");
+    return data as string;
+  }, 4);
 }
 
 /**
@@ -66,37 +133,43 @@ export async function createDepositRequest(input: CreateDepositInput) {
   // Placeholder for gateway call — see createGatewayInvoice.
   // const invoice = await createGatewayInvoice({ ... });
 
-  const { data, error } = await supabase
-    .from("deposits")
-    .insert({
-      user_id: input.userId,
-      amount_usd: input.amountUsd,
-      network: input.network,
-      wallet_address: address,
-      status: "pending",
-      provider: "manual",
-      expires_at: expiresAt,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+  return withRetry("createDepositRequest", async () => {
+    const { data, error } = await supabase
+      .from("deposits")
+      .insert({
+        user_id: input.userId,
+        amount_usd: input.amountUsd,
+        network: input.network,
+        wallet_address: address,
+        status: "pending",
+        provider: "manual",
+        expires_at: expiresAt,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  });
 }
 
 export async function attachTxHash(depositId: string, txHash: string) {
-  const { error } = await supabase.rpc("submit_deposit_tx_hash", {
-    _deposit_id: depositId,
-    _tx_hash: txHash.trim(),
+  await withRetry("attachTxHash", async () => {
+    const { error } = await supabase.rpc("submit_deposit_tx_hash", {
+      _deposit_id: depositId,
+      _tx_hash: txHash.trim(),
+    });
+    if (error) throw error;
   });
-  if (error) throw error;
 }
 
 export async function attachSenderAddress(depositId: string, senderAddress: string) {
-  const { error } = await supabase.rpc("submit_deposit_sender_address", {
-    _deposit_id: depositId,
-    _sender_address: senderAddress.trim(),
+  await withRetry("attachSenderAddress", async () => {
+    const { error } = await supabase.rpc("submit_deposit_sender_address", {
+      _deposit_id: depositId,
+      _sender_address: senderAddress.trim(),
+    });
+    if (error) throw error;
   });
-  if (error) throw error;
 }
 
 /**
@@ -128,27 +201,35 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
       ? "application/pdf"
       : `image/${ext === "jpg" ? "jpeg" : ext}`;
   const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
-  const { error: upErr } = await supabase.storage
-    .from("deposit-slips")
-    .upload(path, prepared, { upsert: true, contentType });
-  if (upErr) throw new Error(upErr.message || "Slip upload failed. Please try again.");
-  const { error } = await supabase.rpc("submit_deposit_slip", {
-    _deposit_id: depositId,
-    _slip_path: path,
+
+  await withRetry("uploadDepositSlip", async () => {
+    const { error: upErr } = await supabase.storage
+      .from("deposit-slips")
+      .upload(path, prepared, { upsert: true, contentType });
+    if (upErr) throw upErr;
+  }, 4);
+
+  await withRetry("submitDepositSlip", async () => {
+    const { error } = await supabase.rpc("submit_deposit_slip", {
+      _deposit_id: depositId,
+      _slip_path: path,
+    });
+    if (error) throw error;
   });
-  if (error) throw error;
   return path;
 }
 
 export async function listUserDeposits(userId: string) {
-  const { data, error } = await supabase
-    .from("deposits")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(50);
-  if (error) throw error;
-  return data ?? [];
+  return withRetry("listUserDeposits", async () => {
+    const { data, error } = await supabase
+      .from("deposits")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return data ?? [];
+  });
 }
 
 /* ------------------------------------------------------------------ */
