@@ -210,7 +210,7 @@ function DepositPage() {
       return;
     }
     if (!isAcceptedSlip(file)) {
-      toast.error("Unsupported slip format. Upload a JPG, PNG, HEIC, WebP, or PDF file.");
+      toast.error("That file looks empty. Please pick your payment screenshot again.");
       return false;
     }
     if (file.size > MAX_SLIP_BYTES) {
@@ -218,6 +218,7 @@ function DepositPage() {
       return false;
     }
     setSlipFile(file);
+    toast.success("Payment slip attached");
     if (canPreview(file)) {
       setSlipPreview(URL.createObjectURL(file));
     } else {
