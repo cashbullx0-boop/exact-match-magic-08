@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
   createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
-  deleteDepositIfPending,
+  deleteDepositIfPending, getDepositAddress,
 } from "@/lib/deposits";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
@@ -70,6 +70,18 @@ function DepositPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const net = NETWORKS[network];
+  // Address is fetched from the server on every visit — never trusted from the bundle.
+  const [payAddress, setPayAddress] = useState<string | null>(null);
+  const [addrError, setAddrError] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setPayAddress(null);
+    setAddrError(false);
+    getDepositAddress(network)
+      .then((a) => { if (!cancelled) setPayAddress(a); })
+      .catch(() => { if (!cancelled) setAddrError(true); });
+    return () => { cancelled = true; };
+  }, [network]);
 
   const MAX_SLIP_BYTES = 5 * 1024 * 1024;
 
@@ -291,17 +303,25 @@ function DepositPage() {
                 Send exactly <span className="text-primary">${amt.toFixed(2)} USDT</span> on{" "}
                 <span className="text-primary">{net.label}</span> to:
               </p>
+              {addrError ? (
+                <p className="text-xs text-destructive">Could not load the deposit address securely. Please refresh and try again.</p>
+              ) : !payAddress ? (
+                <div className="flex items-center justify-center py-6"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+              ) : (
+              <>
               <div className="flex justify-center">
                 <div className="p-3 rounded-xl bg-white">
-                  <QRCodeSVG value={net.address} size={160} level="M" />
+                  <QRCodeSVG value={payAddress} size={160} level="M" />
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-border bg-white/[0.02] p-2.5">
-                <code className="text-xs font-mono break-all flex-1">{net.address}</code>
-                <Button size="sm" variant="ghost" onClick={() => copy(net.address, "addr-new")}>
+                <code className="text-xs font-mono break-all flex-1">{payAddress}</code>
+                <Button size="sm" variant="ghost" onClick={() => copy(payAddress, "addr-new")}>
                   {copied === "addr-new" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
+              </>
+              )}
             </div>
           )}
 
