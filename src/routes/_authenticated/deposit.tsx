@@ -62,6 +62,54 @@ function shortHash(h: string, n = 6) {
   return h.length > n * 2 + 3 ? `${h.slice(0, n)}…${h.slice(-n)}` : h;
 }
 
+/**
+ * Recovery panel: lets a user finish a pending deposit whose slip or tx hash
+ * never made it through (dropped connection, closed tab, etc.).
+ */
+function IncompleteDeposit({
+  deposit, busy, onSlip, onTxHash,
+}: {
+  deposit: DepositRow;
+  busy: boolean;
+  onSlip: (file: File | null) => void;
+  onTxHash: (value: string) => void;
+}) {
+  const [hash, setHash] = useState("");
+  return (
+    <div className="mt-3 space-y-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5">
+      <p className="text-[11px] text-amber-300 flex items-start gap-1.5">
+        <AlertCircle className="h-3.5 w-3.5 mt-px shrink-0" />
+        This deposit is missing {!deposit.slip_path ? "your payment slip" : ""}
+        {!deposit.slip_path && !deposit.tx_hash ? " and " : ""}
+        {!deposit.tx_hash ? "the transaction hash" : ""}. Add it here so our team can approve it.
+      </p>
+      {!deposit.slip_path && (
+        <Input
+          type="file"
+          accept="image/*,.heic,.heif,application/pdf"
+          disabled={busy}
+          onChange={(e) => onSlip(e.target.files?.[0] ?? null)}
+          className="text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
+        />
+      )}
+      {!deposit.tx_hash && (
+        <div className="flex gap-2">
+          <Input
+            placeholder="Transaction hash"
+            value={hash}
+            disabled={busy}
+            onChange={(e) => setHash(e.target.value)}
+            className="font-mono text-xs"
+          />
+          <Button size="sm" disabled={busy || !hash.trim()} onClick={() => onTxHash(hash)}>
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DepositPage() {
   const { user } = useAuth();
   const [network, setNetwork] = useState<DepositNetwork>("USDT_TRC20");
