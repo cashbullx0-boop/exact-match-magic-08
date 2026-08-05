@@ -20,32 +20,27 @@ function LeaderboardPage() {
 
   useEffect(() => {
     (async () => {
-      const [{ data: top }, { data: txns }, { data: refs }] = await Promise.all([
-        supabase.from("profiles").select("id,full_name,avatar_url,total_earned_cents,level,xp").order("total_earned_cents", { ascending: false }).limit(20),
-        supabase.from("transactions").select("user_id,amount_cents").gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString()).gt("amount_cents", 0),
-        supabase.from("referrals").select("referrer_id"),
-      ]);
-      setTopEarners(top ?? []);
+      const { data } = await supabase.rpc("get_leaderboard");
+      const rows = (data ?? []).map((r: any) => ({
+        id: r.user_id,
+        full_name: r.full_name,
+        avatar_url: r.avatar_url,
+        level: r.level,
+        xp: r.xp,
+        alltime_cents: Number(r.alltime_cents ?? 0),
+        weekly_cents: Number(r.weekly_cents ?? 0),
+        count: Number(r.referral_count ?? 0),
+      }));
 
-      const wkMap = new Map<string, number>();
-      (txns ?? []).forEach((t: any) => wkMap.set(t.user_id, (wkMap.get(t.user_id) ?? 0) + t.amount_cents));
-      const wkIds = Array.from(wkMap.keys());
-      if (wkIds.length) {
-        const { data: profs } = await supabase.from("profiles").select("id,full_name,avatar_url").in("id", wkIds);
-        const list = (profs ?? []).map((p: any) => ({ ...p, weekly_cents: wkMap.get(p.id) ?? 0 }))
-          .sort((a, b) => b.weekly_cents - a.weekly_cents).slice(0, 20);
-        setWeekly(list);
-      }
-
-      const refMap = new Map<string, number>();
-      (refs ?? []).forEach((r: any) => refMap.set(r.referrer_id, (refMap.get(r.referrer_id) ?? 0) + 1));
-      const refIds = Array.from(refMap.keys());
-      if (refIds.length) {
-        const { data: profs } = await supabase.from("profiles").select("id,full_name,avatar_url").in("id", refIds);
-        const list = (profs ?? []).map((p: any) => ({ ...p, count: refMap.get(p.id) ?? 0 }))
-          .sort((a, b) => b.count - a.count).slice(0, 20);
-        setReferrers(list);
-      }
+      setTopEarners(
+        rows.filter((r) => r.alltime_cents > 0).sort((a, b) => b.alltime_cents - a.alltime_cents).slice(0, 20),
+      );
+      setWeekly(
+        rows.filter((r) => r.weekly_cents > 0).sort((a, b) => b.weekly_cents - a.weekly_cents).slice(0, 20),
+      );
+      setReferrers(
+        rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count).slice(0, 20),
+      );
       setLoading(false);
     })();
   }, []);
@@ -90,7 +85,7 @@ function LeaderboardPage() {
           <Card className="glass-strong border-border p-4">
             {loading ? <Loading /> : (
               <ul className="space-y-1">
-                {topEarners.map((p, i) => <Row key={p.id} p={p} i={i} value={`$${(p.total_earned_cents / 100).toFixed(2)}`} />)}
+                {topEarners.map((p, i) => <Row key={p.id} p={p} i={i} value={`$${(p.alltime_cents / 100).toFixed(2)}`} />)}
               </ul>
             )}
           </Card>
