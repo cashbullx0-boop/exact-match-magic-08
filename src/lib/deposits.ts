@@ -118,12 +118,20 @@ export async function deleteDepositIfPending(depositId: string) {
 }
 
 export async function uploadDepositSlip(userId: string, depositId: string, file: File) {
-  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+  const { compressSlipIfNeeded, fileExt, isPdf } = await import("@/lib/slip-file");
+  const prepared = await compressSlipIfNeeded(file);
+  const ext = fileExt(prepared.name);
+  const contentType =
+    prepared.type && prepared.type !== "application/octet-stream"
+      ? prepared.type
+      : isPdf(prepared)
+      ? "application/pdf"
+      : `image/${ext === "jpg" ? "jpeg" : ext}`;
   const path = `${userId}/${depositId}-${Date.now()}.${ext}`;
   const { error: upErr } = await supabase.storage
     .from("deposit-slips")
-    .upload(path, file, { upsert: true, contentType: file.type });
-  if (upErr) throw upErr;
+    .upload(path, prepared, { upsert: true, contentType });
+  if (upErr) throw new Error(upErr.message || "Slip upload failed. Please try again.");
   const { error } = await supabase.rpc("submit_deposit_slip", {
     _deposit_id: depositId,
     _slip_path: path,
