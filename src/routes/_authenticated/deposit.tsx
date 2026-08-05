@@ -72,6 +72,24 @@ function DepositPage() {
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [fixing, setFixing] = useState<string | null>(null);
+
+  // Restore an in-progress amount/tx hash so a refresh or crash never loses it.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw) as { amount?: string; txHash?: string };
+      if (d.amount) setAmount(d.amount);
+      if (d.txHash) setTxHash(d.txHash);
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    try {
+      if (!amount && !txHash) localStorage.removeItem(DRAFT_KEY);
+      else localStorage.setItem(DRAFT_KEY, JSON.stringify({ amount, txHash }));
+    } catch { /* ignore */ }
+  }, [amount, txHash]);
 
   const net = NETWORKS[network];
   // Address is fetched from the server on every visit — never trusted from the bundle.
@@ -146,6 +164,7 @@ function DepositPage() {
     setTxHash("");
     setSlipFile(null);
     setSlipPreview(null);
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
   };
 
   const handleSubmit = async () => {
@@ -156,6 +175,7 @@ function DepositPage() {
 
     setSubmitting(true);
     let createdId: string | null = null;
+    let slipDone = false;
     console.info("[deposit:submit] start", {
       amount: amt, network,
       txHashLength: txHash.trim().length,
@@ -171,6 +191,7 @@ function DepositPage() {
 
       // 2. Attach remaining artifacts. Any failure → roll the row back.
       await uploadDepositSlip(user.id, row.id, slipFile);
+      slipDone = true;
       console.info("[deposit:submit] slip uploaded", { depositId: row.id });
       await attachTxHash(row.id, txHash);
       console.info("[deposit:submit] tx hash attached", { depositId: row.id });
@@ -185,13 +206,54 @@ function DepositPage() {
         message: e?.message,
         code: e?.code,
       });
-      if (createdId) {
-        // Avoid leaving an orphaned pending row with no proof attached.
-        await deleteDepositIfPending(createdId);
+      if (createdId && slipDone) {
+        // Proof is already stored — never throw the user's money proof away.
+        // Keep the row and let them finish the tx hash from history.
+        toast.warning(
+          "Your deposit and payment slip were saved. Add the transaction hash from your deposit history below.",
+          { duration: 8000 },
+        );
+        refresh();
+      } else {
+        if (createdId) {
+          // Nothing was attached yet — avoid an orphaned pending row.
+          await deleteDepositIfPending(createdId);
+        }
+        toast.error(depositErrorMessage(e), { duration: 8000 });
       }
-      toast.error(e?.message ?? "Failed to submit deposit");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // ---- Recovery actions for incomplete pending deposits ----
+  const fixSlip = async (d: DepositRow, file: File | null) => {
+    if (!user || !file) return;
+    if (!isAcceptedSlip(file)) return toast.error("Only images or PDF files are allowed");
+    if (file.size > MAX_SLIP_BYTES) return toast.error("File is too large (max 15MB)");
+    setFixing(d.id);
+    try {
+      await uploadDepositSlip(user.id, d.id, file);
+      toast.success("Payment slip attached");
+      refresh();
+    } catch (e: any) {
+      toast.error(depositErrorMessage(e), { duration: 8000 });
+    } finally {
+      setFixing(null);
+    }
+  };
+
+  const fixTxHash = async (d: DepositRow, value: string) => {
+    if (!value.trim()) return toast.error("Enter the transaction hash");
+    setFixing(d.id);
+    try {
+      await attachTxHash(d.id, value);
+      toast.success("Transaction hash attached");
+      refresh();
+    } catch (e: any) {
+      toast.error(depositErrorMessage(e), { duration: 8000 });
+    } finally {
+      setFixing(null);
     }
   };
 
