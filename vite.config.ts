@@ -27,21 +27,19 @@ export default defineConfig({
       devOptions: { enabled: false },
       manifest: false,
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2}"],
+        // Do not precache the application shell. Deposit and withdrawal flows
+        // must always load the latest deployed UI on installed mobile apps.
+        globPatterns: ["**/*.{svg,png,webp,woff2}"],
         navigateFallback: "/",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/__/],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "html-cache",
-              networkTimeoutSeconds: 5,
-            },
+            handler: "NetworkOnly",
           },
           {
             urlPattern: ({ url, sameOrigin }) =>
-              sameOrigin && /\.(?:js|css|woff2|png|jpg|jpeg|webp|svg|gif)$/.test(url.pathname),
+              sameOrigin && /\.(?:woff2|png|jpg|jpeg|webp|svg|gif)$/.test(url.pathname),
             handler: "CacheFirst",
             options: {
               cacheName: "assets-cache",
