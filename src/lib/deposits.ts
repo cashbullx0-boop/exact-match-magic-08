@@ -193,14 +193,22 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
     throw new Error("Your slip is too large to upload. Try a smaller screenshot or PDF.");
   }
 
-  await withRetry("uploadDepositSlip", async () => {
-    const { error: upErr } = await supabase.storage
-      .from("deposit-slips")
-      .upload(path, prepared, { upsert: false, contentType });
-    // A lost response can make a successful first upload look like a failure.
-    // The retry then sees the same object; that means the proof is already safe.
-    if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
-  }, 4);
+  try {
+    await withRetry("uploadDepositSlip", async () => {
+      const { error: upErr } = await supabase.storage
+        .from("deposit-slips")
+        .upload(path, prepared, { upsert: true, contentType });
+      // A lost response can make a successful first upload look like a failure.
+      // The retry then sees the same object; that means the proof is already safe.
+      if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
+    }, 5);
+  } catch (e) {
+    // A dropped response on mobile often hides a completed upload. Before we
+    // tell the user it failed, check whether the file is actually there.
+    const landed = await slipExists(userId, path);
+    if (!landed) throw e;
+    console.warn("[deposits] upload reported an error but the slip is stored", e);
+  }
 
   await withRetry("submitDepositSlip", async () => {
     const { error } = await supabase.rpc("submit_deposit_slip", {
@@ -210,6 +218,20 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
     if (error) throw error;
   });
   return path;
+}
+
+/** True when the object exists in storage (used to confirm interrupted uploads). */
+async function slipExists(userId: string, path: string): Promise<boolean> {
+  try {
+    const name = path.split("/").pop()!;
+    const { data, error } = await supabase.storage
+      .from("deposit-slips")
+      .list(userId, { search: name, limit: 100 });
+    if (error) return false;
+    return (data ?? []).some((o) => o.name === name);
+  } catch {
+    return false;
+  }
 }
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
