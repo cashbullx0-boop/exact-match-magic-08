@@ -9,6 +9,9 @@ function isTransient(e: any): boolean {
   const msg = String(e?.message ?? e ?? "").toLowerCase();
   const status = Number(e?.status ?? e?.statusCode ?? 0);
   if (status >= 500 || status === 408 || status === 429) return true;
+  // A real server rejection (RLS, validation, 4xx) must never be reported as
+  // a connection problem — that message sends users on a wild goose chase.
+  if (status >= 400 && status < 500) return false;
   return (
     msg.includes("failed to fetch") ||
     msg.includes("network") ||
