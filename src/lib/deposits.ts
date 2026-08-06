@@ -53,8 +53,12 @@ export async function withRetry<T>(label: string, fn: () => Promise<T>, attempts
 export function depositErrorMessage(e: any): string {
   const raw = String(e?.message ?? "").trim();
   const msg = raw.toLowerCase();
+  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+  if (offline) {
+    return "You appear to be offline — your deposit was not lost. Reconnect and tap submit again.";
+  }
   if (isTransient(e)) {
-    return "Connection problem — your deposit was not lost. Check your internet and tap submit again.";
+    return "Upload was interrupted before it finished — nothing was lost. Please tap submit again (a smaller screenshot uploads faster).";
   }
   if (msg.includes("duplicate") || msg.includes("already")) {
     return "This payment proof was already submitted. Check your deposit history below.";
