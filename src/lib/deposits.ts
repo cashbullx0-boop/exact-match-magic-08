@@ -165,16 +165,6 @@ export async function attachTxHash(depositId: string, txHash: string) {
   });
 }
 
-export async function attachSenderAddress(depositId: string, senderAddress: string) {
-  await withRetry("attachSenderAddress", async () => {
-    const { error } = await supabase.rpc("submit_deposit_sender_address", {
-      _deposit_id: depositId,
-      _sender_address: senderAddress.trim(),
-    });
-    if (error) throw error;
-  });
-}
-
 /**
  * Best-effort cleanup of an orphaned pending deposit row when the post-create
  * steps (sender address / slip / tx hash) fail. RLS restricts this to the

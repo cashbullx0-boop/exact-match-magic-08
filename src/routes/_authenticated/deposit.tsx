@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   NETWORKS, type DepositNetwork, type DepositStatus,
   createDepositRequest, attachTxHash, listUserDeposits, uploadDepositSlip,
-  attachSenderAddress, getDepositAddress, depositErrorMessage,
+  getDepositAddress, depositErrorMessage,
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 
@@ -31,7 +31,6 @@ type DepositRow = {
   wallet_address: string;
   tx_hash: string | null;
   slip_path: string | null;
-  sender_wallet_address: string | null;
   status: DepositStatus;
   created_at: string;
   expires_at: string | null;
@@ -56,14 +55,6 @@ export function txHashError(raw: string): string | null {
   if (v.length < 6) return "Transaction hash looks too short";
   if (v.length > 128) return "Transaction hash looks too long";
   if (!/^[A-Za-z0-9_-]+$/.test(v)) return "Transaction hash can only contain letters and numbers";
-  return null;
-}
-
-export function senderAddressError(raw: string): string | null {
-  const value = raw.trim();
-  if (!value) return "Enter your sending wallet address";
-  if (value.length < 26 || value.length > 128) return "Sending wallet address looks invalid";
-  if (!/^[A-Za-z0-9]+$/.test(value)) return "Sending wallet address can only contain letters and numbers";
   return null;
 }
 
@@ -96,25 +87,21 @@ function shortHash(h: string, n = 6) {
  * never made it through (dropped connection, closed tab, etc.).
  */
 function IncompleteDeposit({
-  deposit, busy, onSlip, onTxHash, onSenderAddress,
+  deposit, busy, onSlip, onTxHash,
 }: {
   deposit: DepositRow;
   busy: boolean;
   onSlip: (file: File | null) => void;
   onTxHash: (value: string) => void;
-  onSenderAddress: (value: string) => void;
 }) {
   const [hash, setHash] = useState("");
-  const [sender, setSender] = useState("");
   return (
     <div className="mt-3 space-y-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5">
       <p className="text-[11px] text-amber-300 flex items-start gap-1.5">
         <AlertCircle className="h-3.5 w-3.5 mt-px shrink-0" />
         This deposit is missing {!deposit.slip_path ? "your payment slip" : ""}
         {!deposit.slip_path && !deposit.tx_hash ? " and " : ""}
-        {!deposit.tx_hash ? "the transaction hash" : ""}
-        {(!deposit.slip_path || !deposit.tx_hash) && !deposit.sender_wallet_address ? " and " : ""}
-        {!deposit.sender_wallet_address ? "your sending wallet address" : ""}. Add it here so our team can approve it.
+        {!deposit.tx_hash ? "the transaction hash" : ""}. Add it here so our team can approve it.
       </p>
       {!deposit.slip_path && (
         <Input
@@ -139,20 +126,6 @@ function IncompleteDeposit({
           </Button>
         </div>
       )}
-      {!deposit.sender_wallet_address && (
-        <div className="flex gap-2">
-          <Input
-            placeholder="Your sending wallet address"
-            value={sender}
-            disabled={busy}
-            onChange={(e) => setSender(e.target.value)}
-            className="font-mono text-xs"
-          />
-          <Button size="sm" disabled={busy || !!senderAddressError(sender)} onClick={() => onSenderAddress(sender)}>
-            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
@@ -163,7 +136,6 @@ function DepositPage() {
   const [amount, setAmount] = useState("");
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [txHash, setTxHash] = useState("");
-  const [senderAddress, setSenderAddress] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -175,18 +147,17 @@ function DepositPage() {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const d = JSON.parse(raw) as { amount?: string; txHash?: string; senderAddress?: string };
+      const d = JSON.parse(raw) as { amount?: string; txHash?: string };
       if (d.amount) setAmount(d.amount);
       if (d.txHash) setTxHash(d.txHash);
-      if (d.senderAddress) setSenderAddress(d.senderAddress);
     } catch { /* ignore */ }
   }, []);
   useEffect(() => {
     try {
-      if (!amount && !txHash && !senderAddress) localStorage.removeItem(DRAFT_KEY);
-      else localStorage.setItem(DRAFT_KEY, JSON.stringify({ amount, txHash, senderAddress }));
+      if (!amount && !txHash) localStorage.removeItem(DRAFT_KEY);
+      else localStorage.setItem(DRAFT_KEY, JSON.stringify({ amount, txHash }));
     } catch { /* ignore */ }
-  }, [amount, txHash, senderAddress]);
+  }, [amount, txHash]);
 
   const net = NETWORKS[network];
   // Address is fetched from the server on every visit — never trusted from the bundle.
@@ -266,7 +237,6 @@ function DepositPage() {
   const resetForm = () => {
     setAmount("");
     setTxHash("");
-    setSenderAddress("");
     setSlipFile(null);
     setSlipPreview(null);
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
@@ -278,8 +248,6 @@ function DepositPage() {
     if (!slipFile) return toast.error("Please upload your payment slip or screenshot as proof");
     const hashErr = txHashError(txHash);
     if (hashErr) return toast.error(hashErr);
-    const senderErr = senderAddressError(senderAddress);
-    if (senderErr) return toast.error(senderErr);
 
     setSubmitting(true);
     let createdId: string | null = null;
@@ -301,7 +269,6 @@ function DepositPage() {
       await uploadDepositSlip(user.id, row.id, slipFile);
       slipDone = true;
       console.info("[deposit:submit] slip uploaded", { depositId: row.id });
-      await attachSenderAddress(row.id, senderAddress.trim());
       await attachTxHash(row.id, normalizeTxHash(txHash));
       console.info("[deposit:submit] tx hash attached", { depositId: row.id });
 
@@ -359,21 +326,6 @@ function DepositPage() {
       await attachTxHash(d.id, normalizeTxHash(value));
       toast.success("Transaction hash attached");
       refresh();
-    } catch (e: any) {
-      toast.error(depositErrorMessage(e), { duration: 8000 });
-    } finally {
-      setFixing(null);
-    }
-  };
-
-  const fixSenderAddress = async (d: DepositRow, value: string) => {
-    const err = senderAddressError(value);
-    if (err) return toast.error(err);
-    setFixing(d.id);
-    try {
-      await attachSenderAddress(d.id, value.trim());
-      toast.success("Sending wallet address attached");
-      await refresh();
     } catch (e: any) {
       toast.error(depositErrorMessage(e), { duration: 8000 });
     } finally {
@@ -507,22 +459,6 @@ function DepositPage() {
               )}
             </div>
           )}
-
-          <div className="space-y-1.5">
-            <Label htmlFor="sender-address" className="text-xs">
-              Your sending wallet address <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="sender-address"
-              placeholder="Wallet address used to send USDT"
-              value={senderAddress}
-              onChange={(e) => setSenderAddress(e.target.value.replace(/\s/g, ""))}
-              className="font-mono text-xs"
-            />
-            {senderAddress && senderAddressError(senderAddress) && (
-              <p className="text-[11px] text-destructive">{senderAddressError(senderAddress)}</p>
-            )}
-          </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="txhash" className="text-xs">
@@ -663,13 +599,12 @@ function DepositPage() {
                         <div className="font-mono text-xs text-muted-foreground truncate">{shortHash(d.wallet_address, 4)}</div>
                         <div className="justify-self-end md:justify-self-auto"><StatusBadge status={d.status} /></div>
                       </div>
-                      {(d.status === "pending" || d.status === "confirming") && (!d.slip_path || !d.tx_hash || !d.sender_wallet_address) && (
+                      {(d.status === "pending" || d.status === "confirming") && (!d.slip_path || !d.tx_hash) && (
                         <IncompleteDeposit
                           deposit={d}
                           busy={fixing === d.id}
                           onSlip={(f) => fixSlip(d, f)}
                           onTxHash={(v) => fixTxHash(d, v)}
-                          onSenderAddress={(v) => fixSenderAddress(d, v)}
                         />
                       )}
                       </div>
