@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, ShieldCheck, ShieldX, Eye, Loader2, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { listUserIdentities, type AdminUserIdentity } from "@/lib/admin-users.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/deposits")({
   head: () => ({ meta: [{ title: "Deposits Review — Admin" }] }),
@@ -51,6 +52,13 @@ function AdminDepositsPage() {
   const [slipUrl, setSlipUrl] = useState<string | undefined>();
   const [slipError, setSlipError] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [identities, setIdentities] = useState<Record<string, AdminUserIdentity>>({});
+
+  const identityOf = (uid: string) => identities[uid];
+  const nameOf = (uid: string) => {
+    const i = identities[uid];
+    return i?.full_name || i?.username || null;
+  };
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -63,8 +71,18 @@ function AdminDepositsPage() {
     setLoading(true);
     const { data, error } = await supabase.from("deposits").select("*").order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setRows((data as Row[]) ?? []);
+    const list = (data as Row[]) ?? [];
+    setRows(list);
     setLoading(false);
+    const ids = Array.from(new Set(list.map((r) => r.user_id)));
+    if (ids.length) {
+      try {
+        const res = await listUserIdentities({ data: { userIds: ids } });
+        setIdentities(Object.fromEntries(res.map((u) => [u.user_id, u])));
+      } catch (e) {
+        console.warn("[admin] could not load user identities", e);
+      }
+    }
   };
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
 
@@ -74,10 +92,12 @@ function AdminDepositsPage() {
       const s = search.toLowerCase();
       return (r.tx_hash ?? "").toLowerCase().includes(s)
         || r.user_id.includes(s)
+        || (identities[r.user_id]?.email ?? "").toLowerCase().includes(s)
+        || (nameOf(r.user_id) ?? "").toLowerCase().includes(s)
         || r.wallet_address.toLowerCase().includes(s);
     }
     return true;
-  }), [rows, filter, search]);
+  }), [rows, filter, search, identities]);
 
   const openDetail = async (r: Row) => {
     setSelected(r);
@@ -131,7 +151,7 @@ function AdminDepositsPage() {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-9 h-10" placeholder="Search tx hash, user id, address..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-9 h-10" placeholder="Search email, name, tx hash, address..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-full sm:w-48 h-10"><SelectValue /></SelectTrigger>
@@ -160,7 +180,8 @@ function AdminDepositsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-base">${Number(r.amount_usd).toFixed(2)}</p>
-                    <p className="text-[11px] text-muted-foreground font-mono truncate">{r.user_id.slice(0, 12)}…</p>
+                    <p className="text-xs font-medium truncate">{nameOf(r.user_id) ?? "Unnamed account"}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{identityOf(r.user_id)?.email ?? `${r.user_id.slice(0, 12)}…`}</p>
                   </div>
                   <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 ${STATUS_STYLES[r.status]}`}>{r.status}</span>
                 </div>
@@ -190,7 +211,10 @@ function AdminDepositsPage() {
               <tbody>
                 {filtered.map((r) => (
                   <tr key={r.id} className="border-t border-border/40 hover:bg-muted/20">
-                    <td className="px-4 py-3 font-mono text-xs">{r.user_id.slice(0, 8)}…</td>
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <p className="font-medium truncate">{nameOf(r.user_id) ?? "Unnamed account"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{identityOf(r.user_id)?.email ?? `${r.user_id.slice(0, 8)}…`}</p>
+                    </td>
                     <td className="px-4 py-3 font-medium">${Number(r.amount_usd).toFixed(2)}</td>
                     <td className="px-4 py-3 hidden md:table-cell text-xs">{r.network.replace("USDT_", "")}</td>
                     <td className="px-4 py-3 hidden lg:table-cell font-mono text-xs truncate max-w-[160px]">{r.tx_hash ?? "—"}</td>
@@ -216,7 +240,10 @@ function AdminDepositsPage() {
           {selected && (
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2 text-sm">
-                <Field label="User ID" value={selected.user_id} mono />
+                <Field label="Account name" value={nameOf(selected.user_id) ?? "—"} />
+                <Field label="Email" value={identityOf(selected.user_id)?.email ?? "—"} copy />
+                <Field label="Username" value={identityOf(selected.user_id)?.username ?? "—"} />
+                <Field label="User ID" value={selected.user_id} mono copy />
                 <Field label="Amount" value={`$${Number(selected.amount_usd).toFixed(2)} USDT`} />
                 <Field label="Network" value={selected.network} />
                 <Field label="Submitted" value={new Date(selected.created_at).toLocaleString()} />
