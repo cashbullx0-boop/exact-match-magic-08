@@ -86,6 +86,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+      // Opening a native file/camera picker backgrounds the mobile browser.
+      // Supabase can emit INITIAL_SESSION or TOKEN_REFRESHED when the app
+      // returns. Re-hydrating auth for those events unmounts every protected
+      // page and destroys non-serializable state such as an attached File.
+      // The access token is still kept current in `session`; only identity
+      // transitions need the full profile/loading reset.
+      if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+        setSession(sess);
+        setUser(sess?.user ?? null);
+        return;
+      }
+
       authGeneration.current += 1;
       setSession(sess);
       setUser(sess?.user ?? null);
