@@ -398,7 +398,7 @@ function DepositPage() {
             <div className="relative">
               <Input
                 id="amount" type="number" inputMode="decimal" min={net.minAmount} step="0.01"
-                placeholder={`Min ${net.minAmount} USDT`}
+                placeholder="min 50$ USD"
                 value={amount} onChange={(e) => setAmount(e.target.value)}
                 className="pr-16 text-lg h-12"
               />
@@ -406,14 +406,9 @@ function DepositPage() {
                 USDT
               </span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {[50, 100, 250].map((v) => (
-                <button key={v} type="button" onClick={() => setAmount(String(v))}
-                  className="text-xs px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-border text-muted-foreground hover:text-foreground transition">
-                  ${v.toFixed(2)}
-                </button>
-              ))}
-            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Enter your own deposit amount. Minimum is {net.minAmount} USDT.
+            </p>
             {amountError && (
               <p className="text-[11px] text-destructive">{amountError}</p>
             )}
