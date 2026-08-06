@@ -9,6 +9,9 @@ function isTransient(e: any): boolean {
   const msg = String(e?.message ?? e ?? "").toLowerCase();
   const status = Number(e?.status ?? e?.statusCode ?? 0);
   if (status >= 500 || status === 408 || status === 429) return true;
+  // A real server rejection (RLS, validation, 4xx) must never be reported as
+  // a connection problem — that message sends users on a wild goose chase.
+  if (status >= 400 && status < 500) return false;
   return (
     msg.includes("failed to fetch") ||
     msg.includes("network") ||
@@ -50,8 +53,12 @@ export async function withRetry<T>(label: string, fn: () => Promise<T>, attempts
 export function depositErrorMessage(e: any): string {
   const raw = String(e?.message ?? "").trim();
   const msg = raw.toLowerCase();
+  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+  if (offline) {
+    return "You appear to be offline — your deposit was not lost. Reconnect and tap submit again.";
+  }
   if (isTransient(e)) {
-    return "Connection problem — your deposit was not lost. Check your internet and tap submit again.";
+    return "Upload was interrupted before it finished — nothing was lost. Please tap submit again (a smaller screenshot uploads faster).";
   }
   if (msg.includes("duplicate") || msg.includes("already")) {
     return "This payment proof was already submitted. Check your deposit history below.";
@@ -186,14 +193,22 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
     throw new Error("Your slip is too large to upload. Try a smaller screenshot or PDF.");
   }
 
-  await withRetry("uploadDepositSlip", async () => {
-    const { error: upErr } = await supabase.storage
-      .from("deposit-slips")
-      .upload(path, prepared, { upsert: false, contentType });
-    // A lost response can make a successful first upload look like a failure.
-    // The retry then sees the same object; that means the proof is already safe.
-    if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
-  }, 4);
+  try {
+    await withRetry("uploadDepositSlip", async () => {
+      const { error: upErr } = await supabase.storage
+        .from("deposit-slips")
+        .upload(path, prepared, { upsert: true, contentType });
+      // A lost response can make a successful first upload look like a failure.
+      // The retry then sees the same object; that means the proof is already safe.
+      if (upErr && !/already exists|duplicate/i.test(upErr.message)) throw upErr;
+    }, 5);
+  } catch (e) {
+    // A dropped response on mobile often hides a completed upload. Before we
+    // tell the user it failed, check whether the file is actually there.
+    const landed = await slipExists(userId, path);
+    if (!landed) throw e;
+    console.warn("[deposits] upload reported an error but the slip is stored", e);
+  }
 
   await withRetry("submitDepositSlip", async () => {
     const { error } = await supabase.rpc("submit_deposit_slip", {
@@ -203,6 +218,20 @@ export async function uploadDepositSlip(userId: string, depositId: string, file:
     if (error) throw error;
   });
   return path;
+}
+
+/** True when the object exists in storage (used to confirm interrupted uploads). */
+async function slipExists(userId: string, path: string): Promise<boolean> {
+  try {
+    const name = path.split("/").pop()!;
+    const { data, error } = await supabase.storage
+      .from("deposit-slips")
+      .list(userId, { search: name, limit: 100 });
+    if (error) return false;
+    return (data ?? []).some((o) => o.name === name);
+  } catch {
+    return false;
+  }
 }
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;

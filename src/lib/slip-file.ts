@@ -12,8 +12,11 @@ const IMAGE_EXTS = [
 ];
 
 export const MAX_SLIP_BYTES = 25 * 1024 * 1024; // hard limit before compression
-const COMPRESS_OVER_BYTES = 2 * 1024 * 1024; // compress anything bigger
-const MAX_DIMENSION = 1800;
+// Mobile data uploads are the #1 cause of "connection lost" failures, so we
+// shrink anything that isn't already tiny and aim for a ~900KB payload.
+const COMPRESS_OVER_BYTES = 700 * 1024;
+const TARGET_BYTES = 900 * 1024;
+const MAX_DIMENSION = 1600;
 
 export function fileExt(name: string): string {
   const raw = name.split(".").pop() ?? "";
@@ -53,27 +56,46 @@ export async function compressSlipIfNeeded(file: File): Promise<File> {
 
   try {
     const bitmap = await loadBitmap(file);
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
-    const w = Math.max(1, Math.round(bitmap.width * scale));
-    const h = Math.max(1, Math.round(bitmap.height * scale));
+    let maxDim = MAX_DIMENSION;
+    let quality = 0.8;
+    let best: Blob | null = null;
 
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
-    ctx.drawImage(bitmap as CanvasImageSource, 0, 0, w, h);
+    // Step down dimensions/quality until the slip is small enough to survive
+    // a flaky mobile connection. Text on a payment slip stays readable.
+    for (let pass = 0; pass < 4; pass++) {
+      const blob = await encode(bitmap, maxDim, quality);
+      if (!blob) break;
+      best = blob;
+      if (blob.size <= TARGET_BYTES) break;
+      maxDim = Math.round(maxDim * 0.8);
+      quality = Math.max(0.5, quality - 0.1);
+    }
 
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.82),
-    );
-    if (!blob || blob.size >= file.size) return file;
-
+    if (!best || best.size >= file.size) return file;
     const base = file.name.replace(/\.[^.]+$/, "") || "slip";
-    return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    return new File([best], `${base}.jpg`, { type: "image/jpeg" });
   } catch {
     return file;
   }
+}
+
+async function encode(
+  bitmap: ImageBitmap | HTMLImageElement,
+  maxDim: number,
+  quality: number,
+): Promise<Blob | null> {
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(bitmap as CanvasImageSource, 0, 0, w, h);
+  return new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", quality),
+  );
 }
 
 async function loadBitmap(file: File): Promise<ImageBitmap | HTMLImageElement> {
