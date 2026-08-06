@@ -11,6 +11,8 @@ import { LiveNotificationPopup } from "@/components/dashboard/live-notification-
 import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { TradeFab } from "@/components/dashboard/trade-fab";
+import { Card } from "@/components/ui/card";
+import { Ban } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
