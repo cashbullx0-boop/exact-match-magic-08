@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowDownToLine, Copy, Check, AlertCircle, Clock, CheckCircle2, XCircle, Loader2, Wallet,
+  Upload, FileCheck2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -138,9 +139,11 @@ function DepositPage() {
   const [txHash, setTxHash] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
+  const [slipInputKey, setSlipInputKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [fixing, setFixing] = useState<string | null>(null);
+  const slipInputRef = useRef<HTMLInputElement>(null);
 
   // Restore an in-progress amount/tx hash so a refresh or crash never loses it.
   useEffect(() => {
@@ -189,7 +192,7 @@ function DepositPage() {
       return false;
     }
     setSlipFile(file);
-    toast.success("Payment slip attached");
+    toast.success(`Payment slip attached: ${file.name}`);
     if (canPreview(file)) {
       setSlipPreview(URL.createObjectURL(file));
     } else {
@@ -221,8 +224,7 @@ function DepositPage() {
   };
 
   const amt = parseFloat(amount);
-  const amountValid =
-    Number.isFinite(amt) && amt >= net.minAmount && Math.round(amt * 100) % 1000 === 0;
+  const amountValid = Number.isFinite(amt) && amt >= net.minAmount;
   const amountError =
     amount.length === 0
       ? null
@@ -230,8 +232,6 @@ function DepositPage() {
       ? "Enter a valid amount"
       : amt < net.minAmount
       ? `Minimum deposit is ${net.minAmount} USDT`
-      : Math.round(amt * 100) % 1000 !== 0
-      ? "Amount must be in multiples of $10"
       : null;
 
   const resetForm = () => {
@@ -239,6 +239,7 @@ function DepositPage() {
     setTxHash("");
     setSlipFile(null);
     setSlipPreview(null);
+    setSlipInputKey((key) => key + 1);
     try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
   };
 
@@ -333,15 +334,13 @@ function DepositPage() {
     }
   };
 
-  // Keep the action clickable so mobile users get the exact missing-field
-  // message from handleSubmit. Previously any incomplete field left this
-  // disabled even after a valid slip was selected, which looked like the
-  // upload itself had failed.
+  const hashValid = txHashError(txHash) === null;
+  const formReady = amountValid && hashValid && Boolean(slipFile) && Boolean(payAddress) && !addrError;
   const submitLabel = submitting
     ? "Submitting deposit…"
-    : slipFile
+    : formReady
     ? "Submit deposit"
-    : "Attach slip & submit";
+    : "Complete all fields to submit";
 
   return (
     <div className="space-y-6 animate-float-up">
@@ -478,20 +477,32 @@ function DepositPage() {
               Payment slip / screenshot <span className="text-destructive">*</span>{" "}
               <span className="text-muted-foreground">(image or PDF, max 25MB)</span>
             </Label>
-            <Input
+            <input
+              key={slipInputKey}
+              ref={slipInputRef}
               id="slip"
               type="file"
               accept="image/*,.jpg,.jpeg,.jfif,.png,.webp,.avif,.heic,.heif,.tif,.tiff,application/pdf"
               onChange={(e) => {
-                const accepted = handleSlipChange(e.target.files?.[0] ?? null);
+                const accepted = handleSlipChange(e.currentTarget.files?.item(0) ?? null);
                 if (accepted === false) e.currentTarget.value = "";
               }}
-              className="text-xs file:text-xs file:bg-white/5 file:border-0 file:text-foreground file:mr-3 file:py-1.5 file:px-2.5 file:rounded-md"
+              className="sr-only"
             />
+            <Button
+              type="button"
+              variant={slipFile ? "outline" : "secondary"}
+              className="w-full min-h-11 whitespace-normal px-3"
+              onClick={() => slipInputRef.current?.click()}
+            >
+              {slipFile ? <FileCheck2 className="text-primary" /> : <Upload />}
+              {slipFile ? "Change payment slip" : "Choose payment slip"}
+            </Button>
             {slipFile && (
-              <div className="space-y-1">
-                <p className="text-[11px] text-muted-foreground">
-                  Selected: {slipFile.name} ({(slipFile.size / 1024).toFixed(0)} KB)
+              <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
+                <p className="flex items-start gap-1.5 text-[11px] text-primary">
+                  <CheckCircle2 className="mt-px h-3.5 w-3.5 shrink-0" />
+                  <span className="break-all">Attached: {slipFile.name} ({(slipFile.size / 1024).toFixed(0)} KB)</span>
                 </p>
                 {slipPreview && (
                   <img
@@ -506,7 +517,12 @@ function DepositPage() {
             )}
           </div>
 
-          <Button onClick={handleSubmit} disabled={submitting} className="w-full h-11" size="lg">
+          <div className="grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+            <span className={amountValid ? "text-primary" : undefined}>① Amount</span>
+            <span className={hashValid ? "text-primary" : undefined}>② Tx hash</span>
+            <span className={slipFile ? "text-primary" : undefined}>③ Slip</span>
+          </div>
+          <Button onClick={handleSubmit} disabled={submitting || !formReady} className="w-full h-11" size="lg">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
             {submitLabel}
           </Button>
