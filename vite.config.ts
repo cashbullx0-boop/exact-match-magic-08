@@ -30,8 +30,10 @@ export default defineConfig({
         // Do not precache the application shell. Deposit and withdrawal flows
         // must always load the latest deployed UI on installed mobile apps.
         globPatterns: ["**/*.{svg,png,webp,woff2}"],
-        navigateFallback: "/",
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/__/],
+        // TanStack Start serves every route itself. A Workbox fallback to `/`
+        // can turn a mobile PWA resume after the native photo/file picker into
+        // an unexpected navigation back to the home screen.
+        navigateFallback: null,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",

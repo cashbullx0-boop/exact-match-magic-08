@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -143,7 +143,6 @@ function DepositPage() {
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [fixing, setFixing] = useState<string | null>(null);
-  const slipInputRef = useRef<HTMLInputElement>(null);
 
   // Restore an in-progress amount/tx hash so a refresh or crash never loses it.
   useEffect(() => {
@@ -479,7 +478,6 @@ function DepositPage() {
             </Label>
             <input
               key={slipInputKey}
-              ref={slipInputRef}
               id="slip"
               type="file"
               accept="image/*,.jpg,.jpeg,.jfif,.png,.webp,.avif,.heic,.heif,.tif,.tiff,application/pdf"
@@ -489,15 +487,24 @@ function DepositPage() {
               }}
               className="sr-only"
             />
-            <Button
-              type="button"
-              variant={slipFile ? "outline" : "secondary"}
-              className="w-full min-h-11 whitespace-normal px-3"
-              onClick={() => slipInputRef.current?.click()}
+            <label
+              htmlFor="slip"
+              role="button"
+              tabIndex={0}
+              className={buttonVariants({
+                variant: slipFile ? "outline" : "secondary",
+                className: "w-full min-h-11 whitespace-normal px-3 cursor-pointer",
+              })}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  document.getElementById("slip")?.click();
+                }
+              }}
             >
               {slipFile ? <FileCheck2 className="text-primary" /> : <Upload />}
               {slipFile ? "Change payment slip" : "Choose payment slip"}
-            </Button>
+            </label>
             {slipFile && (
               <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
                 <p className="flex items-start gap-1.5 text-[11px] text-primary">
