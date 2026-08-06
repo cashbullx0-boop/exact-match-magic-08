@@ -11,6 +11,8 @@ import { LiveNotificationPopup } from "@/components/dashboard/live-notification-
 import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { TradeFab } from "@/components/dashboard/trade-fab";
+import { Card } from "@/components/ui/card";
+import { Ban } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -132,6 +134,45 @@ function AuthedLayout() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <DotsLoader label="Loading your dashboard" />
+      </div>
+    );
+  }
+
+  // Suspended / banned accounts lose access to the entire app. Only signing
+  // out and contacting support remain possible. Admins are never locked out.
+  const accountStatus = profile?.status;
+  if (!isAdmin && profile && (accountStatus === "suspended" || accountStatus === "banned")) {
+    const isBanned = accountStatus === "banned";
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-10">
+        <Card className="glass-strong border-destructive/40 max-w-md w-full p-8 text-center space-y-5">
+          <div className="mx-auto h-16 w-16 rounded-full bg-destructive/15 flex items-center justify-center">
+            <Ban className="h-8 w-8 text-red-400" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-red-300">
+              {isBanned ? "Account banned" : "Account suspended"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {isBanned
+                ? "Your CashBullX account has been permanently banned. All access to the platform is disabled."
+                : "Your CashBullX account is suspended. Deposits, withdrawals, trades, tasks, spins and every other feature are disabled until an administrator restores your access."}
+            </p>
+            <p className="text-xs text-muted-foreground/80">
+              Your balance and history are safe. Contact support if you believe this is a mistake.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button asChild className="btn-primary-gradient">
+              <a href="https://wa.me/447868101854" target="_blank" rel="noopener noreferrer">
+                <LifeBuoy className="h-4 w-4 mr-2" /> Contact support
+              </a>
+            </Button>
+            <Button variant="outline" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-2" /> Sign out
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
