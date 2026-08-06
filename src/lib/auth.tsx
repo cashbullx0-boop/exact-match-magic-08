@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const authGeneration = useRef(0);
+  const activeUserId = useRef<string | null>(null);
   const loadExtras = async (uid: string) => {
     const generation = authGeneration.current;
     const [{ data: p }, { data: roles }, { count: depositCount, error: depositError }] = await Promise.all([
@@ -95,10 +96,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
         setSession(sess);
         setUser(sess?.user ?? null);
+        activeUserId.current = sess?.user.id ?? null;
+        return;
+      }
+
+      // SIGNED_IN may also fire when an existing mobile session merely
+      // regains focus after the native picker closes. It is not an identity
+      // change, so preserve the mounted route and its selected File object.
+      if (sess?.user && activeUserId.current === sess.user.id) {
+        setSession(sess);
+        setUser(sess.user);
         return;
       }
 
       authGeneration.current += 1;
+      activeUserId.current = sess?.user.id ?? null;
       setSession(sess);
       setUser(sess?.user ?? null);
       if (sess?.user) {
@@ -120,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       authGeneration.current += 1;
+      activeUserId.current = s?.user.id ?? null;
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
