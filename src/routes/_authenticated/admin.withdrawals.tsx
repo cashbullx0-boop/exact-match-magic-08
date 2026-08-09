@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { listUserIdentities, type AdminUserIdentity } from "@/lib/admin-users.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/withdrawals")({
   head: () => ({ meta: [{ title: "Admin · Withdrawals — CashBullX" }] }),
@@ -21,6 +22,7 @@ function AdminWithdrawals() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("pending");
   const [rows, setRows] = useState<any[]>([]);
+  const [identities, setIdentities] = useState<Record<string, AdminUserIdentity>>({});
 
   useEffect(() => {
     if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true });
@@ -35,6 +37,15 @@ function AdminWithdrawals() {
     if (tab !== "all") q = q.eq("status", tab as any);
     const { data } = await q;
     setRows(data ?? []);
+    const ids = Array.from(new Set((data ?? []).map((r: any) => r.user_id as string)));
+    if (ids.length) {
+      try {
+        const res = await listUserIdentities({ data: { userIds: ids } });
+        setIdentities(Object.fromEntries(res.map((u) => [u.user_id, u])));
+      } catch (e) {
+        console.warn("[admin] could not load user identities", e);
+      }
+    }
   };
   useEffect(() => {
     load();
@@ -93,7 +104,7 @@ function AdminWithdrawals() {
             ) : (
               <ul className="divide-y divide-border">
                 {rows.map((w) => (
-                  <Row key={w.id} w={w} onApprove={approve} onReject={reject} onPaid={markPaid} />
+                  <Row key={w.id} w={w} identity={identities[w.user_id]} onApprove={approve} onReject={reject} onPaid={markPaid} />
                 ))}
               </ul>
             )}
@@ -106,11 +117,13 @@ function AdminWithdrawals() {
 
 function Row({
   w,
+  identity,
   onApprove,
   onReject,
   onPaid,
 }: {
   w: any;
+  identity?: AdminUserIdentity;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onPaid: (id: string, tx: string) => void;
@@ -119,6 +132,13 @@ function Row({
   return (
     <li className="py-4 flex flex-col md:flex-row md:items-center gap-3">
       <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">
+          {identity?.full_name || identity?.username || "Unnamed account"}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
+          {identity?.email ?? `${w.user_id.slice(0, 12)}…`}
+          {identity?.username ? ` · @${identity.username}` : ""}
+        </p>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold">{fmt(w.amount_cents)}</span>
           <Badge variant="outline">USDT {w.network}</Badge>
@@ -128,7 +148,7 @@ function Row({
           {w.wallet_address}
         </p>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          user {w.user_id.slice(0, 8)}… · {new Date(w.created_at).toLocaleString()}
+          {new Date(w.created_at).toLocaleString()}
           {w.rejection_reason ? ` · ${w.rejection_reason}` : ""}
         </p>
       </div>
