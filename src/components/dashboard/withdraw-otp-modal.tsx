@@ -46,7 +46,6 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
     if (error) { toast.error(error.message); return; }
     setExpiresAt(Date.now() + 10 * 60 * 1000);
 
-    // Fire-and-forget the actual email delivery via Lovable Emails.
     if (data && email) {
       try {
         const { data: sess } = await supabase.auth.getSession();
@@ -67,9 +66,27 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
         if (!res.ok) {
           const body = await res.text().catch(() => "");
           console.error("Failed to send withdrawal OTP email", res.status, body);
+          toast.error("Could not send the code. Please try again or contact support.");
+          return;
+        }
+        const json = (await res.json().catch(() => null)) as
+          | { success?: boolean; reason?: string }
+          | null;
+        if (json && json.success === false) {
+          if (json.reason === "email_suppressed") {
+            toast.error(
+              "Your email is blocked from receiving mail (previous delivery failed). Contact support to re-enable it.",
+              { duration: 10000 },
+            );
+          } else {
+            toast.error("Could not send the code. Please contact support.");
+          }
+          return;
         }
       } catch (err) {
         console.error("Failed to send withdrawal OTP email", err);
+        toast.error("Network issue while sending the code. Try again.");
+        return;
       }
     }
 
