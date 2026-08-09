@@ -1,0 +1,1 @@
+delete from public.suppressed_emails where email = 'rajashahzadanwer@gmail.com';
