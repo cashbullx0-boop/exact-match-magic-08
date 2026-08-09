@@ -8,6 +8,30 @@ export type AdminUserIdentity = {
   username: string | null;
 };
 
+/** Admin-only: set a new password for a user (used for forgot-password requests). */
+export const adminSetUserPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { userId: string; newPassword: string }) => {
+    if (!data?.userId || typeof data.userId !== "string") throw new Error("userId required");
+    const pw = String(data.newPassword ?? "");
+    if (pw.length < 8 || pw.length > 128) throw new Error("Password must be 8-128 characters");
+    return { userId: data.userId, newPassword: pw };
+  })
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    if (!roles?.some((r) => r.role === "admin")) throw new Error("Forbidden: admin only");
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+      password: data.newPassword,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 /** Admin-only: resolve display identity (email + account name) for user ids. */
 export const listUserIdentities = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
