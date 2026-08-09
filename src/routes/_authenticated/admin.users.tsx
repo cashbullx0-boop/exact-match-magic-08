@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users as UsersIcon, Search, ShieldX, ShieldCheck, Ban, Wallet } from "lucide-react";
+import { Users as UsersIcon, Search, ShieldX, ShieldCheck, Ban, Wallet, KeyRound } from "lucide-react";
+import { listUserIdentities, adminSetUserPassword, type AdminUserIdentity } from "@/lib/admin-users.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({ meta: [{ title: "Users — Admin" }] }),
@@ -24,6 +25,7 @@ function AdminUsersPage() {
   const { isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
+  const [identities, setIdentities] = useState<Record<string, AdminUserIdentity>>({});
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -37,7 +39,15 @@ function AdminUsersPage() {
       .order("created_at", { ascending: false }).limit(200);
     if (q.trim()) query = query.or(`full_name.ilike.%${q}%,username.ilike.%${q}%,referral_code.ilike.%${q}%`);
     const { data, error } = await query;
-    if (error) toast.error(error.message); else setRows((data as Row[]) ?? []);
+    if (error) { toast.error(error.message); return; }
+    const list = (data as Row[]) ?? [];
+    setRows(list);
+    if (list.length) {
+      try {
+        const ids = await listUserIdentities({ data: { userIds: list.map((r) => r.id) } });
+        setIdentities(Object.fromEntries(ids.map((i) => [i.user_id, i])));
+      } catch { /* identity lookup is best-effort */ }
+    }
   };
   useEffect(() => { if (isAdmin) load(); /* eslint-disable-next-line */ }, [isAdmin]);
 
@@ -70,6 +80,22 @@ function AdminUsersPage() {
     const newBal = (data as any)?.new_balance_cents;
     toast.success(`Balance updated to $${(Number(newBal)/100).toFixed(2)}`);
     load();
+  };
+
+  const resetPassword = async (u: Row) => {
+    const label = identities[u.id]?.email ?? u.full_name ?? u.username ?? u.id.slice(0, 8);
+    const pw = window.prompt(`Set a new password for ${label}\n\nMinimum 8 characters:`);
+    if (pw === null) return;
+    if (pw.trim().length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    setBusy(u.id);
+    try {
+      await adminSetUserPassword({ data: { userId: u.id, newPassword: pw.trim() } });
+      toast.success("Password updated — share it with the user securely");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to update password");
+    } finally {
+      setBusy(null);
+    }
   };
 
   if (loading || !isAdmin) return <div className="text-muted-foreground">Checking access…</div>;
@@ -107,6 +133,7 @@ function AdminUsersPage() {
                 <tr key={u.id} className="hover:bg-amber-500/5">
                   <td className="p-3">
                     <p className="font-medium">{u.full_name ?? u.username ?? "—"}</p>
+                    <p className="text-xs text-muted-foreground break-all">{identities[u.id]?.email ?? "—"}</p>
                     <p className="text-xs text-muted-foreground font-mono">{u.referral_code} · {u.id.slice(0,8)}…</p>
                   </td>
                   <td className="p-3 font-semibold text-amber-300">${(u.balance_cents/100).toFixed(2)}</td>
@@ -117,6 +144,9 @@ function AdminUsersPage() {
                   <td className="p-3 text-right space-x-1">
                     <Button size="sm" variant="outline" disabled={busy === u.id} onClick={() => adjustBalance(u)}>
                       <Wallet className="h-3.5 w-3.5" /> Adjust
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={busy === u.id} onClick={() => resetPassword(u)}>
+                      <KeyRound className="h-3.5 w-3.5" /> Reset password
                     </Button>
                     {u.status !== "active" && (
                       <Button size="sm" variant="outline" disabled={busy === u.id} onClick={() => setStatus(u.id, "active")}><ShieldCheck className="h-3.5 w-3.5" /> Activate</Button>
