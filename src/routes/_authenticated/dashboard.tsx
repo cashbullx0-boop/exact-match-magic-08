@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
@@ -106,6 +106,36 @@ function DashboardPage() {
       <DepositDeadlineRing />
 
       <KycAnnouncement status={kycStatus} />
+
+      {/* Mobile quick actions — Deposit/Withdraw front-and-center so users can find them instantly */}
+      <div className="md:hidden grid grid-cols-2 gap-3">
+        <Link to="/deposit" aria-label="Go to deposit page">
+          <Card className="glass-strong border-border p-4 active:scale-95 transition-transform hover:-translate-y-0.5">
+            <div className="flex items-center gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+                <ArrowDownToLine className="h-5 w-5 text-emerald-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm">Deposit</p>
+                <p className="text-[11px] text-muted-foreground truncate">Add funds</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/withdraw" aria-label="Go to withdrawal page">
+          <Card className="glass-strong border-border p-4 active:scale-95 transition-transform hover:-translate-y-0.5">
+            <div className="flex items-center gap-3">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
+                <ArrowUpFromLine className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm">Withdraw</p>
+                <p className="text-[11px] text-muted-foreground truncate">Payout</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </div>
 
       <PromoCarousel />
 
