@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
