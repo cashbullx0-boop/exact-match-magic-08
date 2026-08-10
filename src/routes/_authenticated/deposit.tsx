@@ -137,6 +137,7 @@ function DepositPage() {
   const [network, setNetwork] = useState<DepositNetwork>("USDT_TRC20");
   const [amount, setAmount] = useState("");
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
+  const [depositsLoaded, setDepositsLoaded] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
