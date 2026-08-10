@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { Mail, Phone, Eye, EyeOff } from "lucide-react";
 const PhoneField = lazy(() =>
   import("@/components/auth/phone-field").then((m) => ({ default: m.PhoneField })),
@@ -188,6 +189,10 @@ function SignupPage() {
         <h1 className="text-2xl font-bold text-center mt-4">Create your account</h1>
         <p className="text-sm text-muted-foreground text-center mt-1">Start earning in minutes</p>
         {ref && <p className="text-xs text-center text-primary mt-2">Referral code applied: {ref}</p>}
+
+        <div className="mt-5">
+          <YouTubeChannelCard />
+        </div>
 
         <Button onClick={google} variant="outline" className="w-full mt-6 h-11">
           <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.2h5.35c-.23 1.4-1.7 4.1-5.35 4.1-3.22 0-5.85-2.66-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.57-2.48C16.86 3.96 14.7 3 12 3 6.95 3 2.85 7.1 2.85 12.15S6.95 21.3 12 21.3c6.92 0 9.5-4.86 9.5-7.4 0-.5-.05-.88-.15-1.3Z" /></svg>

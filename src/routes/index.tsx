@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { YouTubeHeroBanner, YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { CheckCircle2, Coins, Gift, PlayCircle, Smartphone, Sparkles, Users, Wallet, Shield, Zap, Lock, Globe, ArrowRight, TrendingUp } from "lucide-react";
 import { LiveTicker } from "@/components/marketing/live-ticker";
 import { TrustBadges } from "@/components/marketing/trust-badges";
@@ -97,6 +98,9 @@ function Index() {
 
           <div className="grid lg:grid-cols-2 gap-10 md:gap-12 items-center">
             <div className="text-center lg:text-left animate-float-up">
+              <div className="mb-4 sm:mb-5">
+                <YouTubeHeroBanner />
+              </div>
               <div className="inline-flex items-center gap-2 rounded-full glass px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs text-muted-foreground mb-5 sm:mb-6 max-w-full">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
                 <span className="truncate">Task-based rewards · No investment, ever</span>
@@ -206,6 +210,13 @@ function Index() {
             <FAQSection />
           </Suspense>
         </div>
+
+        {/* YOUTUBE CTA */}
+        <Reveal>
+          <section className="pb-12">
+            <YouTubeChannelCard />
+          </section>
+        </Reveal>
 
         {/* CTA */}
         <section className="pb-24">

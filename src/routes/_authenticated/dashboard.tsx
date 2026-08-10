@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight } from "lucide-react";
+import { YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
 import { VipBadge } from "@/components/dashboard/vip-badge";
@@ -88,6 +89,8 @@ function DashboardPage() {
       <KycAnnouncement status={kycStatus} />
 
       <PromoCarousel />
+
+      <YouTubeChannelCard />
 
       <Link
         to="/offers"
