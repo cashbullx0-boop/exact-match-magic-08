@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight } from "lucide-react";
@@ -31,21 +32,39 @@ function DashboardPage() {
   const [series, setSeries] = useState<{ day: string; earned: number }[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [kycStatus, setKycStatus] = useState<"unverified" | "pending" | "verified" | "rejected" | null>(null);
+
+  // KYC status is cached by user id so remounts (route preload, HMR, tab focus)
+  // reuse the resolved value instead of falling back to an assumed
+  // "unverified" state for a frame. A failed request keeps the status null,
+  // which renders no banner at all.
+  const { data: kycStatus = null } = useQuery({
+    queryKey: ["kyc-status", user?.id],
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    retry: 1,
+    queryFn: async (): Promise<"unverified" | "pending" | "verified" | "rejected"> => {
+      const { data, error } = await supabase
+        .from("kyc_submissions")
+        .select("status")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.status as "unverified" | "pending" | "verified" | "rejected") ?? "unverified";
+    },
+  });
 
   useEffect(() => {
     if (!user) return;
     (async () => {
       setLoadingData(true);
-      const [{ count: completed }, { count: referrals }, { data: txns }, { data: kyc }] = await Promise.all([
+      const [{ count: completed }, { count: referrals }, { data: txns }] = await Promise.all([
         supabase.from("task_completions").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "approved"),
         supabase.from("referrals").select("*", { count: "exact", head: true }).eq("referrer_id", user.id),
         supabase.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
-        supabase.from("kyc_submissions").select("status").eq("user_id", user.id).maybeSingle(),
       ]);
       setStats({ completed: completed ?? 0, referrals: referrals ?? 0 });
       setRecent(txns ?? []);
-      setKycStatus((kyc?.status as typeof kycStatus) ?? "unverified");
 
       // Build 7-day earnings series
       const days: Record<string, number> = {};

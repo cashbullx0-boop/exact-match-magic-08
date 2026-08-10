@@ -6,9 +6,20 @@ import { useEffect, useState } from "react";
 
 const LOCAL_STORAGE_KEY = "kyc_alert_dismissed_at";
 
+const REMIND_AFTER_MS = 5 * 60 * 1000;
+
 export function KycAnnouncement({ status }: { status: "unverified" | "pending" | "verified" | "rejected" | null }) {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [animate, setAnimate] = useState(true);
+
+  // A remount must not resurrect a banner the user just dismissed, so the
+  // dismissal timestamp is read from storage (client-only) before showing.
+  useEffect(() => {
+    if (status === null || status === "verified") return;
+    let dismissedAt = 0;
+    try { dismissedAt = Number(localStorage.getItem(LOCAL_STORAGE_KEY) ?? "0"); } catch {}
+    if (Date.now() - dismissedAt > REMIND_AFTER_MS) setVisible(true);
+  }, [status]);
 
   useEffect(() => {
     if (status === "verified") return;
@@ -17,7 +28,7 @@ export function KycAnnouncement({ status }: { status: "unverified" | "pending" |
     // so it keeps coming back even after dismissal.
     const interval = setInterval(() => {
       const dismissedAt = Number(localStorage.getItem(LOCAL_STORAGE_KEY) ?? "0");
-      if (Date.now() - dismissedAt > 5 * 60 * 1000) {
+      if (Date.now() - dismissedAt > REMIND_AFTER_MS) {
         setVisible(true);
         setAnimate(true);
         setTimeout(() => setAnimate(false), 600);
