@@ -15,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/leaderboard")({
 function LeaderboardPage() {
   const [topEarners, setTopEarners] = useState<any[]>([]);
   const [weekly, setWeekly] = useState<any[]>([]);
-  const [referrers, setReferrers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +28,6 @@ function LeaderboardPage() {
         xp: r.xp,
         alltime_cents: Number(r.alltime_cents ?? 0),
         weekly_cents: Number(r.weekly_cents ?? 0),
-        count: Number(r.referral_count ?? 0),
       }));
 
       setTopEarners(
@@ -38,16 +36,13 @@ function LeaderboardPage() {
       setWeekly(
         rows.filter((r) => r.weekly_cents > 0).sort((a, b) => b.weekly_cents - a.weekly_cents).slice(0, 10),
       );
-      setReferrers(
-        rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count).slice(0, 10),
-      );
       setLoading(false);
     })();
   }, []);
 
   const rankIcon = (i: number) => i === 0 ? <Crown className="h-5 w-5 text-yellow-400" /> : i === 1 ? <Medal className="h-5 w-5 text-slate-300" /> : i === 2 ? <Medal className="h-5 w-5 text-amber-700" /> : <span className="text-sm font-bold text-muted-foreground w-5 text-center">{i + 1}</span>;
 
-  const Row = ({ p, i, value, suffix }: { p: any; i: number; value: string; suffix?: string }) => (
+  const Row = ({ p, i, value }: { p: any; i: number; value: string }) => (
     <li className={`flex items-center gap-4 py-3 px-3 rounded-xl transition-colors ${i < 3 ? "bg-primary/5" : "hover:bg-white/5"}`}>
       <div className="w-8 flex justify-center">{rankIcon(i)}</div>
       <Avatar className="h-10 w-10">
@@ -56,9 +51,8 @@ function LeaderboardPage() {
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{p.full_name ?? "Anonymous"}</p>
-        {p.level && <p className="text-xs text-muted-foreground">Level {p.level} · {p.xp} XP</p>}
       </div>
-      <span className="brand-text font-bold">{value}{suffix}</span>
+      <span className="brand-text font-bold">{value}</span>
     </li>
   );
 
@@ -78,7 +72,6 @@ function LeaderboardPage() {
         <TabsList className="glass-strong w-full overflow-x-auto flex justify-start">
           <TabsTrigger value="all-time">All-time</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="referrals">Referrals</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-time">
@@ -96,16 +89,6 @@ function LeaderboardPage() {
             {loading ? <Loading /> : weekly.length === 0 ? <Empty /> : (
               <ul className="space-y-1">
                 {weekly.map((p, i) => <Row key={p.id} p={p} i={i} value={`$${(p.weekly_cents / 100).toFixed(2)}`} />)}
-              </ul>
-            )}
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="referrals">
-          <Card className="glass-strong border-border p-4">
-            {loading ? <Loading /> : referrers.length === 0 ? <Empty /> : (
-              <ul className="space-y-1">
-                {referrers.map((p, i) => <Row key={p.id} p={p} i={i} value={String(p.count)} suffix=" friends" />)}
               </ul>
             )}
           </Card>
