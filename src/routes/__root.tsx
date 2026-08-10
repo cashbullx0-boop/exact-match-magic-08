@@ -15,6 +15,7 @@ import { WesternRewardProvider } from "@/components/dashboard/western-reward-pop
 import { useEffect } from "react";
 import { registerPwa } from "@/lib/pwa-register";
 import { IosInstallPrompt } from "@/components/pwa/ios-install-prompt";
+import { ImageProtection } from "@/components/image-protection";
 
 function NotFoundComponent() {
   return (
