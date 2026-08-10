@@ -19,6 +19,7 @@ import {
   getDepositAddress, depositErrorMessage,
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
+import { DepositTutorial } from "@/components/dashboard/deposit-tutorial";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({ meta: [{ title: "Deposit USDT — CashBullX" }] }),
@@ -136,6 +137,7 @@ function DepositPage() {
   const [network, setNetwork] = useState<DepositNetwork>("USDT_TRC20");
   const [amount, setAmount] = useState("");
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
+  const [depositsLoaded, setDepositsLoaded] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState<string | null>(null);
@@ -209,6 +211,7 @@ function DepositPage() {
     try {
       const rows = (await listUserDeposits(user.id)) as DepositRow[];
       setDeposits(rows);
+      setDepositsLoaded(true);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to load deposits");
     }
@@ -349,6 +352,8 @@ function DepositPage() {
           Fund your CashBullX wallet using USDT on TRC20 or BEP20 networks.
         </p>
       </header>
+
+      <DepositTutorial firstTime={depositsLoaded && deposits.length === 0} />
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT: New deposit */}
