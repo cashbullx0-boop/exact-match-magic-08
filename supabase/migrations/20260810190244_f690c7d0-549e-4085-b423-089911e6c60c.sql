@@ -1,0 +1,1 @@
+DELETE FROM public.suppressed_emails WHERE lower(email) = 'daniamano7223@gmail.com';
