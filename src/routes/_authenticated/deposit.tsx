@@ -19,7 +19,7 @@ import {
   getDepositAddress, depositErrorMessage,
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
-import { DepositTutorial } from "@/components/dashboard/deposit-tutorial";
+import { VideoTutorial } from "@/components/dashboard/video-tutorial";
 
 export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({ meta: [{ title: "Deposit USDT — CashBullX" }] }),
@@ -353,7 +353,7 @@ function DepositPage() {
         </p>
       </header>
 
-      <DepositTutorial firstTime={depositsLoaded && deposits.length === 0} />
+      <VideoTutorial kind="deposit" firstTime={depositsLoaded && deposits.length === 0} />
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT: New deposit */}
