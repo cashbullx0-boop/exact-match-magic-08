@@ -1,11 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { Facebook, MessageCircle, Send } from "lucide-react";
+import { YouTubeIcon } from "@/components/marketing/youtube-channel";
 
 const SOCIALS = [
   {
     label: "Facebook",
     href: "https://www.facebook.com/profile.php?id=61589574145757&sk=map",
     Icon: Facebook,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@CashBullx",
+    Icon: YouTubeIcon,
   },
   {
     label: "WhatsApp",
