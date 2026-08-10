@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { listUserIdentities, type AdminUserIdentity } from "@/lib/admin-users.functions";
+import { Copy } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/withdrawals")({
   head: () => ({ meta: [{ title: "Admin · Withdrawals — CashBullX" }] }),
@@ -144,9 +145,32 @@ function Row({
           <Badge variant="outline">USDT {w.network}</Badge>
           <Badge className="capitalize">{w.status}</Badge>
         </div>
-        <p className="text-xs text-muted-foreground font-mono truncate mt-1">
-          {w.wallet_address}
-        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-muted-foreground font-mono truncate select-all">
+            {w.wallet_address}
+          </p>
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 shrink-0"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(w.wallet_address);
+              } catch {
+                const ta = document.createElement("textarea");
+                ta.value = w.wallet_address;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+              }
+              toast.success("Address copied");
+            }}
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+        </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
           {new Date(w.created_at).toLocaleString()}
           {w.rejection_reason ? ` · ${w.rejection_reason}` : ""}
