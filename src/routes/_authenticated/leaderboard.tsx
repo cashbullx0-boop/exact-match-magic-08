@@ -33,13 +33,13 @@ function LeaderboardPage() {
       }));
 
       setTopEarners(
-        rows.filter((r) => r.alltime_cents > 0).sort((a, b) => b.alltime_cents - a.alltime_cents).slice(0, 20),
+        rows.filter((r) => r.alltime_cents > 0).sort((a, b) => b.alltime_cents - a.alltime_cents).slice(0, 10),
       );
       setWeekly(
-        rows.filter((r) => r.weekly_cents > 0).sort((a, b) => b.weekly_cents - a.weekly_cents).slice(0, 20),
+        rows.filter((r) => r.weekly_cents > 0).sort((a, b) => b.weekly_cents - a.weekly_cents).slice(0, 10),
       );
       setReferrers(
-        rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count).slice(0, 20),
+        rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count).slice(0, 10),
       );
       setLoading(false);
     })();
