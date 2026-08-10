@@ -466,3 +466,34 @@
 }
 .PhoneInputInput::placeholder { color: hsl(var(--muted-foreground)); }
 .PhoneInputCountryIcon { box-shadow: none; }
+
+/* ---- Image save protection ----
+   Blocks drag, long-press callout and selection on images/canvases. */
+img,
+canvas,
+svg,
+video,
+[data-protected-image] {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+}
+/* Keep interactive imagery clickable (buttons, links wrap them) */
+a img,
+button img,
+[role="button"] img,
+label img,
+[data-allow-image-events] img,
+[data-allow-image-events] canvas,
+[data-allow-image-events] svg {
+  pointer-events: auto;
+}
+@media print {
+  img,
+  canvas,
+  video {
+    visibility: hidden !important;
+  }
+}
