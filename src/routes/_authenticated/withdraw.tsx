@@ -36,6 +36,7 @@ function WithdrawPage() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<any[]>([]);
+  const [itemsLoaded, setItemsLoaded] = useState(false);
   const [otpOpen, setOtpOpen] = useState(false);
 
   const load = async () => {
@@ -47,6 +48,7 @@ function WithdrawPage() {
       .order("created_at", { ascending: false })
       .limit(50);
     setItems(data ?? []);
+    setItemsLoaded(true);
   };
 
   useEffect(() => {
@@ -121,6 +123,8 @@ function WithdrawPage() {
           Minimum $10. Funds are deducted on request and refunded if rejected.
         </p>
       </header>
+
+      <VideoTutorial kind="withdraw" firstTime={itemsLoaded && items.length === 0} />
 
       <Card className="glass-strong border-border p-6 relative overflow-hidden">
         <div
