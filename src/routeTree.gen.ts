@@ -19,6 +19,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -110,6 +111,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -406,6 +413,7 @@ export interface FileRoutesByTo {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -461,6 +469,7 @@ export interface FileRoutesById {
   '/refund': typeof RefundRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -517,6 +526,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/achievements'
     | '/admin'
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/achievements'
     | '/dashboard'
@@ -625,6 +636,7 @@ export interface FileRouteTypes {
     | '/refund'
     | '/reset-password'
     | '/signup'
+    | '/sitemap.xml'
     | '/terms'
     | '/_authenticated/achievements'
     | '/_authenticated/admin'
@@ -681,6 +693,7 @@ export interface RootRouteChildren {
   RefundRoute: typeof RefundRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   RefUsernameRoute: typeof RefUsernameRoute
@@ -763,6 +776,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1165,6 +1185,7 @@ const rootRouteChildren: RootRouteChildren = {
   RefundRoute: RefundRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   RefUsernameRoute: RefUsernameRoute,
