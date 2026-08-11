@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
@@ -9,10 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PhoneField } from "@/components/auth/phone-field";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { usePhoneValid } from "@/lib/phone-valid";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+
+// Phone input pulls in country metadata + flags; only the phone tab needs it.
+const PhoneField = lazy(() =>
+  import("@/components/auth/phone-field").then((m) => ({ default: m.PhoneField })),
+);
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CashBullX" }] }),
