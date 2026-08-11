@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth";
@@ -9,10 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PhoneField } from "@/components/auth/phone-field";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { usePhoneValid } from "@/lib/phone-valid";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+
+// Phone input pulls in country metadata + flags; only the phone tab needs it.
+const PhoneField = lazy(() =>
+  import("@/components/auth/phone-field").then((m) => ({ default: m.PhoneField })),
+);
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CashBullX" }] }),
@@ -36,8 +40,8 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), [email]);
-  const phoneValid = useMemo(() => phone && isValidPhoneNumber(phone), [phone]);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const phoneValid = usePhoneValid(phone);
 
   useEffect(() => {
     if (user) navigate({ to: "/dashboard", replace: true });
@@ -148,7 +152,11 @@ function LoginPage() {
               <form onSubmit={sendPhoneOtp} className="space-y-4">
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground">Phone number</Label>
-                  <div className="mt-1"><PhoneField value={phone} onChange={setPhone} /></div>
+                  <div className="mt-1">
+                    <Suspense fallback={<div className="h-11 rounded-lg border border-input bg-background/60" />}>
+                      <PhoneField value={phone} onChange={setPhone} />
+                    </Suspense>
+                  </div>
                   {phone && !phoneValid && <p className="text-xs text-destructive mt-1">Enter a valid phone number</p>}
                 </div>
                 <Button type="submit" disabled={loading || !phoneValid} className="w-full h-11 btn-primary-gradient">

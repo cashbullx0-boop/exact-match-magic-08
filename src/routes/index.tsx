@@ -161,7 +161,11 @@ function Index() {
         <Reveal><TrustStrip /></Reveal>
 
         {/* CATEGORIES */}
-        <section id="tasks" className="pt-20 pb-24">
+        <section
+          id="tasks"
+          className="pt-20 pb-24"
+          style={{ contentVisibility: "auto", containIntrinsicSize: "1px 700px" }}
+        >
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
               Four ways to <span className="brand-text">earn daily</span>
@@ -187,7 +191,11 @@ function Index() {
         </section>
 
         {/* FEATURES */}
-        <section id="features" className="pb-24">
+        <section
+          id="features"
+          className="pb-24"
+          style={{ contentVisibility: "auto", containIntrinsicSize: "1px 400px" }}
+        >
           <Reveal>
             <div className="grid gap-5 md:grid-cols-3">
               <Feature icon={Wallet} title="Real wallet" body="Track every earning. Cash out to USDT (TRC20/BEP20) when you're ready." />
@@ -219,7 +227,7 @@ function Index() {
         </Reveal>
 
         {/* CTA */}
-        <section className="pb-24">
+        <section className="pb-24" style={{ contentVisibility: "auto", containIntrinsicSize: "1px 450px" }}>
           <div className="relative overflow-hidden rounded-3xl glass-strong p-6 sm:p-10 md:p-16 text-center">
             <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-primary/30 blur-3xl animate-aurora hidden md:block" />
             <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-accent/25 blur-3xl animate-blob hidden md:block" />
@@ -237,7 +245,9 @@ function Index() {
         </section>
       </main>
 
-      <SiteFooter />
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1px 500px" }}>
+        <SiteFooter />
+      </div>
     </div>
   );
 }
