@@ -124,6 +124,9 @@ export function LiveTicker() {
   const [events, setEvents] = useState<TickerEvent[]>(() => makePool());
   useEffect(() => {
     const id = setInterval(() => {
+      // Skip state churn while the tab is backgrounded — the marquee is CSS
+      // driven, so no visual state is lost.
+      if (typeof document !== "undefined" && document.hidden) return;
       setEvents((prev) => [randomEvent(), ...prev.slice(0, 13)]);
     }, 3500);
     return () => clearInterval(id);
