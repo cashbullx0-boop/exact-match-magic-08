@@ -47,8 +47,19 @@ function randomEvent(): TickerEvent {
   return { username: p.name, country: p.country, amount, type, description: null };
 }
 
+// The first pool must be identical on the server and during hydration, so it is
+// derived deterministically from the index; randomness only kicks in after mount.
 function makePool(): TickerEvent[] {
-  return Array.from({ length: 14 }, randomEvent);
+  return Array.from({ length: 14 }, (_, i) => {
+    const p = NAMES[i % NAMES.length];
+    return {
+      username: p.name,
+      country: p.country,
+      amount: Math.round((1 + ((i * 737) % 2400) / 100) * 100) / 100,
+      type: TASK_TYPES[i % TASK_TYPES.length],
+      description: null,
+    };
+  });
 }
 
 const FALLBACK: AssetPrice[] = [
