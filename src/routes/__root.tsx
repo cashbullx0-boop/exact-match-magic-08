@@ -12,10 +12,16 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { WesternRewardProvider } from "@/components/dashboard/western-reward-popup";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { registerPwa } from "@/lib/pwa-register";
-import { IosInstallPrompt } from "@/components/pwa/ios-install-prompt";
-import { ImageProtection } from "@/components/image-protection";
+
+// Neither of these affects first paint — keep them out of the critical bundle.
+const IosInstallPrompt = lazy(() =>
+  import("@/components/pwa/ios-install-prompt").then((m) => ({ default: m.IosInstallPrompt })),
+);
+const ImageProtection = lazy(() =>
+  import("@/components/image-protection").then((m) => ({ default: m.ImageProtection })),
+);
 
 function NotFoundComponent() {
   return (
@@ -119,8 +125,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "preconnect", href: "https://ivezynrpwluhjiampuoc.supabase.co", crossOrigin: "anonymous" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "dns-prefetch", href: "https://ivezynrpwluhjiampuoc.supabase.co" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -150,9 +154,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [deferredReady, setDeferredReady] = useState(false);
 
   useEffect(() => {
     registerPwa();
+  }, []);
+
+  // Mount non-critical client widgets after the first paint settles.
+  useEffect(() => {
+    const idle = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    if (idle) {
+      const handle = idle(() => setDeferredReady(true), { timeout: 3000 });
+      return () => (window as any).cancelIdleCallback?.(handle);
+    }
+    const t = window.setTimeout(() => setDeferredReady(true), 1200);
+    return () => window.clearTimeout(t);
   }, []);
 
   return (
@@ -161,9 +179,13 @@ function RootComponent() {
         <WesternRewardProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
-          <ImageProtection />
           <Toaster />
-          <IosInstallPrompt />
+          {deferredReady && (
+            <Suspense fallback={null}>
+              <ImageProtection />
+              <IosInstallPrompt />
+            </Suspense>
+          )}
         </WesternRewardProvider>
       </AuthProvider>
     </QueryClientProvider>
