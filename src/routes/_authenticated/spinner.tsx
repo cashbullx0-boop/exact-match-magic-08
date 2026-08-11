@@ -12,6 +12,15 @@ export const Route = createFileRoute("/_authenticated/spinner")({
 // Fixed launch target — 40 days from 15 July 2026 (Europe/London midnight)
 const LAUNCH_AT = new Date("2026-08-24T00:00:00+01:00").getTime();
 
+// Rendered in UK time for everyone so the unlock date never shifts by device.
+const LAUNCH_LABEL = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/London",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+}).format(LAUNCH_AT);
+
 /**
  * Device clocks drift (and some phones are set to the wrong timezone/date), so
  * a countdown based purely on Date.now() shows a different value on every
