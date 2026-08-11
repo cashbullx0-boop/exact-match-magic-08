@@ -12,13 +12,51 @@ export const Route = createFileRoute("/_authenticated/spinner")({
 // Fixed launch target — 40 days from 15 July 2026 (Europe/London midnight)
 const LAUNCH_AT = new Date("2026-08-24T00:00:00+01:00").getTime();
 
+/**
+ * Device clocks drift (and some phones are set to the wrong timezone/date), so
+ * a countdown based purely on Date.now() shows a different value on every
+ * device. The server's Date response header is the single source of truth: we
+ * measure its offset from the local clock once and apply it to every tick.
+ */
+function useServerClockOffset() {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const started = Date.now();
+        const res = await fetch(`${window.location.origin}/robots.txt`, {
+          method: "HEAD",
+          cache: "no-store",
+        });
+        const header = res.headers.get("date");
+        if (!header) return;
+        const serverNow = new Date(header).getTime();
+        if (Number.isNaN(serverNow)) return;
+        // Account for half the round trip so the offset isn't skewed by latency.
+        const roundTrip = Date.now() - started;
+        if (!cancelled) setOffset(serverNow + roundTrip / 2 - Date.now());
+      } catch {
+        // Offline or blocked — fall back to the local clock.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return offset;
+}
+
 function useCountdown(target: number) {
+  const offset = useServerClockOffset();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
-  const diff = Math.max(0, target - now);
+  const diff = Math.max(0, target - (now + offset));
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);
   const mins = Math.floor((diff % 3600000) / 60000);
@@ -112,12 +150,7 @@ function SpinnerComingSoon() {
               <p className="mt-6 text-xs text-muted-foreground">
                 Unlocks on{" "}
                 <span className="text-foreground font-medium">
-                  {new Date(LAUNCH_AT).toLocaleDateString(undefined, {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {LAUNCH_LABEL}
                 </span>
               </p>
             </>
