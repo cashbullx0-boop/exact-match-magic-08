@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 export const Route = createFileRoute("/_authenticated/admin/wallets")({
   head: () => ({ meta: [{ title: "Wallet Changes — Admin" }] }),
@@ -20,6 +22,7 @@ function AdminWalletsPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const identities = useUserIdentities(rows.map((r) => r.user_id));
 
   useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [isAdmin, loading, navigate]);
 
@@ -53,8 +56,11 @@ function AdminWalletsPage() {
         <Card className="glass-strong border-amber-400/20 p-8 text-center text-muted-foreground">No requests.</Card>
       ) : rows.map((r) => (
         <Card key={r.id} className="glass-strong border-amber-400/20 p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground font-mono">User {r.user_id.slice(0,8)}… · {new Date(r.requested_at).toLocaleString()}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <UserLabel userId={r.user_id} identity={identities[r.user_id]} />
+              <p className="text-xs text-muted-foreground">{new Date(r.requested_at).toLocaleString()}</p>
+            </div>
             <Badge variant={r.status === "pending" ? "secondary" : "default"} className="capitalize">{r.status}</Badge>
           </div>
           <p className="text-xs"><span className="text-muted-foreground">Old:</span> <span className="font-mono break-all">{r.old_wallet ?? "—"}</span></p>
