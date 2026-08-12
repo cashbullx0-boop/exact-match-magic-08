@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Users, Gift, TrendingUp } from "lucide-react";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 export const Route = createFileRoute("/_authenticated/admin/referrals")({
   head: () => ({ meta: [{ title: "Referrals — Admin" }] }),
@@ -19,6 +21,7 @@ function AdminReferralsPage() {
   const [rows, setRows] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [q, setQ] = useState("");
+  const identities = useUserIdentities(rows.flatMap((r) => [r.referrer_id, r.referred_id]));
 
   useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [isAdmin, loading, navigate]);
 
@@ -45,8 +48,9 @@ function AdminReferralsPage() {
 
   const label = (id: string) => {
     const p = profiles[id];
-    if (!p) return id.slice(0, 8) + "…";
-    return p.full_name || (p.username ? `@${p.username}` : p.referral_code);
+    const email = identities[id]?.email ?? "";
+    const name = p ? p.full_name || (p.username ? `@${p.username}` : p.referral_code) : id.slice(0, 8) + "…";
+    return email ? `${name} · ${email}` : name;
   };
 
   const term = q.trim().toLowerCase();
@@ -93,7 +97,7 @@ function AdminReferralsPage() {
             {filtered.map((r) => (
               <li key={r.id} className="py-3 flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">{label(r.referrer_id)}</span>
+                  <UserLabel userId={r.referrer_id} identity={identities[r.referrer_id]} />
                   <span className="text-sm font-semibold text-accent shrink-0">+${((r.bonus_cents ?? 0) / 100).toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -117,8 +121,8 @@ function AdminReferralsPage() {
               <tbody className="divide-y divide-border">
                 {filtered.map((r) => (
                   <tr key={r.id}>
-                    <td className="py-2 pr-4">{label(r.referrer_id)}</td>
-                    <td className="py-2 pr-4">{label(r.referred_id)}</td>
+                    <td className="py-2 pr-4"><UserLabel userId={r.referrer_id} identity={identities[r.referrer_id]} /></td>
+                    <td className="py-2 pr-4"><UserLabel userId={r.referred_id} identity={identities[r.referred_id]} /></td>
                     <td className="py-2 pr-4 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
                     <td className="py-2 text-right font-semibold text-accent">+${((r.bonus_cents ?? 0) / 100).toFixed(2)}</td>
                   </tr>

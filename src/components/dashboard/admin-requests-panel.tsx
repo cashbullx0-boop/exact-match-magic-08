@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 type WalletReq = { id: string; user_id: string; old_wallet: string | null; new_wallet: string; status: string; requested_at: string };
 type ResetReq = { id: string; user_id: string; status: string; requested_at: string };
@@ -12,6 +14,7 @@ type ResetReq = { id: string; user_id: string; status: string; requested_at: str
 export function AdminRequestsPanel() {
   const [wallets, setWallets] = useState<WalletReq[]>([]);
   const [resets, setResets] = useState<ResetReq[]>([]);
+  const identities = useUserIdentities([...wallets.map((w) => w.user_id), ...resets.map((r) => r.user_id)]);
 
   const load = async () => {
     const [{ data: w }, { data: r }] = await Promise.all([
@@ -47,7 +50,7 @@ export function AdminRequestsPanel() {
           <ul className="divide-y divide-border">
             {wallets.map((w) => (
               <li key={w.id} className="py-3 space-y-1">
-                <p className="text-xs text-muted-foreground">User: <span className="font-mono">{w.user_id.slice(0, 8)}…</span></p>
+                <UserLabel userId={w.user_id} identity={identities[w.user_id]} />
                 <p className="text-xs break-all"><span className="text-muted-foreground">New:</span> <span className="font-mono">{w.new_wallet}</span></p>
                 <Button size="sm" onClick={() => approveWallet(w.id)} className="btn-primary-gradient mt-2">Approve & send OTP</Button>
               </li>
@@ -67,7 +70,7 @@ export function AdminRequestsPanel() {
           <ul className="divide-y divide-border">
             {resets.map((r) => (
               <li key={r.id} className="py-3 space-y-1">
-                <p className="text-xs text-muted-foreground">User: <span className="font-mono">{r.user_id.slice(0, 8)}…</span></p>
+                <UserLabel userId={r.user_id} identity={identities[r.user_id]} />
                 <p className="text-xs text-muted-foreground">Requested {new Date(r.requested_at).toLocaleString()}</p>
                 <Button size="sm" onClick={() => approveReset(r.id)} className="btn-primary-gradient mt-2">Approve & send OTP</Button>
               </li>

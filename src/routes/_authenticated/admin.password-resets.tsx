@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 export const Route = createFileRoute("/_authenticated/admin/password-resets")({
   head: () => ({ meta: [{ title: "Password Resets — Admin" }] }),
@@ -20,6 +22,7 @@ function AdminPasswordResetsPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const identities = useUserIdentities(rows.map((r) => r.user_id));
 
   useEffect(() => { if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true }); }, [isAdmin, loading, navigate]);
 
@@ -89,8 +92,8 @@ function AdminPasswordResetsPage() {
         <Card className="glass-strong border-amber-400/20 p-8 text-center text-muted-foreground">No requests.</Card>
       ) : rows.map((r) => (
         <Card key={r.id} className="glass-strong border-amber-400/20 p-5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground font-mono">User {r.user_id.slice(0,8)}…</p>
+          <div className="min-w-0">
+            <UserLabel userId={r.user_id} identity={identities[r.user_id]} />
             <p className="text-xs text-muted-foreground">Requested {new Date(r.requested_at).toLocaleString()}</p>
           </div>
           <div className="flex items-center gap-2">

@@ -10,6 +10,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 export const Route = createFileRoute("/_authenticated/admin/investments")({
   head: () => ({ meta: [{ title: "Admin Investments — CashBullX" }] }),
@@ -21,6 +23,7 @@ function AdminInvestmentsPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [returns, setReturns] = useState<Record<string, string>>({});
+  const identities = useUserIdentities(rows.map((r) => r.user_id as string));
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -83,7 +86,7 @@ function AdminInvestmentsPage() {
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-xs font-mono">{r.user_id.slice(0, 8)}</TableCell>
+                  <TableCell><UserLabel userId={r.user_id} identity={identities[r.user_id]} /></TableCell>
                   <TableCell>{r.asset_name} <span className="text-xs text-muted-foreground">({r.asset})</span></TableCell>
                   <TableCell>${(r.amount_cents / 100).toFixed(2)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</TableCell>
