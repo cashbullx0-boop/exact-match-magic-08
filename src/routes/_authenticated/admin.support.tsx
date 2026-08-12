@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LifeBuoy, Send } from "lucide-react";
 import { toast } from "sonner";
+import { useUserIdentities } from "@/lib/use-user-identities";
+import { UserLabel } from "@/components/admin/user-label";
 
 export const Route = createFileRoute("/_authenticated/admin/support")({
   head: () => ({ meta: [{ title: "Support Tickets — Admin" }] }),
@@ -22,6 +24,7 @@ function AdminSupportPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const identities = useUserIdentities(rows.map((r) => r.user_id));
 
   useEffect(() => {
     if (!loading && !isAdmin) navigate({ to: "/dashboard", replace: true });
@@ -64,7 +67,8 @@ function AdminSupportPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-semibold truncate">{t.subject}</p>
-              <p className="text-xs text-muted-foreground font-mono">{t.user_id.slice(0,8)}… · {new Date(t.created_at).toLocaleString()}</p>
+              <UserLabel userId={t.user_id} identity={identities[t.user_id]} />
+              <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</p>
             </div>
             <Badge variant="secondary" className="capitalize">{t.status}</Badge>
           </div>
