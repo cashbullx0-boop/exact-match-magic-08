@@ -22,6 +22,11 @@ const IosInstallPrompt = lazy(() =>
 const ImageProtection = lazy(() =>
   import("@/components/image-protection").then((m) => ({ default: m.ImageProtection })),
 );
+const IndependenceDayPopup = lazy(() =>
+  import("@/components/dashboard/independence-day-popup").then((m) => ({
+    default: m.IndependenceDayPopup,
+  })),
+);
 
 function NotFoundComponent() {
   return (
@@ -184,6 +189,7 @@ function RootComponent() {
             <Suspense fallback={null}>
               <ImageProtection />
               <IosInstallPrompt />
+              <IndependenceDayPopup />
             </Suspense>
           )}
         </WesternRewardProvider>
