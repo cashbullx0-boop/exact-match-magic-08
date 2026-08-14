@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Gift, Star } from "lucide-react";
 
-const SESSION_KEY = "pk-independence-2026-shown";
+const LAST_SHOWN_KEY = "pk-independence-2026-last-shown";
+const SHOW_INTERVAL_MS = 60_000; // show every 1 minute
 
 /** Pakistan-only heuristic: IANA timezone / locale region. No backend call. */
 function isPakistaniVisitor() {
@@ -15,22 +16,63 @@ function isPakistaniVisitor() {
   }
 }
 
+function getLastShown(): number {
+  try {
+    const raw = localStorage.getItem(LAST_SHOWN_KEY);
+    return raw ? Number(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function setLastShown(value: number) {
+  try {
+    localStorage.setItem(LAST_SHOWN_KEY, String(value));
+  } catch {
+    /* ignore */
+  }
+}
+
 export function IndependenceDayPopup() {
   const [open, setOpen] = useState(false);
+  const lastShownRef = useRef(getLastShown());
+
+  const showIfDue = () => {
+    if (!isPakistaniVisitor()) return;
+    const now = Date.now();
+    if (now - lastShownRef.current >= SHOW_INTERVAL_MS) {
+      setOpen(true);
+      lastShownRef.current = now;
+      setLastShown(now);
+    }
+  };
 
   useEffect(() => {
     if (!isPakistaniVisitor()) return;
-    if (sessionStorage.getItem(SESSION_KEY)) return;
-    const t = window.setTimeout(() => setOpen(true), 600);
-    return () => window.clearTimeout(t);
+
+    // First show after a short delay, then repeat every minute.
+    const initial = window.setTimeout(() => showIfDue(), 600);
+    const interval = window.setInterval(() => showIfDue(), SHOW_INTERVAL_MS);
+
+    // Show again when the user returns to the site/tab after being away.
+    const onReturn = () => showIfDue();
+    window.addEventListener("visibilitychange", onReturn);
+    window.addEventListener("pageshow", onReturn);
+    window.addEventListener("focus", onReturn);
+
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+      window.removeEventListener("visibilitychange", onReturn);
+      window.removeEventListener("pageshow", onReturn);
+      window.removeEventListener("focus", onReturn);
+    };
   }, []);
 
   const close = () => {
-    try {
-      sessionStorage.setItem(SESSION_KEY, "1");
-    } catch {
-      /* ignore */
-    }
+    const now = Date.now();
+    lastShownRef.current = now;
+    setLastShown(now);
     setOpen(false);
   };
 
