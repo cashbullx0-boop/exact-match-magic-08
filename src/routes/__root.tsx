@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { WesternRewardProvider } from "@/components/dashboard/western-reward-popup";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { registerPwa } from "@/lib/pwa-register";
+import { isRequestAbort } from "@/lib/request-errors";
 
 // Neither of these affects first paint — keep them out of the critical bundle.
 const IosInstallPrompt = lazy(() =>
@@ -51,7 +52,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  if (!isRequestAbort(error)) console.error(error);
   const router = useRouter();
 
   return (
