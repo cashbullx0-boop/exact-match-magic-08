@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePhoneValid } from "@/lib/phone-valid";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
-import { MaintenancePopup } from "@/components/maintenance-popup";
 
 // Phone input pulls in country metadata + flags; only the phone tab needs it.
 const PhoneField = lazy(() =>
@@ -100,8 +99,6 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <MaintenancePopup />
-
       <div className="w-full max-w-md glass-strong rounded-3xl p-8 animate-float-up">
         <Link to="/" className="block text-center text-2xl font-bold brand-text mb-2">CashBullX</Link>
         <h1 className="text-2xl font-bold text-center mt-4">Welcome back</h1>
