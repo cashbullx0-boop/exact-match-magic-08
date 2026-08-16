@@ -13,7 +13,6 @@ import { VipBadge } from "@/components/dashboard/vip-badge";
 import { TradeFab } from "@/components/dashboard/trade-fab";
 import { Card } from "@/components/ui/card";
 import { Ban } from "lucide-react";
-import { MaintenancePopup } from "@/components/maintenance-popup";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
@@ -286,8 +285,6 @@ function AuthedLayout() {
 
   return (
     <div className="min-h-screen flex w-full max-w-full overflow-x-hidden">
-      <MaintenancePopup />
-
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col p-4 glass-strong border-r border-border">
         <SidebarInner />
