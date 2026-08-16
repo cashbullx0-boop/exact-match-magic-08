@@ -11,6 +11,15 @@ function record(error: unknown) {
   lastCapturedError = { error, at: Date.now() };
 }
 
+// The dev HTTP adapter logs ECONNRESET through console.error before the request
+// reaches our fetch wrapper. Keep that expected disconnect out of the runtime
+// error overlay while forwarding every genuine application error unchanged.
+const originalConsoleError = console.error.bind(console);
+console.error = (...args: unknown[]) => {
+  if (args.some((argument) => isRequestAbort(argument))) return;
+  originalConsoleError(...args);
+};
+
 if (typeof globalThis.addEventListener === "function") {
   globalThis.addEventListener("error", (event) => record((event as ErrorEvent).error ?? event));
   globalThis.addEventListener("unhandledrejection", (event) => {
