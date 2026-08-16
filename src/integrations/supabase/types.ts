@@ -1462,6 +1462,7 @@ export type Database = {
         }[]
       }
       reconcile_financials: { Args: never; Returns: Json }
+      referral_reward_cents: { Args: { _ts?: string }; Returns: number }
       request_password_reset_by_email: {
         Args: { _email: string }
         Returns: string
