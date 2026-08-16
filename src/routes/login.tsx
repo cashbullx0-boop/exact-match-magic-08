@@ -88,16 +88,12 @@ function LoginPage() {
   };
 
   const google = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/dashboard",
-      },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (error) { toast.error(error.message); return; }
-    // Success par browser Google par redirect ho jayega.
-    // Wapis aane par Supabase khud session set kar dega,
-    // aur AuthProvider ka onAuthStateChange usay pakad lega.
+    if (result.error) { toast.error(result.error.message); return; }
+    if (result.redirected) return;
+    navigate({ to: "/dashboard", replace: true });
   };
 
   return (
