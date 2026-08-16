@@ -159,7 +159,14 @@ export function IndependenceDayPopup() {
           <div className="mt-4 rounded-2xl border border-yellow-300/30 bg-black/20 p-3">
             <div className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-wider text-emerald-100/90">
               <Clock className="h-3.5 w-3.5" />
-              <span>Offer ends in</span>
+              <span>Offer khatam hone mein</span>
+            </div>
+            <div className="mt-1 text-sm font-semibold text-yellow-300">
+              {d > 0 ? (
+                <span>Abhi {d} din {d === 1 ? "rehta hai" : "reh gaye hain"}</span>
+              ) : (
+                <span>Aakhri din — abhi deposit karein!</span>
+              )}
             </div>
             <div className="mt-2 grid grid-cols-4 gap-2">
               {[
