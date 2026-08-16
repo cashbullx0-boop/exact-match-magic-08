@@ -1,8 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Gift, Star } from "lucide-react";
+import { X, Gift, Star, Clock } from "lucide-react";
 
 const LAST_SHOWN_KEY = "pk-independence-2026-last-shown";
 const SHOW_INTERVAL_MS = 60_000; // show every 1 minute
+
+// Offer window: 13 Aug 2026 00:00 → 21 Aug 2026 23:59:59.999 (Pakistan time, UTC+5)
+const OFFER_START_MS = Date.parse("2026-08-13T00:00:00+05:00");
+const OFFER_END_MS = Date.parse("2026-08-22T00:00:00+05:00");
+
+function offerIsLive(now = Date.now()) {
+  return now >= OFFER_START_MS && now < OFFER_END_MS;
+}
+
+function formatRemaining(ms: number) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return { d, h, m, s };
+}
 
 /** Pakistan-only heuristic: IANA timezone / locale region. No backend call. */
 function isPakistaniVisitor() {
@@ -35,10 +52,12 @@ function setLastShown(value: number) {
 
 export function IndependenceDayPopup() {
   const [open, setOpen] = useState(false);
+  const [remaining, setRemaining] = useState(() => OFFER_END_MS - Date.now());
   const lastShownRef = useRef(getLastShown());
 
   const showIfDue = () => {
     if (!isPakistaniVisitor()) return;
+    if (!offerIsLive()) return;
     const now = Date.now();
     if (now - lastShownRef.current >= SHOW_INTERVAL_MS) {
       setOpen(true);
@@ -49,6 +68,9 @@ export function IndependenceDayPopup() {
 
   useEffect(() => {
     if (!isPakistaniVisitor()) return;
+    if (!offerIsLive()) return;
+
+    const tick = window.setInterval(() => setRemaining(OFFER_END_MS - Date.now()), 1000);
 
     // First show after a short delay, then repeat every minute.
     const initial = window.setTimeout(() => showIfDue(), 600);
@@ -61,6 +83,7 @@ export function IndependenceDayPopup() {
     window.addEventListener("focus", onReturn);
 
     return () => {
+      window.clearInterval(tick);
       window.clearTimeout(initial);
       window.clearInterval(interval);
       window.removeEventListener("visibilitychange", onReturn);
@@ -76,7 +99,9 @@ export function IndependenceDayPopup() {
     setOpen(false);
   };
 
-  if (!open) return null;
+  if (!open || !offerIsLive()) return null;
+
+  const { d, h, m, s } = formatRemaining(remaining);
 
   return (
     <div
@@ -112,7 +137,7 @@ export function IndependenceDayPopup() {
         </div>
 
         <div className="px-6 pb-7 pt-4 text-center">
-          <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-200/90">14 August</p>
+          <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-200/90">13 – 21 August 2026</p>
           <h2 className="mt-1 text-2xl font-bold text-white">Happy Independence Day 🇵🇰</h2>
           <p className="mt-2 text-sm text-emerald-100/90">
             Pakistan Zindabad! Celebrating with a special reward for our Pakistani members.
@@ -128,6 +153,29 @@ export function IndependenceDayPopup() {
               <span className="mx-2 text-3xl font-extrabold text-yellow-300">$7</span>
             </p>
             <p className="text-sm text-emerald-50">reward on deposit — instead of $5</p>
+            <p className="mt-1 text-[11px] text-emerald-200/80">Valid 13 Aug – 21 Aug 2026 only</p>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-yellow-300/30 bg-black/20 p-3">
+            <div className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-wider text-emerald-100/90">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Offer ends in</span>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {[
+                { v: d, l: "Days" },
+                { v: h, l: "Hrs" },
+                { v: m, l: "Min" },
+                { v: s, l: "Sec" },
+              ].map((x) => (
+                <div key={x.l} className="rounded-xl bg-white/10 py-1.5">
+                  <p className="text-lg font-extrabold tabular-nums text-yellow-300">
+                    {String(x.v).padStart(2, "0")}
+                  </p>
+                  <p className="text-[9px] uppercase tracking-wider text-emerald-100/80">{x.l}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
