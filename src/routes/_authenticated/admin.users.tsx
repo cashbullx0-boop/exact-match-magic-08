@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Users as UsersIcon, Search, ShieldX, ShieldCheck, Ban, Wallet, KeyRound } from "lucide-react";
 import { listUserIdentities, adminSetUserPassword, type AdminUserIdentity } from "@/lib/admin-users.functions";
@@ -27,6 +28,7 @@ function AdminUsersPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [identities, setIdentities] = useState<Record<string, AdminUserIdentity>>({});
   const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ function AdminUsersPage() {
       .select("id,full_name,username,balance_cents,status,referral_code,created_at,ban_reason")
       .order("created_at", { ascending: false }).limit(200);
     if (q.trim()) query = query.or(`full_name.ilike.%${q}%,username.ilike.%${q}%,referral_code.ilike.%${q}%`);
+    if (statusFilter !== "all") query = query.eq("status", statusFilter);
     const { data, error } = await query;
     if (error) { toast.error(error.message); return; }
     const list = (data as Row[]) ?? [];
@@ -49,7 +52,7 @@ function AdminUsersPage() {
       } catch { /* identity lookup is best-effort */ }
     }
   };
-  useEffect(() => { if (isAdmin) load(); /* eslint-disable-next-line */ }, [isAdmin]);
+  useEffect(() => { if (isAdmin) load(); /* eslint-disable-next-line */ }, [isAdmin, statusFilter]);
 
   const setStatus = async (id: string, status: "active" | "suspended" | "banned", reason?: string) => {
     setBusy(id);
@@ -117,7 +120,17 @@ function AdminUsersPage() {
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, username, or referral code…" className="pl-9" />
           </div>
           <Button type="submit" className="bg-gradient-to-r from-amber-400 to-amber-600 text-[#2a1a00] font-semibold">Search</Button>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All users</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="suspended">Suspended</SelectItem>
+              <SelectItem value="banned">Banned</SelectItem>
+            </SelectContent>
+          </Select>
         </form>
+        <p className="text-xs text-muted-foreground mt-2">{rows.length} user{rows.length === 1 ? "" : "s"} shown</p>
       </Card>
 
       <Card className="glass-strong border-amber-400/20 p-0 overflow-hidden">
