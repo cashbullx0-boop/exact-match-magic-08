@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, ShieldCheck, ShieldX, Eye, Loader2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { listUserIdentities, type AdminUserIdentity } from "@/lib/admin-users.functions";
@@ -236,7 +236,10 @@ function AdminDepositsPage() {
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Deposit Review</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Deposit Review</DialogTitle>
+            <DialogDescription>Check the payment slip and details, then approve or reject this deposit.</DialogDescription>
+          </DialogHeader>
           {selected && (
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-2 text-sm">
