@@ -104,7 +104,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "img-src 'self' data: blob: https:; " +
           "media-src 'self' data: blob: https:; " +
           "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.lovable.app https://*.lovable.dev https://*.lovableproject.com; " +
-          "frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev https://*.lovableproject.com; " +
           "base-uri 'self'; " +
           "form-action 'self'; " +
           "object-src 'none'",
