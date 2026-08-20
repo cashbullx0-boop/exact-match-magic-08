@@ -16,6 +16,7 @@ const PhoneField = lazy(() =>
 const parsePhoneNumberAsync = async (value: string) =>
   (await import("react-phone-number-input")).parsePhoneNumber(value);
 import { RedirectIfAuthenticated } from "@/components/auth/redirect-if-authenticated";
+import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (s): { ref?: string } =>
@@ -193,6 +194,8 @@ function SignupPage() {
         <div className="mt-5">
           <YouTubeChannelCard />
         </div>
+
+        <InAppBrowserNotice />
 
         <Button onClick={google} variant="outline" className="w-full mt-6 h-11">
           <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v3.2h5.35c-.23 1.4-1.7 4.1-5.35 4.1-3.22 0-5.85-2.66-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.57-2.48C16.86 3.96 14.7 3 12 3 6.95 3 2.85 7.1 2.85 12.15S6.95 21.3 12 21.3c6.92 0 9.5-4.86 9.5-7.4 0-.5-.05-.88-.15-1.3Z" /></svg>
