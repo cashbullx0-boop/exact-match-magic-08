@@ -51,6 +51,7 @@ import { Route as AuthenticatedAdminMaintenanceRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminPasswordResetsRouteImport } from './routes/_authenticated/admin.password-resets'
 import { Route as AuthenticatedAdminPwaRouteImport } from './routes/_authenticated/admin.pwa'
 import { Route as AuthenticatedAdminReferralsRouteImport } from './routes/_authenticated/admin.referrals'
+import { Route as AuthenticatedAdminSpinnerRouteImport } from './routes/_authenticated/admin.spinner'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminWalletsRouteImport } from './routes/_authenticated/admin.wallets'
@@ -279,6 +280,12 @@ const AuthenticatedAdminReferralsRoute =
     path: '/referrals',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSpinnerRoute =
+  AuthenticatedAdminSpinnerRouteImport.update({
+    id: '/spinner',
+    path: '/spinner',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSupportRoute =
   AuthenticatedAdminSupportRouteImport.update({
     id: '/support',
@@ -382,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/spinner': typeof AuthenticatedAdminSpinnerRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
@@ -435,6 +443,7 @@ export interface FileRoutesByTo {
   '/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/admin/spinner': typeof AuthenticatedAdminSpinnerRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/wallets': typeof AuthenticatedAdminWalletsRoute
@@ -491,6 +500,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/password-resets': typeof AuthenticatedAdminPasswordResetsRoute
   '/_authenticated/admin/pwa': typeof AuthenticatedAdminPwaRoute
   '/_authenticated/admin/referrals': typeof AuthenticatedAdminReferralsRoute
+  '/_authenticated/admin/spinner': typeof AuthenticatedAdminSpinnerRoute
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/wallets': typeof AuthenticatedAdminWalletsRoute
@@ -547,6 +557,7 @@ export interface FileRouteTypes {
     | '/admin/password-resets'
     | '/admin/pwa'
     | '/admin/referrals'
+    | '/admin/spinner'
     | '/admin/support'
     | '/admin/users'
     | '/admin/wallets'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/admin/password-resets'
     | '/admin/pwa'
     | '/admin/referrals'
+    | '/admin/spinner'
     | '/admin/support'
     | '/admin/users'
     | '/admin/wallets'
@@ -655,6 +667,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/password-resets'
     | '/_authenticated/admin/pwa'
     | '/_authenticated/admin/referrals'
+    | '/_authenticated/admin/spinner'
     | '/_authenticated/admin/support'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/wallets'
@@ -989,6 +1002,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReferralsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/spinner': {
+      id: '/_authenticated/admin/spinner'
+      path: '/spinner'
+      fullPath: '/admin/spinner'
+      preLoaderRoute: typeof AuthenticatedAdminSpinnerRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/support': {
       id: '/_authenticated/admin/support'
       path: '/support'
@@ -1078,6 +1098,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPasswordResetsRoute: typeof AuthenticatedAdminPasswordResetsRoute
   AuthenticatedAdminPwaRoute: typeof AuthenticatedAdminPwaRoute
   AuthenticatedAdminReferralsRoute: typeof AuthenticatedAdminReferralsRoute
+  AuthenticatedAdminSpinnerRoute: typeof AuthenticatedAdminSpinnerRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminWalletsRoute: typeof AuthenticatedAdminWalletsRoute
@@ -1094,6 +1115,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPasswordResetsRoute: AuthenticatedAdminPasswordResetsRoute,
   AuthenticatedAdminPwaRoute: AuthenticatedAdminPwaRoute,
   AuthenticatedAdminReferralsRoute: AuthenticatedAdminReferralsRoute,
+  AuthenticatedAdminSpinnerRoute: AuthenticatedAdminSpinnerRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminWalletsRoute: AuthenticatedAdminWalletsRoute,
