@@ -29,7 +29,6 @@ import { Route as AuthenticatedDownlineRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEarnRouteImport } from './routes/_authenticated/earn'
 import { Route as AuthenticatedInvestRouteImport } from './routes/_authenticated/invest'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
-import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedLevelsRouteImport } from './routes/_authenticated/levels'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOffersRouteImport } from './routes/_authenticated/offers'
@@ -164,12 +163,6 @@ const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   path: '/kyc',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedLeaderboardRoute =
-  AuthenticatedLeaderboardRouteImport.update({
-    id: '/leaderboard',
-    path: '/leaderboard',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedLevelsRoute = AuthenticatedLevelsRouteImport.update({
   id: '/levels',
   path: '/levels',
@@ -368,7 +361,6 @@ export interface FileRoutesByFullPath {
   '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
-  '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/offers': typeof AuthenticatedOffersRoute
@@ -422,7 +414,6 @@ export interface FileRoutesByTo {
   '/earn': typeof AuthenticatedEarnRoute
   '/invest': typeof AuthenticatedInvestRoute
   '/kyc': typeof AuthenticatedKycRoute
-  '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/offers': typeof AuthenticatedOffersRoute
@@ -479,7 +470,6 @@ export interface FileRoutesById {
   '/_authenticated/earn': typeof AuthenticatedEarnRoute
   '/_authenticated/invest': typeof AuthenticatedInvestRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
-  '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/levels': typeof AuthenticatedLevelsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/offers': typeof AuthenticatedOffersRoute
@@ -536,7 +526,6 @@ export interface FileRouteTypes {
     | '/earn'
     | '/invest'
     | '/kyc'
-    | '/leaderboard'
     | '/levels'
     | '/notifications'
     | '/offers'
@@ -590,7 +579,6 @@ export interface FileRouteTypes {
     | '/earn'
     | '/invest'
     | '/kyc'
-    | '/leaderboard'
     | '/levels'
     | '/notifications'
     | '/offers'
@@ -646,7 +634,6 @@ export interface FileRouteTypes {
     | '/_authenticated/earn'
     | '/_authenticated/invest'
     | '/_authenticated/kyc'
-    | '/_authenticated/leaderboard'
     | '/_authenticated/levels'
     | '/_authenticated/notifications'
     | '/_authenticated/offers'
@@ -846,13 +833,6 @@ declare module '@tanstack/react-router' {
       path: '/kyc'
       fullPath: '/kyc'
       preLoaderRoute: typeof AuthenticatedKycRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/leaderboard': {
-      id: '/_authenticated/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/levels': {
@@ -1133,7 +1113,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedEarnRoute: typeof AuthenticatedEarnRoute
   AuthenticatedInvestRoute: typeof AuthenticatedInvestRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
-  AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedLevelsRoute: typeof AuthenticatedLevelsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOffersRoute: typeof AuthenticatedOffersRoute
@@ -1156,7 +1135,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedEarnRoute: AuthenticatedEarnRoute,
   AuthenticatedInvestRoute: AuthenticatedInvestRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
-  AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedLevelsRoute: AuthenticatedLevelsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOffersRoute: AuthenticatedOffersRoute,
