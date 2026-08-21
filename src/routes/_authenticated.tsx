@@ -49,7 +49,6 @@ const navGroups = [
     items: [
       { to: "/referrals", label: "Referrals", icon: Users },
       { to: "/downline", label: "Downline", icon: Network },
-      { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
       { to: "/levels", label: "Levels", icon: Crown },
       { to: "/achievements", label: "Achievements", icon: Award },
     ],
