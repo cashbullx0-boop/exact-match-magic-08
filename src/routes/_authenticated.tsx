@@ -263,6 +263,10 @@ function AuthedLayout() {
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/pwa" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <Smartphone className="h-4 w-4" />PWA Settings
             </Link>
+            <Link to="/admin/spinner" onClick={() => setOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/spinner" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
+              <Dices className="h-4 w-4" />Spinner Settings
+            </Link>
             <Link to="/admin/maintenance" onClick={() => setOpen(false)}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${pathname === "/admin/maintenance" ? "bg-amber-500/15 text-amber-300" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"}`}>
               <AlertTriangle className="h-4 w-4" />Maintenance Mode
