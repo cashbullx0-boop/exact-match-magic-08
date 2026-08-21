@@ -39,7 +39,6 @@ const COLS = [
     title: "Company",
     links: [
       { label: "About", to: "/" as const },
-      { label: "Leaderboard", to: "/leaderboard" as const },
       { label: "Achievements", to: "/achievements" as const },
       { label: "Referrals", to: "/referrals" as const },
     ],

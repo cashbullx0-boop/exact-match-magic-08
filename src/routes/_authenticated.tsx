@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate, Link, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Trophy, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone, Network, AlertTriangle } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wallet, Users, Shield, LogOut, Menu, X, Bell, Award, User as UserIcon, LifeBuoy, Sparkles, ArrowDownToLine, ArrowUpFromLine, Crown, ShieldCheck, TrendingUp, KeyRound, Smartphone, Network, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -49,7 +49,6 @@ const navGroups = [
     items: [
       { to: "/referrals", label: "Referrals", icon: Users },
       { to: "/downline", label: "Downline", icon: Network },
-      { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
       { to: "/levels", label: "Levels", icon: Crown },
       { to: "/achievements", label: "Achievements", icon: Award },
     ],
