@@ -71,37 +71,50 @@ export function FloatingSupport() {
   if (!pos) return null;
 
   // Position popup near button; flip sides if button is near edges
-  const popupW = 288;
-  const popupH = 180;
+  const popupW = chat ? Math.min(380, window.innerWidth - 16) : 288;
+  const popupH = chat ? Math.min(520, window.innerHeight - 100) : 180;
   const popupLeft = Math.max(8, Math.min(window.innerWidth - popupW - 8, pos.x + FAB_SIZE / 2 - popupW / 2));
-  const popupTop = pos.y - popupH - 12 > 8 ? pos.y - popupH - 12 : pos.y + FAB_SIZE + 12;
+  const popupTop = pos.y - popupH - 12 > 8 ? pos.y - popupH - 12 : Math.max(8, Math.min(pos.y + FAB_SIZE + 12, window.innerHeight - popupH - 8));
 
   return (
     <>
       {open && (
         <div
-          className="fixed z-50 w-72 glass-strong border border-border rounded-2xl p-4 shadow-2xl animate-float-up"
-          style={{ left: popupLeft, top: popupTop }}
+          className="fixed z-50 glass-strong border border-border rounded-2xl p-4 shadow-2xl animate-float-up flex flex-col"
+          style={{ left: popupLeft, top: popupTop, width: popupW, height: chat ? popupH : undefined }}
         >
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-semibold">Need help?</p>
-              <p className="text-[11px] text-muted-foreground">We typically reply in under 1 hour</p>
+              <p className="text-sm font-semibold">{chat ? "AI Assistant" : "Need help?"}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {chat ? "Instant answers, 24/7" : "We typically reply in under 1 hour"}
+              </p>
             </div>
-            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+            <button onClick={() => { setOpen(false); setChat(false); }} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
           </div>
-          <div className="space-y-2">
-            <Link to="/support" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl p-3 bg-primary/10 hover:bg-primary/15 transition-colors">
-              <MessageSquare className="h-4 w-4 text-primary" />
-              <span className="text-sm">Open a ticket</span>
-            </Link>
-            <Link to="/faq" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl p-3 bg-white/5 hover:bg-white/10 transition-colors">
-              <BookOpen className="h-4 w-4 text-accent" />
-              <span className="text-sm">Browse FAQ</span>
-            </Link>
-          </div>
+          {chat ? (
+            <Suspense fallback={<p className="text-xs text-muted-foreground">Loading assistant…</p>}>
+              <AiSupportChat className="flex-1 min-h-0" />
+            </Suspense>
+          ) : (
+            <div className="space-y-2">
+              <button onClick={() => setChat(true)} className="w-full flex items-center gap-2 rounded-xl p-3 bg-primary/10 hover:bg-primary/15 transition-colors text-left">
+                <Bot className="h-4 w-4 text-primary" />
+                <span className="text-sm">Chat with AI assistant</span>
+              </button>
+              <Link to="/support" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl p-3 bg-white/5 hover:bg-white/10 transition-colors">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                <span className="text-sm">Open a ticket</span>
+              </Link>
+              <Link to="/faq" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl p-3 bg-white/5 hover:bg-white/10 transition-colors">
+                <BookOpen className="h-4 w-4 text-accent" />
+                <span className="text-sm">Browse FAQ</span>
+              </Link>
+            </div>
+          )}
         </div>
       )}
+
       <button
         aria-label="Support"
         onPointerDown={onPointerDown}
