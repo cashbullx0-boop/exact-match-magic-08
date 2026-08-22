@@ -1,6 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Link } from "@tanstack/react-router";
-import { LifeBuoy, X, MessageSquare, BookOpen } from "lucide-react";
+import { LifeBuoy, X, MessageSquare, BookOpen, Bot } from "lucide-react";
+
+const AiSupportChat = lazy(() =>
+  import("@/components/support/ai-support-chat").then((m) => ({ default: m.AiSupportChat })),
+);
 
 const FAB_SIZE = 56;
 const STORAGE_KEY = "support-fab-pos";
