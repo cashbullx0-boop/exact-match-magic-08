@@ -14,6 +14,7 @@ import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-rin
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
 const EarningsChart = lazy(() =>
   import("@/components/dashboard/earnings-chart").then((m) => ({ default: m.EarningsChart })),
