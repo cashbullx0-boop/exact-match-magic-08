@@ -40,6 +40,7 @@ import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as RefUsernameRouteImport } from './routes/ref.$username'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -220,6 +221,11 @@ const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
   path: '/withdraw',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
   id: '/email/unsubscribe',
   path: '/email/unsubscribe',
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/api/chat': typeof ApiChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
@@ -433,6 +440,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/api/chat': typeof ApiChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/ref/$username': typeof RefUsernameRoute
   '/admin/deposits': typeof AuthenticatedAdminDepositsRoute
@@ -490,6 +498,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/api/chat': typeof ApiChatRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/ref/$username': typeof RefUsernameRoute
   '/_authenticated/admin/deposits': typeof AuthenticatedAdminDepositsRoute
@@ -547,6 +556,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/wallet'
     | '/withdraw'
+    | '/api/chat'
     | '/email/unsubscribe'
     | '/ref/$username'
     | '/admin/deposits'
@@ -601,6 +611,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/wallet'
     | '/withdraw'
+    | '/api/chat'
     | '/email/unsubscribe'
     | '/ref/$username'
     | '/admin/deposits'
@@ -657,6 +668,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/wallet'
     | '/_authenticated/withdraw'
+    | '/api/chat'
     | '/email/unsubscribe'
     | '/ref/$username'
     | '/_authenticated/admin/deposits'
@@ -695,6 +707,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  ApiChatRoute: typeof ApiChatRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   RefUsernameRoute: typeof RefUsernameRoute
   ApiPublicCpxPostbackRoute: typeof ApiPublicCpxPostbackRoute
@@ -924,6 +937,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/withdraw'
       preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/email/unsubscribe': {
       id: '/email/unsubscribe'
@@ -1187,6 +1207,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  ApiChatRoute: ApiChatRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   RefUsernameRoute: RefUsernameRoute,
   ApiPublicCpxPostbackRoute: ApiPublicCpxPostbackRoute,

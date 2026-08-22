@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { LifeBuoy, MessageSquare } from "lucide-react";
+import { LifeBuoy, MessageSquare, Bot } from "lucide-react";
 import { toast } from "sonner";
+import { AiSupportChat } from "@/components/support/ai-support-chat";
 
 export const Route = createFileRoute("/_authenticated/support")({
   head: () => ({ meta: [{ title: "Support — CashBullX" }] }),
@@ -52,6 +53,17 @@ function SupportPage() {
           <p className="text-muted-foreground text-sm">Send us a question, we typically reply within 24h.</p>
         </div>
       </header>
+
+      <Card className="glass-strong border-primary/30 p-4 md:p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Bot className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold">Ask the AI assistant</h2>
+          <span className="text-[10px] rounded-full bg-primary/15 text-primary px-2 py-0.5">Instant · 24/7</span>
+        </div>
+        <AiSupportChat className="h-[440px]" />
+      </Card>
+
+
 
       <Card className="glass-strong border-border p-6 space-y-4">
         <h2 className="font-semibold">New ticket</h2>
