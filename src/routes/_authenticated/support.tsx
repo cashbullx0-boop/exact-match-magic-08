@@ -53,6 +53,17 @@ function SupportPage() {
         </div>
       </header>
 
+      <Card className="glass-strong border-primary/30 p-4 md:p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Bot className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold">Ask the AI assistant</h2>
+          <span className="text-[10px] rounded-full bg-primary/15 text-primary px-2 py-0.5">Instant · 24/7</span>
+        </div>
+        <AiSupportChat className="h-[440px]" />
+      </Card>
+
+
+
       <Card className="glass-strong border-border p-6 space-y-4">
         <h2 className="font-semibold">New ticket</h2>
         <div><Label>Subject</Label><Input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={120} placeholder="What's going on?" /></div>
