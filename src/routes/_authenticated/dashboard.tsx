@@ -138,6 +138,17 @@ function DashboardPage() {
         </Link>
       </div>
 
+      <Link to="/spinner" className="block group" aria-label="Open Spin & Win">
+        <Card className="glass-strong border-border p-0 overflow-hidden hover:-translate-y-0.5 transition-transform">
+          <img
+            src={spinWinBanner.url}
+            alt="Spin & Win — $1, $2 and $5 spins with big prizes up to $50"
+            loading="lazy"
+            className="w-full h-auto block"
+          />
+        </Card>
+      </Link>
+
       <PromoCarousel />
 
       <YouTubeChannelCard />
