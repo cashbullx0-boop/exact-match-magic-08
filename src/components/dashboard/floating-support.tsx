@@ -11,6 +11,7 @@ const STORAGE_KEY = "support-fab-pos";
 
 export function FloatingSupport() {
   const [open, setOpen] = useState(false);
+  const [chat, setChat] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const draggingRef = useRef(false);
   const movedRef = useRef(false);
