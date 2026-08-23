@@ -111,6 +111,7 @@ function DashboardPage() {
       <KycAnnouncement status={kycStatus} />
 
       <SpinnerAnnouncement />
+      <SpinnerPopup />
 
       {/* Mobile quick actions — Deposit/Withdraw front-and-center so users can find them instantly */}
       <div className="md:hidden grid grid-cols-2 gap-3">
