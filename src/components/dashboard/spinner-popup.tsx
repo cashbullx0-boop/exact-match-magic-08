@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { X, Sparkles, Zap } from "lucide-react";
+import { X, Sparkles, Clock } from "lucide-react";
 
 /**
- * Spinner promo popup — shows every time the user opens the website/app
- * (and again when they return to the tab after being away).
+ * Spinner teaser popup — shows every time the user opens the website/app
+ * (and again when they return after being away).
  */
 export function SpinnerPopup() {
   const [open, setOpen] = useState(false);
@@ -33,16 +32,19 @@ export function SpinnerPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+      className="animate-fade-in fixed inset-0 z-[80] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="Lucky Spinner is live"
+      aria-label="Lucky Spinner coming soon"
       onClick={() => setOpen(false)}
     >
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-primary/40 bg-card p-6 text-center shadow-2xl"
+        className="animate-scale-in relative w-full max-w-sm overflow-hidden rounded-2xl border border-primary/40 bg-card p-6 text-center shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* soft animated glow */}
+        <span className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
+
         <button
           type="button"
           onClick={() => setOpen(false)}
@@ -52,34 +54,30 @@ export function SpinnerPopup() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary">
-          <Sparkles className="h-7 w-7" />
+        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <span className="absolute inset-0 rounded-full border-2 border-dashed border-primary/50 animate-[spin_6s_linear_infinite]" />
+          <Sparkles className="h-7 w-7 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
         </div>
 
-        <h2 className="mt-4 text-xl font-bold text-foreground">Lucky Spinner is live!</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          For a limited time only — spin and win up to <strong>$50</strong>. Don't miss the chance
-          to earn more in less time.
+        <h2 className="relative mt-4 text-xl font-bold text-foreground">
+          Lucky Spinner — going live soon
+        </h2>
+        <p className="relative mt-2 text-sm text-muted-foreground">
+          Big prizes are on the way. Stay tuned and don't miss the chance to earn more in less
+          time.
         </p>
 
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs font-medium text-foreground">
-          <Zap className="h-3.5 w-3.5 text-primary" />
-          $1 · $2 · $5 spins available now
+        <div className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary">
+          <Clock className="h-3.5 w-3.5 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
+          Launching soon
         </div>
 
-        <Link
-          to="/spinner"
-          onClick={() => setOpen(false)}
-          className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Spin now
-        </Link>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="mt-2 w-full text-xs text-muted-foreground hover:text-foreground"
+          className="hover-scale relative mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Maybe later
+          Got it
         </button>
       </div>
     </div>
