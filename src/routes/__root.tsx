@@ -28,9 +28,6 @@ const IndependenceDayPopup = lazy(() =>
     default: m.IndependenceDayPopup,
   })),
 );
-const SpinnerPopup = lazy(() =>
-  import("@/components/dashboard/spinner-popup").then((m) => ({ default: m.SpinnerPopup })),
-);
 
 function NotFoundComponent() {
   return (
@@ -193,7 +190,7 @@ function RootComponent() {
               <ImageProtection />
               <IosInstallPrompt />
               <IndependenceDayPopup />
-              <SpinnerPopup />
+              
             </Suspense>
           )}
         </WesternRewardProvider>
