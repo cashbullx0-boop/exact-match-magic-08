@@ -14,6 +14,7 @@ import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-rin
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+import { SpinnerAnnouncement } from "@/components/dashboard/spinner-announcement";
 import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
 const EarningsChart = lazy(() =>
@@ -107,6 +108,8 @@ function DashboardPage() {
       <DepositDeadlineRing />
 
       <KycAnnouncement status={kycStatus} />
+
+      <SpinnerAnnouncement />
 
       {/* Mobile quick actions — Deposit/Withdraw front-and-center so users can find them instantly */}
       <div className="md:hidden grid grid-cols-2 gap-3">
