@@ -64,9 +64,15 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
-        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
-        entities: path.resolve(__dirname, "node_modules/entities"),
+        // htmlparser2 needs entities v4 paths; parse5 needs entities v6 subpath exports.
+        "entities/lib/decode.js": path.resolve(
+          __dirname,
+          "node_modules/htmlparser2/node_modules/entities/lib/esm/decode.js",
+        ),
+        "entities/lib/escape.js": path.resolve(
+          __dirname,
+          "node_modules/htmlparser2/node_modules/entities/lib/esm/escape.js",
+        ),
       },
     },
   },
