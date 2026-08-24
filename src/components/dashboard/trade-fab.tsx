@@ -220,7 +220,7 @@ export function TradeFab() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open trading panel"
-          className="pointer-events-auto h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105"
+          className="pointer-events-auto h-16 w-16 rounded-full flex items-center justify-center transition-transform active:scale-95 hover:scale-105 hover:shadow-none focus:ring-0 focus:outline-none"
           style={{
             background: "linear-gradient(135deg,#F59E0B 0%,#D97706 100%)",
           }}
