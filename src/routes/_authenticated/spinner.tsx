@@ -79,6 +79,7 @@ function SpinnerPage() {
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<{ won: boolean; cents: number } | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  const { celebrate, RewardModal } = useRewardCelebration();
 
   useEffect(() => {
     void (async () => {
