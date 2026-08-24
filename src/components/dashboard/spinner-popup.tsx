@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { X, Sparkles, Clock } from "lucide-react";
+import { X, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 /**
- * Spinner teaser popup — shows every time the user opens the website/app
+ * Lucky Spinner popup — shows every time the user opens the website/app
  * (and again when they return after being away).
  */
 export function SpinnerPopup() {
+
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
