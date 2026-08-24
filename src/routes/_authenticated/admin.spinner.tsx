@@ -25,7 +25,8 @@ type Config = {
   enabled: boolean;
   cost_cents: number;
   daily_limit: number;
-  pool_guard: boolean;
+  auto_guard: boolean;
+  max_payout_percent: number;
   prizes: Prize[];
 };
 
@@ -33,7 +34,8 @@ const DEFAULT_CONFIG: Config = {
   enabled: true,
   cost_cents: 100,
   daily_limit: 5,
-  pool_guard: false,
+  auto_guard: true,
+  max_payout_percent: 60,
   prizes: [
     { cents: 0, weight: 20 },
     { cents: 50, weight: 25 },
