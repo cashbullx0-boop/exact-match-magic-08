@@ -1,6 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ClipboardList, Clock } from "lucide-react";
+
+/** Tasks unlock 90 days after 24 Aug 2026 → 22 Nov 2026, 00:00 UTC. */
+const LAUNCH_AT = Date.UTC(2026, 10, 22, 0, 0, 0);
+
+function useCountdown(target: number) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const ms = Math.max(0, target - now);
+  const s = Math.floor(ms / 1000);
+  return {
+    done: ms === 0,
+    days: Math.floor(s / 86400),
+    hours: Math.floor((s % 86400) / 3600),
+    minutes: Math.floor((s % 3600) / 60),
+    seconds: s % 60,
+  };
+}
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({ meta: [{ title: "Tasks — CashBullX" }] }),
