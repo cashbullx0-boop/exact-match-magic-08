@@ -303,6 +303,8 @@ function SpinnerPage() {
           className="h-auto w-full object-contain"
         />
       </div>
+
+      <RewardModal />
     </div>
   );
 }
