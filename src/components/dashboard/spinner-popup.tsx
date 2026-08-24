@@ -62,25 +62,25 @@ export function SpinnerPopup() {
         </div>
 
         <h2 className="relative mt-4 text-xl font-bold text-foreground">
-          Lucky Spinner — going live soon
+          Lucky Spinner is LIVE
         </h2>
         <p className="relative mt-2 text-sm text-muted-foreground">
-          Big prizes are on the way. Stay tuned and don't miss the chance to earn more in less
-          time.
+          Spin now and win instant cash rewards — don't miss the chance to earn more in less time.
         </p>
 
-        <div className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary">
-          <Clock className="h-3.5 w-3.5 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
-          Launching soon
+        <div className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+          Live now
         </div>
 
-        <button
-          type="button"
+        <Link
+          to="/spinner"
           onClick={() => setOpen(false)}
           className="hover-scale relative mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Got it
-        </button>
+          Spin now
+        </Link>
+
       </div>
     </div>
   );
