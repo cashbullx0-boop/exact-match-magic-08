@@ -20,6 +20,7 @@ function AchievementsPage() {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const { celebrate, RewardModal } = useRewardCelebration();
 
   useEffect(() => {
     if (!user) return;
@@ -28,11 +29,34 @@ function AchievementsPage() {
         supabase.from("achievements").select("*").order("xp_reward"),
         supabase.from("user_achievements").select("achievement_id").eq("user_id", user.id),
       ]);
-      setAchievements(a ?? []);
-      setUnlocked(new Set((u ?? []).map((x: any) => x.achievement_id)));
+      const list = a ?? [];
+      const unlockedIds = (u ?? []).map((x: any) => x.achievement_id as string);
+      setAchievements(list);
+      setUnlocked(new Set(unlockedIds));
       setLoading(false);
+
+      // Celebrate any achievement unlocked since the user last visited.
+      const key = `cbx.seen-achievements.${user.id}`;
+      let seen: string[] = [];
+      try {
+        seen = JSON.parse(localStorage.getItem(key) ?? "[]");
+      } catch {
+        seen = [];
+      }
+      const fresh = unlockedIds.filter((id) => !seen.includes(id));
+      if (fresh.length && seen.length >= 0 && localStorage.getItem(key) !== null) {
+        const item = list.find((x: any) => x.id === fresh[0]);
+        celebrate({
+          amount: item?.xp_reward ?? 0,
+          title: "Achievement Unlocked!",
+          achievement: item?.title ?? "New badge",
+          decimals: false,
+          currency: "",
+        });
+      }
+      localStorage.setItem(key, JSON.stringify(unlockedIds));
     })();
-  }, [user]);
+  }, [user, celebrate]);
 
   const xpToNext = ((profile?.level ?? 1) * 500);
   const xpProgress = Math.min(100, ((profile?.xp ?? 0) % 500) / 5);
