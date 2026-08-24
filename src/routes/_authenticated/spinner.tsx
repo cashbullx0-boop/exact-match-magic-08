@@ -1,171 +1,296 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Rocket } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles, Trophy, Wallet } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
-  head: () => ({ meta: [{ title: "Lucky Spinner — CashBullX" }] }),
-  component: SpinnerComingSoon,
+  head: () => ({
+    meta: [
+      { title: "Lucky Spinner — Spin & Win | CashBullX" },
+      {
+        name: "description",
+        content:
+          "Spin the CashBullX Lucky Spinner for instant cash rewards. Low entry cost, daily spins and instant credit to your wallet.",
+      },
+      { property: "og:title", content: "Lucky Spinner — Spin & Win | CashBullX" },
+      {
+        property: "og:description",
+        content: "Spin the CashBullX Lucky Spinner for instant cash rewards credited straight to your wallet.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: SpinnerPage,
 });
 
-// Fixed launch target — 40 days from 15 July 2026 (Europe/London midnight)
-const LAUNCH_AT = new Date("2026-08-24T00:00:00+01:00").getTime();
+type Prize = { cents: number; weight: number };
+type Config = { enabled: boolean; cost_cents: number; daily_limit: number; prizes: Prize[] };
 
-// Rendered in UK time for everyone so the unlock date never shifts by device.
-const LAUNCH_LABEL = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "Europe/London",
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-}).format(LAUNCH_AT);
+const DEFAULT_CONFIG: Config = {
+  enabled: true,
+  cost_cents: 100,
+  daily_limit: 5,
+  prizes: [
+    { cents: 0, weight: 20 },
+    { cents: 50, weight: 25 },
+    { cents: 100, weight: 25 },
+    { cents: 200, weight: 15 },
+    { cents: 300, weight: 8 },
+    { cents: 500, weight: 6 },
+    { cents: 1000, weight: 1 },
+  ],
+};
 
-/**
- * Device clocks drift (and some phones are set to the wrong timezone/date), so
- * a countdown based purely on Date.now() shows a different value on every
- * device. The server's Date response header is the single source of truth: we
- * measure its offset from the local clock once and apply it to every tick.
- */
-function useServerClockOffset() {
-  const [offset, setOffset] = useState(0);
+const usd = (cents: number) => (cents / 100).toFixed(2);
+
+/** Today's date key in Europe/London — matches the server-side spin_date. */
+function londonToday() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(new Date());
+}
+
+const SEGMENT_COLORS = [
+  "#f59e0b",
+  "#0f172a",
+  "#22c55e",
+  "#0f172a",
+  "#3b82f6",
+  "#0f172a",
+  "#ef4444",
+  "#0f172a",
+  "#a855f7",
+  "#0f172a",
+  "#14b8a6",
+  "#0f172a",
+];
+
+function SpinnerPage() {
+  const { profile, refreshProfile } = useAuth();
+  const [cfg, setCfg] = useState<Config>(DEFAULT_CONFIG);
+  const [loading, setLoading] = useState(true);
+  const [spinsToday, setSpinsToday] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [result, setResult] = useState<{ won: boolean; cents: number } | null>(null);
+  const wheelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let cancelled = false;
     void (async () => {
-      try {
-        const started = Date.now();
-        const res = await fetch(`${window.location.origin}/robots.txt`, {
-          method: "HEAD",
-          cache: "no-store",
+      const [{ data: setting }, { data: spins }] = await Promise.all([
+        supabase.from("app_settings").select("value").eq("key", "spinner_config").maybeSingle(),
+        supabase.from("spins").select("id").eq("spin_date", londonToday()),
+      ]);
+      const v = setting?.value as Partial<Config> | null;
+      if (v) {
+        setCfg({
+          enabled: v.enabled !== false,
+          cost_cents: Number(v.cost_cents ?? 100),
+          daily_limit: Number(v.daily_limit ?? 5),
+          prizes:
+            Array.isArray(v.prizes) && v.prizes.length
+              ? v.prizes.map((p) => ({ cents: Number(p.cents ?? 0), weight: Number(p.weight ?? 0) }))
+              : DEFAULT_CONFIG.prizes,
         });
-        const header = res.headers.get("date");
-        if (!header) return;
-        const serverNow = new Date(header).getTime();
-        if (Number.isNaN(serverNow)) return;
-        // Account for half the round trip so the offset isn't skewed by latency.
-        const roundTrip = Date.now() - started;
-        if (!cancelled) setOffset(serverNow + roundTrip / 2 - Date.now());
-      } catch {
-        // Offline or blocked — fall back to the local clock.
       }
+      setSpinsToday(spins?.length ?? 0);
+      setLoading(false);
     })();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
-  return offset;
-}
+  const segments = cfg.prizes;
+  const segAngle = segments.length ? 360 / segments.length : 360;
 
-function useCountdown(target: number) {
-  const offset = useServerClockOffset();
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const diff = Math.max(0, target - (now + offset));
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const mins = Math.floor((diff % 3600000) / 60000);
-  const secs = Math.floor((diff % 60000) / 1000);
-  return { diff, days, hours, mins, secs };
-}
+  const gradient = useMemo(() => {
+    if (!segments.length) return "conic-gradient(#0f172a 0deg 360deg)";
+    const stops = segments.map((_, i) => {
+      const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
+      return `${color} ${i * segAngle}deg ${(i + 1) * segAngle}deg`;
+    });
+    return `conic-gradient(from -${segAngle / 2}deg, ${stops.join(", ")})`;
+  }, [segments, segAngle]);
 
-function SpinnerComingSoon() {
-  const { diff, days, hours, mins, secs } = useCountdown(LAUNCH_AT);
-  const totalMs = 40 * 86400000;
-  const progress = Math.min(100, Math.max(0, ((totalMs - diff) / totalMs) * 100));
-  const launched = diff === 0;
+  const balance = profile?.balance_cents ?? 0;
+  const spinsLeft = Math.max(0, cfg.daily_limit - spinsToday);
+  const canSpin =
+    cfg.enabled && !spinning && spinsLeft > 0 && balance >= cfg.cost_cents && segments.length > 0;
+
+  const handleSpin = async () => {
+    if (!canSpin) return;
+    setSpinning(true);
+    setResult(null);
+
+    const { data, error } = await supabase.rpc("perform_spin");
+
+    if (error) {
+      setSpinning(false);
+      toast.error(error.message);
+      return;
+    }
+
+    const payload = data as { reward_cents: number; won: boolean; spins_remaining: number };
+    const idx = Math.max(
+      0,
+      segments.findIndex((p) => p.cents === payload.reward_cents),
+    );
+
+    // Land the pointer (top) on the winning segment after several full turns.
+    const target = 360 * 6 - idx * segAngle;
+    setRotation((r) => r + (target - (r % 360)) + 360);
+
+    window.setTimeout(() => {
+      setSpinning(false);
+      setSpinsToday((n) => n + 1);
+      setResult({ won: payload.won, cents: payload.reward_cents });
+      void refreshProfile();
+      if (payload.won) toast.success(`You won $${usd(payload.reward_cents)}!`);
+      else toast("No prize this time — try again!");
+    }, 4200);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-      <Card className="relative max-w-xl w-full p-8 md:p-10 text-center bg-gradient-to-br from-card/80 to-card/40 backdrop-blur border-border/50 shadow-2xl overflow-hidden">
-        {/* Ambient glow */}
-        <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/20 blur-3xl animate-pulse" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 rounded-full bg-accent/20 blur-3xl animate-pulse" />
+    <div className="mx-auto max-w-3xl space-y-6 py-6 animate-float-up">
+      <header className="text-center">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs uppercase tracking-widest text-primary">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+          Live now
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Lucky Spinner</h1>
+        <p className="mt-2 text-muted-foreground">
+          ${usd(cfg.cost_cents)} per spin · instant rewards credited to your wallet
+        </p>
+      </header>
 
-        <div className="relative">
-          <div className="relative mx-auto w-24 h-24 mb-6">
-            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl animate-pulse" />
-            <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/40 flex items-center justify-center">
-              {launched ? (
-                <Rocket className="w-12 h-12 text-primary animate-bounce" />
-              ) : (
-                <Sparkles className="w-12 h-12 text-primary animate-[spin_8s_linear_infinite]" />
-              )}
+      {!cfg.enabled && (
+        <Card className="border-amber-500/40 bg-amber-500/10 p-4 text-center text-sm text-amber-300">
+          The Lucky Spinner is temporarily paused. Please check back soon.
+        </Card>
+      )}
+
+      <Card className="relative overflow-hidden border-border/50 bg-gradient-to-br from-card/80 to-card/40 p-6 md:p-10">
+        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
+
+        <div className="relative flex flex-col items-center">
+          {/* pointer */}
+          <div className="relative z-10 -mb-3 h-0 w-0 border-x-[12px] border-t-[20px] border-x-transparent border-t-primary drop-shadow" />
+
+          <div className="relative h-72 w-72 md:h-80 md:w-80">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/40 shadow-2xl" />
+            <div
+              ref={wheelRef}
+              className="absolute inset-1 rounded-full"
+              style={{
+                background: gradient,
+                transform: `rotate(${rotation}deg)`,
+                transition: "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)",
+              }}
+            >
+              {segments.map((p, i) => (
+                <div
+                  key={i}
+                  className="absolute left-1/2 top-1/2 origin-left text-xs font-bold text-white drop-shadow"
+                  style={{
+                    transform: `rotate(${i * segAngle}deg) translateX(38%)`,
+                  }}
+                >
+                  {p.cents === 0 ? "Try again" : `$${usd(p.cents)}`}
+                </div>
+              ))}
+            </div>
+            <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary/50 bg-background">
+              <Sparkles className={`h-6 w-6 text-primary ${spinning ? "animate-spin" : ""}`} />
             </div>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs uppercase tracking-widest mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            {launched ? "Live now" : "Launching in"}
-          </div>
+          <Button
+            onClick={handleSpin}
+            disabled={!canSpin}
+            className="btn-primary-gradient mt-8 h-12 w-full max-w-xs text-base font-bold"
+          >
+            {spinning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Spinning…
+              </>
+            ) : (
+              `Spin for $${usd(cfg.cost_cents)}`
+            )}
+          </Button>
 
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            {launched ? "Lucky Spinner is LIVE!" : "Lucky Spinner"}
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-6">
-            {launched
-              ? "Refresh the page to spin your first wheel and grab instant rewards."
-              : "Daily spins & instant cash rewards unlock in:"}
-          </p>
+          {balance < cfg.cost_cents && (
+            <p className="mt-3 text-xs text-red-400">
+              Insufficient balance — deposit at least ${usd(cfg.cost_cents)} to spin.
+            </p>
+          )}
+          {spinsLeft === 0 && (
+            <p className="mt-3 text-xs text-amber-300">
+              Daily limit reached. Come back tomorrow for more spins.
+            </p>
+          )}
 
-          <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 shadow-xl bg-[#0a0f1e]">
-            <img
-              src={spinnerPromo.url}
-              alt="CashBullX Spin & Win Big — just $5 per spin, win up to $100"
-              loading="eager"
-              className="w-full h-auto object-contain"
-            />
-          </div>
-
-          {!launched && (
-            <>
-              <div className="grid grid-cols-4 gap-2 md:gap-3 mb-6">
-                {[
-                  { v: days, l: "Days" },
-                  { v: hours, l: "Hours" },
-                  { v: mins, l: "Min" },
-                  { v: secs, l: "Sec" },
-                ].map((u) => (
-                  <div
-                    key={u.l}
-                    className="relative rounded-xl border border-border/60 bg-background/50 backdrop-blur p-3 md:p-4 shadow-inner overflow-hidden"
-                  >
-                    <div className="absolute inset-x-0 top-1/2 h-px bg-border/60" />
-                    <div className="text-2xl md:text-4xl font-bold tabular-nums brand-text">
-                      {String(u.v).padStart(2, "0")}
-                    </div>
-                    <div className="text-[10px] md:text-xs uppercase tracking-widest text-muted-foreground mt-1">
-                      {u.l}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mb-2 flex justify-between text-xs text-muted-foreground">
-                <span>Day {Math.max(0, 40 - days)} / 40</span>
-                <span>{progress.toFixed(1)}%</span>
-              </div>
-              <div className="h-2 rounded-full bg-border/40 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-primary via-accent to-primary transition-all duration-1000"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <p className="mt-6 text-xs text-muted-foreground">
-                Unlocks on{" "}
-                <span className="text-foreground font-medium">
-                  {LAUNCH_LABEL}
-                </span>
-              </p>
-            </>
+          {result && !spinning && (
+            <div
+              className={`animate-scale-in mt-5 rounded-xl border px-5 py-3 text-center ${
+                result.won
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                  : "border-border bg-white/5 text-muted-foreground"
+              }`}
+            >
+              {result.won ? (
+                <>
+                  <Trophy className="mx-auto mb-1 h-5 w-5" />
+                  <p className="font-bold">You won ${usd(result.cents)}</p>
+                </>
+              ) : (
+                <p className="font-medium">No prize this time — better luck on the next spin!</p>
+              )}
+            </div>
           )}
         </div>
       </Card>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Card className="p-4">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Your balance</p>
+          <p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums">
+            <Wallet className="h-4 w-4 text-primary" />${usd(balance)}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Spins left today</p>
+          <p className="mt-1 text-lg font-bold tabular-nums">
+            {spinsLeft} / {cfg.daily_limit}
+          </p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Top prize</p>
+          <p className="mt-1 text-lg font-bold tabular-nums">
+            ${usd(Math.max(...segments.map((p) => p.cents), 0))}
+          </p>
+        </Card>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-primary/30 bg-[#0a0f1e] shadow-xl">
+        <img
+          src={spinnerPromo.url}
+          alt="CashBullX Spin & Win — instant cash rewards"
+          loading="lazy"
+          className="h-auto w-full object-contain"
+        />
+      </div>
     </div>
   );
 }
