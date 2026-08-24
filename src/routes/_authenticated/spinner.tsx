@@ -6,6 +6,7 @@ import { Loader2, Sparkles, Trophy, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
