@@ -6,6 +6,7 @@ import { Loader2, Sparkles, Trophy, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
@@ -78,6 +79,7 @@ function SpinnerPage() {
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<{ won: boolean; cents: number } | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  const { celebrate, RewardModal } = useRewardCelebration();
 
   useEffect(() => {
     void (async () => {
@@ -147,8 +149,15 @@ function SpinnerPage() {
       setSpinsToday((n) => n + 1);
       setResult({ won: payload.won, cents: payload.reward_cents });
       void refreshProfile();
-      if (payload.won) toast.success(`You won $${usd(payload.reward_cents)}!`);
-      else toast("No prize this time — try again!");
+      if (payload.won) {
+        celebrate({
+          amount: payload.reward_cents / 100,
+          title: "Reward Collected!",
+          achievement: "Lucky Spinner",
+        });
+      } else {
+        toast("No prize this time — try again!");
+      }
     }, 4200);
   };
 
@@ -294,6 +303,8 @@ function SpinnerPage() {
           className="h-auto w-full object-contain"
         />
       </div>
+
+      <RewardModal />
     </div>
   );
 }
