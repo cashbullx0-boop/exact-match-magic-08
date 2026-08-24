@@ -348,12 +348,16 @@
     /* Mobile Chromium: fixed/sticky containers with translucent bg leave
        ghost pixels of previously-scrolled content (visible as duplicated
        text bleeding into stat cards). Force opaque paint + own layer. */
-    .md\:hidden.fixed {
+    .md\:hidden.fixed:not([data-transparent-fixed]) {
       background: oklch(0.14 0.04 265) !important;
       isolation: isolate;
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
     }
+    .md\:hidden.fixed[data-transparent-fixed] {
+      background: transparent !important;
+    }
+
     /* Mobile Chromium leaves ghost pixels on stat cards that use
        transform-based hover/animation. Force each card into its own
        compositor layer with paint containment so siblings can't bleed. */

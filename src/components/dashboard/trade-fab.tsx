@@ -213,9 +213,11 @@ export function TradeFab() {
     <>
       {/* FAB — centered on mobile bottom nav */}
       <div
-        className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none"
-        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)" }}
+        data-transparent-fixed=""
+        className="md:hidden fixed left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none bg-transparent"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)", background: "transparent" }}
       >
+
         <button
           type="button"
           onClick={() => setOpen(true)}
