@@ -68,7 +68,8 @@ function AdminSpinnerPage() {
           enabled: v.enabled !== false,
           cost_cents: Number(v.cost_cents ?? 100),
           daily_limit: Number(v.daily_limit ?? 5),
-          pool_guard: v.pool_guard === true,
+          auto_guard: v.auto_guard !== false,
+          max_payout_percent: Number(v.max_payout_percent ?? 60),
           prizes: Array.isArray(v.prizes) && v.prizes.length
             ? v.prizes.map((p) => ({ cents: Number(p.cents ?? 0), weight: Number(p.weight ?? 0) }))
             : DEFAULT_CONFIG.prizes,
