@@ -180,14 +180,33 @@ function AdminSpinnerPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl bg-white/5 p-3">
+        <div className="space-y-3 rounded-xl bg-white/5 p-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label className="text-sm font-medium">Auto profit protection</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Prizes are capped automatically so total payouts never exceed the share below — checked for
+                today and for all-time. The house can never end up in loss.
+              </p>
+            </div>
+            <Switch checked={cfg.auto_guard} onCheckedChange={(v) => setCfg((c) => ({ ...c, auto_guard: v }))} />
+          </div>
           <div>
-            <Label className="text-sm font-medium">Daily payout cap (house guard)</Label>
+            <Label>Max payout share of entry fees (%)</Label>
+            <Input
+              type="number"
+              min="0"
+              max="95"
+              value={cfg.max_payout_percent}
+              disabled={!cfg.auto_guard}
+              onChange={(e) =>
+                setCfg((c) => ({ ...c, max_payout_percent: Math.min(95, Math.max(0, Number(e.target.value) || 0)) }))
+              }
+            />
             <p className="text-xs text-muted-foreground mt-1">
-              When ON, total prizes in a day can never exceed 50% of that day's entry fees.
+              Guaranteed house margin: {(100 - cfg.max_payout_percent).toFixed(0)}% of every dollar spun.
             </p>
           </div>
-          <Switch checked={cfg.pool_guard} onCheckedChange={(v) => setCfg((c) => ({ ...c, pool_guard: v }))} />
         </div>
       </Card>
 
