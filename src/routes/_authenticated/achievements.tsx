@@ -119,6 +119,8 @@ function AchievementsPage() {
           })}
         </div>
       )}
+
+      <RewardModal />
     </div>
   );
 }
