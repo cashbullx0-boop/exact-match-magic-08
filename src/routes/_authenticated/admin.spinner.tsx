@@ -25,7 +25,8 @@ type Config = {
   enabled: boolean;
   cost_cents: number;
   daily_limit: number;
-  pool_guard: boolean;
+  auto_guard: boolean;
+  max_payout_percent: number;
   prizes: Prize[];
 };
 
@@ -33,7 +34,8 @@ const DEFAULT_CONFIG: Config = {
   enabled: true,
   cost_cents: 100,
   daily_limit: 5,
-  pool_guard: false,
+  auto_guard: true,
+  max_payout_percent: 60,
   prizes: [
     { cents: 0, weight: 20 },
     { cents: 50, weight: 25 },
@@ -66,7 +68,8 @@ function AdminSpinnerPage() {
           enabled: v.enabled !== false,
           cost_cents: Number(v.cost_cents ?? 100),
           daily_limit: Number(v.daily_limit ?? 5),
-          pool_guard: v.pool_guard === true,
+          auto_guard: v.auto_guard !== false,
+          max_payout_percent: Number(v.max_payout_percent ?? 60),
           prizes: Array.isArray(v.prizes) && v.prizes.length
             ? v.prizes.map((p) => ({ cents: Number(p.cents ?? 0), weight: Number(p.weight ?? 0) }))
             : DEFAULT_CONFIG.prizes,
@@ -104,7 +107,8 @@ function AdminSpinnerPage() {
           enabled: cfg.enabled,
           cost_cents: Math.max(0, Math.round(cfg.cost_cents)),
           daily_limit: Math.max(1, Math.round(cfg.daily_limit)),
-          pool_guard: cfg.pool_guard,
+          auto_guard: cfg.auto_guard,
+          max_payout_percent: Math.min(95, Math.max(0, Math.round(cfg.max_payout_percent))),
           prizes: cfg.prizes.map((p) => ({
             cents: Math.max(0, Math.round(p.cents)),
             weight: Math.max(0, p.weight),
@@ -176,14 +180,33 @@ function AdminSpinnerPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl bg-white/5 p-3">
+        <div className="space-y-3 rounded-xl bg-white/5 p-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label className="text-sm font-medium">Auto profit protection</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Prizes are capped automatically so total payouts never exceed the share below — checked for
+                today and for all-time. The house can never end up in loss.
+              </p>
+            </div>
+            <Switch checked={cfg.auto_guard} onCheckedChange={(v) => setCfg((c) => ({ ...c, auto_guard: v }))} />
+          </div>
           <div>
-            <Label className="text-sm font-medium">Daily payout cap (house guard)</Label>
+            <Label>Max payout share of entry fees (%)</Label>
+            <Input
+              type="number"
+              min="0"
+              max="95"
+              value={cfg.max_payout_percent}
+              disabled={!cfg.auto_guard}
+              onChange={(e) =>
+                setCfg((c) => ({ ...c, max_payout_percent: Math.min(95, Math.max(0, Number(e.target.value) || 0)) }))
+              }
+            />
             <p className="text-xs text-muted-foreground mt-1">
-              When ON, total prizes in a day can never exceed 50% of that day's entry fees.
+              Guaranteed house margin: {(100 - cfg.max_payout_percent).toFixed(0)}% of every dollar spun.
             </p>
           </div>
-          <Switch checked={cfg.pool_guard} onCheckedChange={(v) => setCfg((c) => ({ ...c, pool_guard: v }))} />
         </div>
       </Card>
 
