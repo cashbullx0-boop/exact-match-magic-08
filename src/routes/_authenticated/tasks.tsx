@@ -42,11 +42,29 @@ function TasksComingSoon() {
           </div>
         </div>
         <h1 className="text-3xl font-bold tracking-tight mb-3">
-          Tasks Coming Soon
+          {t.done ? "Tasks Are Live" : "Tasks Coming Soon"}
         </h1>
         <p className="text-muted-foreground leading-relaxed">
-          Exciting tasks and rewards are on their way. Stay tuned!
+          {t.done
+            ? "Tasks are unlocking now — refresh to get started."
+            : "Tasks unlock in 90 days. Rewards are on their way — stay tuned!"}
         </p>
+
+        {!t.done && (
+          <div className="mt-7 grid grid-cols-4 gap-2">
+            {[
+              { label: "Days", value: t.days },
+              { label: "Hours", value: t.hours },
+              { label: "Mins", value: t.minutes },
+              { label: "Secs", value: t.seconds },
+            ].map((c) => (
+              <div key={c.label} className="rounded-xl border border-border/60 bg-white/5 py-3">
+                <p className="text-2xl font-bold tabular-nums">{String(c.value).padStart(2, "0")}</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );
