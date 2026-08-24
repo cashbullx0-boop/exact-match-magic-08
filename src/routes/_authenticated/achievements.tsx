@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Award, Flame, Target, DollarSign, TrendingUp, Users, Trophy, Lock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 
 export const Route = createFileRoute("/_authenticated/achievements")({
   head: () => ({ meta: [{ title: "Achievements — CashBullX" }] }),
