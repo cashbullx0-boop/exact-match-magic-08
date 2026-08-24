@@ -149,8 +149,15 @@ function SpinnerPage() {
       setSpinsToday((n) => n + 1);
       setResult({ won: payload.won, cents: payload.reward_cents });
       void refreshProfile();
-      if (payload.won) toast.success(`You won $${usd(payload.reward_cents)}!`);
-      else toast("No prize this time — try again!");
+      if (payload.won) {
+        celebrate({
+          amount: payload.reward_cents / 100,
+          title: "Reward Collected!",
+          achievement: "Lucky Spinner",
+        });
+      } else {
+        toast("No prize this time — try again!");
+      }
     }, 4200);
   };
 
