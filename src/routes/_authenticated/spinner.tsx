@@ -201,14 +201,17 @@ function SpinnerPage() {
               {segments.map((p, i) => (
                 <div
                   key={i}
-                  className="absolute left-1/2 top-1/2 origin-left text-xs font-bold text-white drop-shadow"
-                  style={{
-                    transform: `rotate(${i * segAngle}deg) translateX(38%)`,
-                  }}
+                  className="pointer-events-none absolute inset-0"
+                  style={{ transform: `rotate(${i * segAngle}deg)` }}
                 >
-                  {p.cents === 0 ? "Try again" : `$${usd(p.cents)}`}
+                  <span
+                    className="absolute left-1/2 top-[8%] -translate-x-1/2 whitespace-nowrap text-[11px] font-extrabold uppercase tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] md:text-xs"
+                  >
+                    {p.cents === 0 ? "Try again" : `$${usd(p.cents)}`}
+                  </span>
                 </div>
               ))}
+
             </div>
             <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary/50 bg-background">
               <Sparkles className={`h-6 w-6 text-primary ${spinning ? "animate-spin" : ""}`} />
