@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/tasks")({
 });
 
 function TasksComingSoon() {
+  const t = useCountdown(LAUNCH_AT);
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
       <Card className="max-w-lg w-full p-10 text-center bg-card/60 backdrop-blur border-border/50 shadow-xl">
