@@ -107,7 +107,8 @@ function AdminSpinnerPage() {
           enabled: cfg.enabled,
           cost_cents: Math.max(0, Math.round(cfg.cost_cents)),
           daily_limit: Math.max(1, Math.round(cfg.daily_limit)),
-          pool_guard: cfg.pool_guard,
+          auto_guard: cfg.auto_guard,
+          max_payout_percent: Math.min(95, Math.max(0, Math.round(cfg.max_payout_percent))),
           prizes: cfg.prizes.map((p) => ({
             cents: Math.max(0, Math.round(p.cents)),
             weight: Math.max(0, p.weight),
