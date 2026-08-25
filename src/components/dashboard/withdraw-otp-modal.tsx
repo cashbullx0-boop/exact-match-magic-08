@@ -49,44 +49,17 @@ export function WithdrawOtpModal({ open, onOpenChange, userId, email, phone, onV
 
     if (data && email) {
       try {
-        const { data: sess } = await supabase.auth.getSession();
-        const token = sess.session?.access_token;
-        const res = await fetch("/lovable/email/transactional/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({
-            templateName: "withdrawal-otp",
-            recipientEmail: email,
-            idempotencyKey: `withdrawal-otp-${userId}-${Date.now()}`,
-            templateData: { otp: data, siteName: "CashBullX" },
-          }),
-        });
-        if (!res.ok) {
-          const body = await res.text().catch(() => "");
-          console.error("Failed to send withdrawal OTP email", res.status, body);
-          toast.error("Could not send the code. Please try again or contact support.");
-          return;
-        }
-        const json = (await res.json().catch(() => null)) as
-          | { success?: boolean; reason?: string }
-          | null;
-        if (json && json.success === false) {
-          if (json.reason === "email_suppressed") {
-            toast.error(
-              "Your email is blocked from receiving mail (previous delivery failed). Contact support to re-enable it.",
-              { duration: 10000 },
-            );
-          } else {
-            toast.error("Could not send the code. Please contact support.");
-          }
+        const result = await sendWithdrawalOtpEmail({ data: { otp: data } });
+        if (result && result.sent === false) {
+          toast.error(
+            "Your email is blocked from receiving mail (previous delivery failed). Contact support to re-enable it.",
+            { duration: 10000 },
+          );
           return;
         }
       } catch (err) {
         console.error("Failed to send withdrawal OTP email", err);
-        toast.error("Network issue while sending the code. Try again.");
+        toast.error("Could not send the code. Please try again or contact support.");
         return;
       }
     }
