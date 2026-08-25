@@ -9,6 +9,7 @@ import { KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { useUserIdentities } from "@/lib/use-user-identities";
 import { UserLabel } from "@/components/admin/user-label";
+import { sendPasswordResetLinkEmail } from "@/lib/email.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/password-resets")({
   head: () => ({ meta: [{ title: "Password Resets — Admin" }] }),
@@ -45,25 +46,11 @@ function AdminPasswordResetsPage() {
     // Send the reset link via Lovable Emails.
     try {
       const resetUrl = `${window.location.origin}/reset-password?rid=${encodeURIComponent(id)}&token=${encodeURIComponent(rawToken)}`;
-      const { data: sess } = await supabase.auth.getSession();
-      const accessToken = sess.session?.access_token;
-      const res = await fetch("/lovable/email/transactional/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        },
-        body: JSON.stringify({
-          templateName: "password-reset-link",
-          recipientEmail: email,
-          idempotencyKey: `pwd-reset-link-${id}`,
-          templateData: { resetUrl, siteName: "CashBullX" },
-        }),
+      const result = await sendPasswordResetLinkEmail({
+        data: { requestId: id, recipientEmail: email, resetUrl },
       });
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        console.error("Failed to send reset link email", res.status, body);
-        toast.error("Approved, but email failed to send");
+      if (result.sent === false) {
+        toast.error("Approved, but the email is suppressed (bounced/unsubscribed)");
       } else {
         toast.success(`Approved — reset link emailed to ${email}`);
       }
