@@ -105,10 +105,6 @@ export function PrizeWheel({
             <stop offset="55%" stopColor="#000000" stopOpacity="0" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0.45" />
           </radialGradient>
-          <radialGradient id="pw-hub" cx="35%" cy="30%" r="80%">
-            <stop offset="0%" stopColor="#fffbe8" />
-            <stop offset="35%" stopColor="#f0c килограм" stopOpacity="0" />
-          </radialGradient>
           <linearGradient id="pw-hub2" x1="0" y1="0" x2="0.6" y2="1">
             <stop offset="0%" stopColor="#fff6d0" />
             <stop offset="40%" stopColor="#e0ac31" />
