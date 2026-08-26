@@ -1272,15 +1272,6 @@ export type Database = {
         }
         Returns: string
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
       generate_withdrawal_otp: { Args: { _user_id: string }; Returns: string }
       get_deposit_address: { Args: { _network?: string }; Returns: string }
       get_downline_children: {
@@ -1416,15 +1407,6 @@ export type Database = {
         Returns: boolean
       }
       is_maintenance_mode: { Args: never; Returns: boolean }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       open_roi_trade: {
         Args: { _amount_cents: number; _duration_hours: number }
         Returns: {
@@ -1453,14 +1435,6 @@ export type Database = {
         Returns: undefined
       }
       process_due_trades: { Args: never; Returns: number }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
-      }
       reconcile_financials: { Args: never; Returns: Json }
       referral_reward_cents: { Args: { _ts?: string }; Returns: number }
       request_password_reset_by_email: {
