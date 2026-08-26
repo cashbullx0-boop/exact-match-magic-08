@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, Trophy, Wallet } from "lucide-react";
+import { Loader2, Trophy, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
+import { PrizeWheel } from "@/components/spinner/prize-wheel";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
   head: () => ({
