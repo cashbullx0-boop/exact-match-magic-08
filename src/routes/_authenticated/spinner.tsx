@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, Trophy, Wallet } from "lucide-react";
+import { Loader2, Trophy, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
+import { PrizeWheel } from "@/components/spinner/prize-wheel";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
   head: () => ({
@@ -55,21 +56,6 @@ function londonToday() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(new Date());
 }
 
-const SEGMENT_COLORS = [
-  "#f59e0b",
-  "#0f172a",
-  "#22c55e",
-  "#0f172a",
-  "#3b82f6",
-  "#0f172a",
-  "#ef4444",
-  "#0f172a",
-  "#a855f7",
-  "#0f172a",
-  "#14b8a6",
-  "#0f172a",
-];
-
 function SpinnerPage() {
   const { profile, refreshProfile } = useAuth();
   const [cfg, setCfg] = useState<Config>(DEFAULT_CONFIG);
@@ -78,7 +64,6 @@ function SpinnerPage() {
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<{ won: boolean; cents: number } | null>(null);
-  const wheelRef = useRef<HTMLDivElement>(null);
   const { celebrate, RewardModal } = useRewardCelebration();
 
   useEffect(() => {
@@ -106,15 +91,6 @@ function SpinnerPage() {
 
   const segments = cfg.prizes;
   const segAngle = segments.length ? 360 / segments.length : 360;
-
-  const gradient = useMemo(() => {
-    if (!segments.length) return "conic-gradient(#0f172a 0deg 360deg)";
-    const stops = segments.map((_, i) => {
-      const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-      return `${color} ${i * segAngle}deg ${(i + 1) * segAngle}deg`;
-    });
-    return `conic-gradient(from -${segAngle / 2}deg, ${stops.join(", ")})`;
-  }, [segments, segAngle]);
 
   const balance = profile?.balance_cents ?? 0;
   const spinsLeft = Math.max(0, cfg.daily_limit - spinsToday);
@@ -193,39 +169,8 @@ function SpinnerPage() {
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
 
         <div className="relative flex flex-col items-center">
-          {/* pointer */}
-          <div className="relative z-10 -mb-3 h-0 w-0 border-x-[12px] border-t-[20px] border-x-transparent border-t-primary drop-shadow" />
+          <PrizeWheel segments={segments} rotation={rotation} spinning={spinning} />
 
-          <div className="relative h-72 w-72 md:h-80 md:w-80">
-            <div className="absolute inset-0 rounded-full border-4 border-primary/40 shadow-2xl" />
-            <div
-              ref={wheelRef}
-              className="absolute inset-1 rounded-full"
-              style={{
-                background: gradient,
-                transform: `rotate(${rotation}deg)`,
-                transition: "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)",
-              }}
-            >
-              {segments.map((p, i) => (
-                <div
-                  key={i}
-                  className="pointer-events-none absolute inset-0"
-                  style={{ transform: `rotate(${i * segAngle}deg)` }}
-                >
-                  <span
-                    className="absolute left-1/2 top-[8%] -translate-x-1/2 whitespace-nowrap text-[11px] font-extrabold uppercase tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] md:text-xs"
-                  >
-                    {p.cents === 0 ? "Try again" : `$${usd(p.cents)}`}
-                  </span>
-                </div>
-              ))}
-
-            </div>
-            <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary/50 bg-background">
-              <Sparkles className={`h-6 w-6 text-primary ${spinning ? "animate-spin" : ""}`} />
-            </div>
-          </div>
 
           <Button
             onClick={handleSpin}
