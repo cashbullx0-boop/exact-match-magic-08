@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trophy, Wallet } from "lucide-react";
@@ -56,21 +56,6 @@ function londonToday() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(new Date());
 }
 
-const SEGMENT_COLORS = [
-  "#f59e0b",
-  "#0f172a",
-  "#22c55e",
-  "#0f172a",
-  "#3b82f6",
-  "#0f172a",
-  "#ef4444",
-  "#0f172a",
-  "#a855f7",
-  "#0f172a",
-  "#14b8a6",
-  "#0f172a",
-];
-
 function SpinnerPage() {
   const { profile, refreshProfile } = useAuth();
   const [cfg, setCfg] = useState<Config>(DEFAULT_CONFIG);
@@ -79,7 +64,6 @@ function SpinnerPage() {
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [result, setResult] = useState<{ won: boolean; cents: number } | null>(null);
-  const wheelRef = useRef<HTMLDivElement>(null);
   const { celebrate, RewardModal } = useRewardCelebration();
 
   useEffect(() => {
@@ -107,15 +91,6 @@ function SpinnerPage() {
 
   const segments = cfg.prizes;
   const segAngle = segments.length ? 360 / segments.length : 360;
-
-  const gradient = useMemo(() => {
-    if (!segments.length) return "conic-gradient(#0f172a 0deg 360deg)";
-    const stops = segments.map((_, i) => {
-      const color = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
-      return `${color} ${i * segAngle}deg ${(i + 1) * segAngle}deg`;
-    });
-    return `conic-gradient(from -${segAngle / 2}deg, ${stops.join(", ")})`;
-  }, [segments, segAngle]);
 
   const balance = profile?.balance_cents ?? 0;
   const spinsLeft = Math.max(0, cfg.daily_limit - spinsToday);
