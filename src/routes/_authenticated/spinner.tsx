@@ -193,39 +193,8 @@ function SpinnerPage() {
         <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
 
         <div className="relative flex flex-col items-center">
-          {/* pointer */}
-          <div className="relative z-10 -mb-3 h-0 w-0 border-x-[12px] border-t-[20px] border-x-transparent border-t-primary drop-shadow" />
+          <PrizeWheel segments={segments} rotation={rotation} spinning={spinning} />
 
-          <div className="relative h-72 w-72 md:h-80 md:w-80">
-            <div className="absolute inset-0 rounded-full border-4 border-primary/40 shadow-2xl" />
-            <div
-              ref={wheelRef}
-              className="absolute inset-1 rounded-full"
-              style={{
-                background: gradient,
-                transform: `rotate(${rotation}deg)`,
-                transition: "transform 4s cubic-bezier(0.15, 0.9, 0.2, 1)",
-              }}
-            >
-              {segments.map((p, i) => (
-                <div
-                  key={i}
-                  className="pointer-events-none absolute inset-0"
-                  style={{ transform: `rotate(${i * segAngle}deg)` }}
-                >
-                  <span
-                    className="absolute left-1/2 top-[8%] -translate-x-1/2 whitespace-nowrap text-[11px] font-extrabold uppercase tracking-wide text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] md:text-xs"
-                  >
-                    {p.cents === 0 ? "Try again" : `$${usd(p.cents)}`}
-                  </span>
-                </div>
-              ))}
-
-            </div>
-            <div className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-primary/50 bg-background">
-              <Sparkles className={`h-6 w-6 text-primary ${spinning ? "animate-spin" : ""}`} />
-            </div>
-          </div>
 
           <Button
             onClick={handleSpin}
