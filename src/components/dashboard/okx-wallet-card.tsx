@@ -31,15 +31,10 @@ export function OkxWalletCard() {
 
   const loadReq = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("wallet_change_requests")
-      .select("id,new_wallet,status,otp_verified,approved_at,requested_at")
-      .eq("user_id", user.id)
-      .in("status", ["pending", "approved"])
-      .order("requested_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setReq((data as WalletRequest | null) ?? null);
+    // Status-only RPC: otp_hash is never exposed to the client.
+    const { data } = await supabase.rpc("get_my_wallet_change_request" as any);
+    const row = Array.isArray(data) ? data[0] : data;
+    setReq((row as WalletRequest | null) ?? null);
   };
 
   useEffect(() => { loadReq(); }, [user?.id]);
