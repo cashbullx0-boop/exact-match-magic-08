@@ -1361,6 +1361,17 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_wallet_change_request: {
+        Args: never
+        Returns: {
+          approved_at: string
+          id: string
+          new_wallet: string
+          otp_verified: boolean
+          requested_at: string
+          status: string
+        }[]
+      }
       get_referrer_id_by_code: { Args: { _code: string }; Returns: string }
       get_referrer_id_by_username_or_code: {
         Args: { _value: string }
