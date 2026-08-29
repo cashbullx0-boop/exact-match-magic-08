@@ -91,7 +91,7 @@ export function SiteFooter() {
           </div>
           {COLS.map((col) => (
             <div key={col.title}>
-              <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-4">{col.title}</h4>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">{col.title}</p>
               <ul className="space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
