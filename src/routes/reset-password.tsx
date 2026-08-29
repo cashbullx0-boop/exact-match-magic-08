@@ -9,7 +9,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({ meta: [{ title: "Reset password — CashBullX" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reset password — CashBullX" },
+      { name: "description", content: "Choose a new secure password for your CashBullX account." },
+    ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/reset-password" }],
+  }),
   component: ResetPasswordPage,
 });
 

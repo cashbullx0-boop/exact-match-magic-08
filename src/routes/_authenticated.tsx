@@ -296,7 +296,7 @@ function AuthedLayout() {
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 inset-x-0 z-40 glass-strong border-b border-border px-4 py-3 flex items-center justify-between max-w-full">
         <Link to="/dashboard" className="text-lg font-bold brand-text">CashBullX</Link>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" aria-label="Open navigation menu" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></Button>
       </div>
 
       {open && (

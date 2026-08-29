@@ -8,7 +8,9 @@ export const Route = createFileRoute("/aml")({
       { name: "description", content: "CashBullX Anti-Money Laundering policy, KYC requirements, and transaction monitoring." },
       { property: "og:title", content: "AML Policy — CashBullX" },
       { property: "og:description", content: "Read the CashBullX Anti-Money Laundering Policy." },
+      { property: "og:url", content: "https://cashbullx.com/aml" },
     ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/aml" }],
   }),
   component: AmlPage,
 });

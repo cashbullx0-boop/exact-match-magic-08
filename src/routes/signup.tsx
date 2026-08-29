@@ -21,7 +21,16 @@ import { InAppBrowserNotice } from "@/components/auth/in-app-browser-notice";
 export const Route = createFileRoute("/signup")({
   validateSearch: (s): { ref?: string } =>
     typeof s.ref === "string" && s.ref.length > 0 ? { ref: s.ref } : {},
-  head: () => ({ meta: [{ title: "Create account — CashBullX" }] }),
+  head: () => ({
+    meta: [
+      { title: "Create account — CashBullX" },
+      { name: "description", content: "Create your free CashBullX account in seconds and start earning rewards from surveys, videos, app installs, and offers." },
+      { property: "og:title", content: "Create account — CashBullX" },
+      { property: "og:description", content: "Join CashBullX free and start earning rewards from tasks today." },
+      { property: "og:url", content: "https://cashbullx.com/signup" },
+    ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/signup" }],
+  }),
   component: () => (
     <RedirectIfAuthenticated>
       <SignupPage />

@@ -29,6 +29,34 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "A modern rewards platform. Complete surveys, watch videos, install apps, and unlock offers to earn real money." },
       { property: "og:title", content: "CashBullX — Earn rewards for tasks" },
       { property: "og:description", content: "Complete surveys, videos, app installs and offers. Withdraw earnings to your wallet." },
+      { property: "og:url", content: "https://cashbullx.com/" },
+    ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "CashBullX",
+          url: "https://cashbullx.com/",
+          description: "A modern task-based rewards platform. Complete surveys, watch videos, install apps and unlock offers to earn real rewards.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "CashBullX",
+          url: "https://cashbullx.com/",
+          logo: "https://cashbullx.com/icon-512.png",
+          sameAs: [
+            "https://www.youtube.com/@CashBullx",
+            "https://www.facebook.com/profile.php?id=61589574145757",
+          ],
+        }),
+      },
     ],
   }),
   component: () => (
@@ -239,7 +267,7 @@ function Index() {
             </p>
             <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 relative">
               <Link to="/signup" className="w-full sm:w-auto"><Button size="lg" className="btn-primary-gradient btn-glow h-12 px-8 text-base rounded-xl w-full sm:w-auto">Create free account</Button></Link>
-              <Link to="/faq" className="w-full sm:w-auto"><Button size="lg" variant="outline" className="h-12 px-6 text-base w-full sm:w-auto">Learn more</Button></Link>
+              <Link to="/faq" className="w-full sm:w-auto"><Button size="lg" variant="outline" className="h-12 px-6 text-base w-full sm:w-auto">Read our FAQ</Button></Link>
             </div>
           </div>
         </section>

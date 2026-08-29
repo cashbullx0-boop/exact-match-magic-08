@@ -48,7 +48,7 @@ function RefLanding() {
               <p className="text-sm text-muted-foreground inline-flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-primary" /> You've been invited by
               </p>
-              <p className="text-xl font-bold">{info.full_name ?? info.username ?? username}</p>
+              <h1 className="text-xl font-bold">{info.full_name ?? info.username ?? username}</h1>
               {info.username && <p className="text-xs text-muted-foreground">@{info.username}</p>}
             </div>
 
