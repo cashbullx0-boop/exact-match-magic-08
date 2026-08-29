@@ -8,7 +8,9 @@ export const Route = createFileRoute("/privacy")({
       { name: "description", content: "How CashBullX collects, uses, and protects your personal data." },
       { property: "og:title", content: "Privacy Policy — CashBullX" },
       { property: "og:description", content: "Read the CashBullX Privacy Policy." },
+      { property: "og:url", content: "https://cashbullx.com/privacy" },
     ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/privacy" }],
   }),
   component: PrivacyPage,
 });

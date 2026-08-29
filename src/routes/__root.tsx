@@ -112,6 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "CashBullX — Earn Rewards Fast" },
       { property: "og:description", content: "CashBullX — Earn rewards for surveys, videos, app installs, and offers." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "CashBullX" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@CashBullx" },
       { name: "twitter:title", content: "CashBullX — Earn Rewards Fast" },

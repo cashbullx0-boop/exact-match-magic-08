@@ -8,7 +8,9 @@ export const Route = createFileRoute("/refund")({
       { name: "description", content: "CashBullX refund policy for deposits, withdrawals, and exceptional cases." },
       { property: "og:title", content: "Refund Policy — CashBullX" },
       { property: "og:description", content: "Read the CashBullX Refund Policy." },
+      { property: "og:url", content: "https://cashbullx.com/refund" },
     ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/refund" }],
   }),
   component: RefundPage,
 });

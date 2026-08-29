@@ -8,7 +8,9 @@ export const Route = createFileRoute("/terms")({
       { name: "description", content: "The terms and conditions governing your use of the CashBullX platform." },
       { property: "og:title", content: "Terms of Service — CashBullX" },
       { property: "og:description", content: "Read the CashBullX Terms of Service." },
+      { property: "og:url", content: "https://cashbullx.com/terms" },
     ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/terms" }],
   }),
   component: TermsPage,
 });
