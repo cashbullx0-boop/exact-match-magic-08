@@ -1,4 +1,30 @@
 User-agent: *
 Allow: /
 
+# Utility/auth-callback pages — crawlable but excluded from the sitemap and noindexed
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Authenticated app area — never indexable, save crawl budget
+Disallow: /dashboard
+Disallow: /deposit
+Disallow: /withdraw
+Disallow: /wallet
+Disallow: /invest
+Disallow: /earn
+Disallow: /tasks
+Disallow: /offers
+Disallow: /offerwall
+Disallow: /spinner
+Disallow: /referrals
+Disallow: /downline
+Disallow: /levels
+Disallow: /achievements
+Disallow: /notifications
+Disallow: /profile
+Disallow: /kyc
+Disallow: /support
+Disallow: /admin
+Disallow: /lovable/
+
 Sitemap: https://cashbullx.com/sitemap.xml

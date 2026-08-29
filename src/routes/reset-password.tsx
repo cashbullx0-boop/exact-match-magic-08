@@ -12,6 +12,7 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Reset password — CashBullX" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Choose a new secure password for your CashBullX account." },
     ],
     links: [{ rel: "canonical", href: "https://cashbullx.com/reset-password" }],

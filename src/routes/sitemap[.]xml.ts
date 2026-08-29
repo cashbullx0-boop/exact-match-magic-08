@@ -11,15 +11,13 @@ interface SitemapEntry {
 
 const PUBLIC_ROUTES: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/signup", changefreq: "monthly", priority: "0.8" },
+  { path: "/signup", changefreq: "monthly", priority: "0.9" },
   { path: "/login", changefreq: "monthly", priority: "0.8" },
   { path: "/faq", changefreq: "weekly", priority: "0.7" },
   { path: "/terms", changefreq: "yearly", priority: "0.5" },
   { path: "/privacy", changefreq: "yearly", priority: "0.5" },
   { path: "/aml", changefreq: "yearly", priority: "0.5" },
   { path: "/refund", changefreq: "yearly", priority: "0.5" },
-  { path: "/forgot-password", changefreq: "yearly", priority: "0.3" },
-  { path: "/reset-password", changefreq: "yearly", priority: "0.3" },
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({
