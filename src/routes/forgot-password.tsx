@@ -10,6 +10,7 @@ export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
       { title: "Forgot password — CashBullX" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Reset your CashBullX account password securely via email verification." },
       { property: "og:title", content: "Forgot password — CashBullX" },
       { property: "og:description", content: "Reset your CashBullX account password securely." },
