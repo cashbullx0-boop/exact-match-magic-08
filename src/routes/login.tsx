@@ -20,7 +20,16 @@ const PhoneField = lazy(() =>
 );
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — CashBullX" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in — CashBullX" },
+      { name: "description", content: "Sign in to your CashBullX account to track earnings, complete tasks, and withdraw your rewards securely." },
+      { property: "og:title", content: "Sign in — CashBullX" },
+      { property: "og:description", content: "Access your CashBullX dashboard, tasks, and wallet." },
+      { property: "og:url", content: "https://cashbullx.com/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/login" }],
+  }),
   component: () => (
     <RedirectIfAuthenticated>
       <LoginPage />

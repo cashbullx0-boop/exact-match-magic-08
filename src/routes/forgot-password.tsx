@@ -7,7 +7,16 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => ({ meta: [{ title: "Forgot password — CashBullX" }] }),
+  head: () => ({
+    meta: [
+      { title: "Forgot password — CashBullX" },
+      { name: "description", content: "Reset your CashBullX account password securely via email verification." },
+      { property: "og:title", content: "Forgot password — CashBullX" },
+      { property: "og:description", content: "Reset your CashBullX account password securely." },
+      { property: "og:url", content: "https://cashbullx.com/forgot-password" },
+    ],
+    links: [{ rel: "canonical", href: "https://cashbullx.com/forgot-password" }],
+  }),
   component: ForgotPasswordPage,
 });
 
