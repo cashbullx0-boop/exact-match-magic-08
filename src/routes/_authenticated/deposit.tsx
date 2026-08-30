@@ -20,6 +20,8 @@ import {
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 import { VideoTutorial } from "@/components/dashboard/video-tutorial";
+import { BalanceCapAlert } from "@/components/dashboard/balance-cap-notice";
+
 
 export const Route = createFileRoute("/_authenticated/deposit")({
   head: () => ({ meta: [{ title: "Deposit USDT — CashBullX" }] }),
