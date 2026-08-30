@@ -108,7 +108,11 @@ function DashboardPage() {
 
       <DepositDeadlineRing />
 
+      <BalanceCapAlert />
+      <BalanceCapPopup />
+
       <KycAnnouncement status={kycStatus} />
+
 
       <SpinnerAnnouncement />
       <SpinnerPopup />
