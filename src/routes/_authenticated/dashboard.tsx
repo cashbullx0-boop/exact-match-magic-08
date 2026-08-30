@@ -15,9 +15,6 @@ import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-w
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
 import { BalanceCapAlert, BalanceCapPopup } from "@/components/dashboard/balance-cap-notice";
-
-import { SpinnerAnnouncement } from "@/components/dashboard/spinner-announcement";
-import { SpinnerPopup } from "@/components/dashboard/spinner-popup";
 import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
 const EarningsChart = lazy(() =>
@@ -114,10 +111,6 @@ function DashboardPage() {
       <BalanceCapPopup />
 
       <KycAnnouncement status={kycStatus} />
-
-
-      <SpinnerAnnouncement />
-      <SpinnerPopup />
 
       {/* Mobile quick actions — Deposit/Withdraw front-and-center so users can find them instantly */}
       <div className="md:hidden grid grid-cols-2 gap-3">
