@@ -127,6 +127,9 @@ function WithdrawPage() {
 
       <VideoTutorial kind="withdraw" firstTime={itemsLoaded && items.length === 0} />
 
+      <BalanceCapAlert />
+
+
       <Card className="glass-strong border-border p-6 relative overflow-hidden">
         <div
           className="absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-30"
