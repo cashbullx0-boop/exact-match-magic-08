@@ -14,6 +14,8 @@ import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-rin
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+import { BalanceCapAlert, BalanceCapPopup } from "@/components/dashboard/balance-cap-notice";
+
 import { SpinnerAnnouncement } from "@/components/dashboard/spinner-announcement";
 import { SpinnerPopup } from "@/components/dashboard/spinner-popup";
 import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
@@ -108,7 +110,11 @@ function DashboardPage() {
 
       <DepositDeadlineRing />
 
+      <BalanceCapAlert />
+      <BalanceCapPopup />
+
       <KycAnnouncement status={kycStatus} />
+
 
       <SpinnerAnnouncement />
       <SpinnerPopup />

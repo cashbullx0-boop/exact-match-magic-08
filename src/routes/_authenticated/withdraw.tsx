@@ -11,6 +11,8 @@ import { ArrowUpRight, Wallet as WalletIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { WithdrawOtpModal } from "@/components/dashboard/withdraw-otp-modal";
 import { VideoTutorial } from "@/components/dashboard/video-tutorial";
+import { BalanceCapAlert } from "@/components/dashboard/balance-cap-notice";
+
 
 export const Route = createFileRoute("/_authenticated/withdraw")({
   head: () => ({ meta: [{ title: "Withdraw — CashBullX" }] }),
@@ -126,6 +128,9 @@ function WithdrawPage() {
       </header>
 
       <VideoTutorial kind="withdraw" firstTime={itemsLoaded && items.length === 0} />
+
+      <BalanceCapAlert />
+
 
       <Card className="glass-strong border-border p-6 relative overflow-hidden">
         <div
