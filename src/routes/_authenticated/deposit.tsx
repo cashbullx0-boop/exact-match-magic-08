@@ -355,6 +355,9 @@ function DepositPage() {
 
       <VideoTutorial kind="deposit" firstTime={depositsLoaded && deposits.length === 0} />
 
+      <BalanceCapAlert />
+
+
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_1fr]">
         {/* LEFT: New deposit */}
         <Card className="glass p-4 sm:p-6 space-y-5">
