@@ -31,7 +31,6 @@ import { Route as AuthenticatedInvestRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedLevelsRouteImport } from './routes/_authenticated/levels'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
-import { Route as AuthenticatedOffersRouteImport } from './routes/_authenticated/offers'
 import { Route as AuthenticatedOfferwallRouteImport } from './routes/_authenticated/offerwall'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedReferralsRouteImport } from './routes/_authenticated/referrals'
@@ -173,11 +172,6 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedOffersRoute = AuthenticatedOffersRouteImport.update({
-  id: '/offers',
-  path: '/offers',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedOfferwallRoute = AuthenticatedOfferwallRouteImport.update({
   id: '/offerwall',
   path: '/offerwall',
@@ -356,7 +350,6 @@ export interface FileRoutesByFullPath {
   '/kyc': typeof AuthenticatedKycRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/offers': typeof AuthenticatedOffersRoute
   '/offerwall': typeof AuthenticatedOfferwallRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
@@ -408,7 +401,6 @@ export interface FileRoutesByTo {
   '/kyc': typeof AuthenticatedKycRoute
   '/levels': typeof AuthenticatedLevelsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/offers': typeof AuthenticatedOffersRoute
   '/offerwall': typeof AuthenticatedOfferwallRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/referrals': typeof AuthenticatedReferralsRoute
@@ -463,7 +455,6 @@ export interface FileRoutesById {
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/levels': typeof AuthenticatedLevelsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/offers': typeof AuthenticatedOffersRoute
   '/_authenticated/offerwall': typeof AuthenticatedOfferwallRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referrals': typeof AuthenticatedReferralsRoute
@@ -518,7 +509,6 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/levels'
     | '/notifications'
-    | '/offers'
     | '/offerwall'
     | '/profile'
     | '/referrals'
@@ -570,7 +560,6 @@ export interface FileRouteTypes {
     | '/kyc'
     | '/levels'
     | '/notifications'
-    | '/offers'
     | '/offerwall'
     | '/profile'
     | '/referrals'
@@ -624,7 +613,6 @@ export interface FileRouteTypes {
     | '/_authenticated/kyc'
     | '/_authenticated/levels'
     | '/_authenticated/notifications'
-    | '/_authenticated/offers'
     | '/_authenticated/offerwall'
     | '/_authenticated/profile'
     | '/_authenticated/referrals'
@@ -832,13 +820,6 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/offers': {
-      id: '/_authenticated/offers'
-      path: '/offers'
-      fullPath: '/offers'
-      preLoaderRoute: typeof AuthenticatedOffersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/offerwall': {
@@ -1095,7 +1076,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedLevelsRoute: typeof AuthenticatedLevelsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedOffersRoute: typeof AuthenticatedOffersRoute
   AuthenticatedOfferwallRoute: typeof AuthenticatedOfferwallRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralsRoute: typeof AuthenticatedReferralsRoute
@@ -1117,7 +1097,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedLevelsRoute: AuthenticatedLevelsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedOffersRoute: AuthenticatedOffersRoute,
   AuthenticatedOfferwallRoute: AuthenticatedOfferwallRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralsRoute: AuthenticatedReferralsRoute,

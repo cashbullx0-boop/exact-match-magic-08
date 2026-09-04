@@ -4,7 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Wallet, TrendingUp, ListChecks, Users, Zap, Gift, ArrowRight, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Wallet, TrendingUp, ListChecks, Users, Zap, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { YouTubeChannelCard } from "@/components/marketing/youtube-channel";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedNumber } from "@/components/dashboard/animated-number";
@@ -156,29 +156,6 @@ function DashboardPage() {
       <PromoCarousel />
 
       <YouTubeChannelCard />
-
-      <Link
-        to="/offers"
-        className="block group"
-        aria-label="Open offers page"
-      >
-        <Card className="glass-strong border-border p-4 md:p-5 relative overflow-hidden hover:-translate-y-0.5 transition-transform">
-          <div className="pointer-events-none absolute inset-0 opacity-60 bg-gradient-to-br from-primary/20 via-transparent to-accent/10" />
-          <div className="relative flex items-center gap-4">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/30 flex items-center justify-center">
-              <Gift className="h-6 w-6 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h2 className="font-semibold">Offers</h2>
-                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">Live</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-0.5">New offer every 4 hours — tap to view today's lineup.</p>
-            </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition" />
-          </div>
-        </Card>
-      </Link>
 
       {/* Level progress */}
       <div className="grid gap-4 md:grid-cols-2">
