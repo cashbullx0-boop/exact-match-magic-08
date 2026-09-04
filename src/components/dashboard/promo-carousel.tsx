@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
-import promoTeam from "@/assets/promo-team-1000.jpeg.asset.json";
 import promoComingSoon from "@/assets/promo-coming-soon.jpeg.asset.json";
-import promoOffer from "@/assets/promo-offer-7days.jpeg.asset.json";
-import promo250Bonus from "@/assets/promo-250-bonus-20accounts.jpeg.asset.json";
-import promo100Reward from "@/assets/promo-100-reward-10accounts.jpeg.asset.json";
 
 const slides = [
-  { src: promoTeam.url, alt: "Build a powerful 1000 people team — iPhone 17 gift and $1000 per month" },
   { src: promoComingSoon.url, alt: "CashBullX app coming soon to Google Play Store and Apple App Store" },
-  { src: promoOffer.url, alt: "Special limited time offer — invest $50 and get $7 reward within 7 days" },
-  { src: promo250Bonus.url, alt: "Special promotion — create 20 accounts in 10 days and get a $250 bonus" },
-  { src: promo100Reward.url, alt: "7 days referral challenge — create 10 accounts in 7 days and get a $100 reward" },
 ];
 
 export function PromoCarousel() {
