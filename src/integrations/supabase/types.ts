@@ -1277,16 +1277,6 @@ export type Database = {
         Returns: number
       }
       generate_withdrawal_otp: { Args: { _user_id: string }; Returns: string }
-      get_balance_cap_status: {
-        Args: never
-        Returns: {
-          active_referrals: number
-          balance_cents: number
-          cap_cents: number
-          required_referrals: number
-          unlocked: boolean
-        }[]
-      }
       get_deposit_address: { Args: { _network?: string }; Returns: string }
       get_downline_children: {
         Args: { _parent_id: string }
