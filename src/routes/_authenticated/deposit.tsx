@@ -20,7 +20,6 @@ import {
 } from "@/lib/deposits";
 import { MAX_SLIP_BYTES, isAcceptedSlip, canPreview } from "@/lib/slip-file";
 import { VideoTutorial } from "@/components/dashboard/video-tutorial";
-import { BalanceCapAlert } from "@/components/dashboard/balance-cap-notice";
 
 
 export const Route = createFileRoute("/_authenticated/deposit")({
@@ -356,8 +355,6 @@ function DepositPage() {
       </header>
 
       <VideoTutorial kind="deposit" firstTime={depositsLoaded && deposits.length === 0} />
-
-      <BalanceCapAlert />
 
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_1fr]">
