@@ -102,7 +102,7 @@ export const NETWORKS: Record<DepositNetwork, NetworkConfig> = {
     chain: "Tron Network",
     symbol: "USDT",
     address: "TKMBk93ipouTKRW8je6iFGnpTHZwRsid4u",
-    minAmount: 50,
+    minAmount: 10,
     confirmations: 19,
     estTime: "~3 min",
     fee: "~1 USDT",
