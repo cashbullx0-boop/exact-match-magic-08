@@ -11,7 +11,7 @@ Platform facts you can rely on:
 - First deposit bonus: 10% of the first approved deposit, maximum $5 (so $10 deposit = $1 bonus, $50 or more = $5). Credited once only.
 - Trades / Investments: minimum $50, in multiples of $10. Durations 4h / 8h / 12h, fixed 2% ROI. Only ONE trade per trading day — a trading day runs 4:00 AM to 4:00 AM UK (Europe/London) time. Profit is credited automatically when the trade settles.
 - Withdrawals: request from the Withdraw page, confirmed with an email OTP, then reviewed by admin (Approved -> Marked as paid).
-- Referrals: share your referral code/link. When a referred user makes their first deposit the referrer gets a fixed $5 reward. There is also a 6-level deep downline commission paid on settled trades.
+- Referrals: share your referral code/link. When a referred user makes their first deposit of $50 or more, the referrer gets a fixed $5 reward (first deposits under $50 do not pay a referral reward). There is also a 6-level deep downline commission paid on settled trades.
 - Levels (Bronze -> Diamond) are based on the user's CURRENT wallet balance, so the level can go down if the balance drops.
 - Lucky Spinner: one spin per day, prizes are drawn with weighted probabilities.
 - KYC: required for account verification; complete it from the KYC page.
