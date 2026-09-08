@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FloatingSupport } from "@/components/dashboard/floating-support";
 import { LiveNotificationPopup } from "@/components/dashboard/live-notification-popup";
+import { MinDepositPopup } from "@/components/dashboard/min-deposit-popup";
 import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { VipBadge } from "@/components/dashboard/vip-badge";
 import { TradeFab } from "@/components/dashboard/trade-fab";
@@ -324,6 +325,7 @@ function AuthedLayout() {
         <Outlet />
       </main>
 
+      <MinDepositPopup />
       <LiveNotificationPopup />
       <FloatingSupport />
       <TradeFab />
