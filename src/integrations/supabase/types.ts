@@ -1276,6 +1276,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: number
       }
+      first_deposit_bonus_cents: {
+        Args: { _amount_usd: number }
+        Returns: number
+      }
       generate_withdrawal_otp: { Args: { _user_id: string }; Returns: string }
       get_deposit_address: { Args: { _network?: string }; Returns: string }
       get_downline_children: {
