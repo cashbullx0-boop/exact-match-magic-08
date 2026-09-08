@@ -405,7 +405,7 @@ function DepositPage() {
             <div className="relative">
               <Input
                 id="amount" type="number" inputMode="decimal" min={net.minAmount} step="0.01"
-                placeholder="min 50$ USD"
+                placeholder="min 10$ USD"
                 value={amount} onChange={(e) => setAmount(e.target.value)}
                 className="pr-16 text-lg h-12"
               />
