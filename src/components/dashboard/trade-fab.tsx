@@ -154,7 +154,7 @@ export function TradeFab() {
     amountCents < 1000
       ? "Minimum trade amount is $10"
       : amountCents % 1000 !== 0
-      ? "Amount must be in multiples of $10 (50, 60, 70...)"
+      ? "Amount must be in multiples of $10 (10, 20, 30...)"
       : amountCents > balanceCents
       ? "Insufficient wallet balance"
       : null;
