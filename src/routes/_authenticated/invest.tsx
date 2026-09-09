@@ -127,7 +127,7 @@ function InvestPage() {
   const confirmInvest = async () => {
     if (!modalAsset) return;
     const cents = Math.round(parseFloat(amount) * 100);
-    if (!cents || cents < 5000) { toast.error("Minimum investment is $50"); return; }
+    if (!cents || cents < 1000) { toast.error("Minimum investment is $10"); return; }
     if (cents > balance) { toast.error("Insufficient balance"); return; }
     setSubmitting(true);
     const { error } = await (supabase.rpc as any)("create_investment", {
@@ -250,11 +250,11 @@ function InvestPage() {
               <span className="font-semibold">${(balance / 100).toFixed(2)}</span>
             </div>
             <div>
-              <label className="text-sm text-muted-foreground">Enter amount to invest (min $50)</label>
+              <label className="text-sm text-muted-foreground">Enter amount to invest (min $10)</label>
               <Input
-                type="number" min="50" step="1"
+                type="number" min="10" step="1"
                 value={amount} onChange={(e) => setAmount(e.target.value)}
-                placeholder="50"
+                placeholder="10"
               />
             </div>
             <p className="text-xs text-muted-foreground border border-border/60 rounded-md p-3">

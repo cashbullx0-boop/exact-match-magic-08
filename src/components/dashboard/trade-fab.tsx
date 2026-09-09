@@ -77,7 +77,7 @@ function useExpiryTimer(trade: Trade | null, onElapsed: () => void) {
 
 export function TradeFab() {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("50");
+  const [amount, setAmount] = useState("10");
   const [duration, setDuration] = useState<4 | 8 | 12>(4);
   const [placing, setPlacing] = useState(false);
 
@@ -151,10 +151,10 @@ export function TradeFab() {
   const profitPreviewCents = Math.floor(amountCents * selectedDuration.rate);
 
   const amountError =
-    amountCents < 5000
-      ? "Minimum trade amount is $50"
+    amountCents < 1000
+      ? "Minimum trade amount is $10"
       : amountCents % 1000 !== 0
-      ? "Amount must be in multiples of $10 (50, 60, 70...)"
+      ? "Amount must be in multiples of $10 (10, 20, 30...)"
       : amountCents > balanceCents
       ? "Insufficient wallet balance"
       : null;
@@ -318,7 +318,7 @@ export function TradeFab() {
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         type="number"
-                        min={50}
+                        min={10}
                         step={10}
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -331,7 +331,7 @@ export function TradeFab() {
                         {amountError}
                       </p>
                     )}
-                    <p className="text-[11px] text-muted-foreground">Minimum $50, in multiples of $10.</p>
+                    <p className="text-[11px] text-muted-foreground">Minimum $10, in multiples of $10.</p>
                   </div>
 
                   {/* Duration cards */}
