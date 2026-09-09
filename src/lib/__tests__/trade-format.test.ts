@@ -25,8 +25,8 @@ describe("trade settlement — profit calculation", () => {
     expect(amount + profit).toBe(7650); // $76.50 credited on completion
   });
 
-  test("validateTradeAmount enforces $50 minimum and $10 multiples", () => {
-    expect(validateTradeAmount(4000, 100000)).toMatch(/Minimum/);
+  test("validateTradeAmount enforces $10 minimum and $10 multiples", () => {
+    expect(validateTradeAmount(500, 100000)).toMatch(/Minimum/);
     expect(validateTradeAmount(5500, 100000)).toMatch(/multiples of \$10/);
     expect(validateTradeAmount(6000, 100000)).toBeNull();
     expect(validateTradeAmount(20000, 10000)).toMatch(/Insufficient/);

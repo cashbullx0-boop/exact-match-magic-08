@@ -77,7 +77,7 @@ function useExpiryTimer(trade: Trade | null, onElapsed: () => void) {
 
 export function TradeFab() {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("50");
+  const [amount, setAmount] = useState("10");
   const [duration, setDuration] = useState<4 | 8 | 12>(4);
   const [placing, setPlacing] = useState(false);
 
@@ -318,7 +318,7 @@ export function TradeFab() {
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         type="number"
-                        min={50}
+                        min={10}
                         step={10}
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
