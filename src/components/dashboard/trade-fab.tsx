@@ -151,8 +151,8 @@ export function TradeFab() {
   const profitPreviewCents = Math.floor(amountCents * selectedDuration.rate);
 
   const amountError =
-    amountCents < 5000
-      ? "Minimum trade amount is $50"
+    amountCents < 1000
+      ? "Minimum trade amount is $10"
       : amountCents % 1000 !== 0
       ? "Amount must be in multiples of $10 (50, 60, 70...)"
       : amountCents > balanceCents
@@ -331,7 +331,7 @@ export function TradeFab() {
                         {amountError}
                       </p>
                     )}
-                    <p className="text-[11px] text-muted-foreground">Minimum $50, in multiples of $10.</p>
+                    <p className="text-[11px] text-muted-foreground">Minimum $10, in multiples of $10.</p>
                   </div>
 
                   {/* Duration cards */}

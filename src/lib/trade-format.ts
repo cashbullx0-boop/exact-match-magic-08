@@ -12,7 +12,7 @@ export type TradeDuration = (typeof TRADE_DURATIONS)[number];
 
 /** Validate a trade amount in cents. Returns an error message, or null when valid. */
 export function validateTradeAmount(amountCents: number, balanceCents: number): string | null {
-  if (!Number.isFinite(amountCents) || amountCents < 5000) return "Minimum trade amount is $50";
+  if (!Number.isFinite(amountCents) || amountCents < 1000) return "Minimum trade amount is $10";
   if (amountCents % 1000 !== 0) return "Amount must be in multiples of $10 (50, 60, 70...)";
   if (amountCents > balanceCents) return "Insufficient wallet balance";
   return null;
