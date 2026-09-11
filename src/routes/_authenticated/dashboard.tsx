@@ -154,6 +154,9 @@ function DashboardPage() {
 
       <PromoVideo />
 
+      <PromoVideo2 />
+
+
 
       <YouTubeChannelCard />
 
