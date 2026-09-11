@@ -13,6 +13,7 @@ import { DotsLoader } from "@/components/dashboard/dots-loader";
 import { DepositDeadlineRing } from "@/components/dashboard/deposit-deadline-ring";
 import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-widget";
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
+import { PromoVideo } from "@/components/dashboard/promo-video";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
 import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
@@ -150,6 +151,9 @@ function DashboardPage() {
       </Link>
 
       <PromoCarousel />
+
+      <PromoVideo />
+
 
       <YouTubeChannelCard />
 
