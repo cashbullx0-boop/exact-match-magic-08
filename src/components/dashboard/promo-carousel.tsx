@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import promoComingSoon from "@/assets/promo-coming-soon.jpeg.asset.json";
+import referralRewardPromo from "@/assets/referral-reward-promo.jpeg.asset.json";
 
 const slides = [
+  { src: referralRewardPromo.url, alt: "Referral Reward: $10 deposit gives $5 reward — valid until September 25, 2026" },
   { src: promoComingSoon.url, alt: "CashBullX app coming soon to Google Play Store and Apple App Store" },
 ];
 
