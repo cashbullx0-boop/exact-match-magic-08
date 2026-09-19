@@ -15,6 +15,7 @@ import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-w
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { PromoVideo, PromoVideo2 } from "@/components/dashboard/promo-video";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+import { AccountWarningPopup } from "@/components/dashboard/account-warning-popup";
 import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
 const EarningsChart = lazy(() =>
@@ -97,6 +98,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-float-up">
+      <AccountWarningPopup />
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Welcome back, {profile?.full_name?.split(" ")[0] ?? "earner"} 👋</h1>
