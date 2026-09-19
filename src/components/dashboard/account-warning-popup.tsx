@@ -31,8 +31,7 @@ export function AccountWarningPopup() {
     } catch {
       /* Continue when browser storage is unavailable. */
     }
-    const timeout = window.setTimeout(() => setOpen(true), 900);
-    return () => window.clearTimeout(timeout);
+    setOpen(true);
   }, [user?.id]);
 
   useEffect(() => {
