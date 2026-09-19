@@ -15,7 +15,6 @@ import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-w
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { PromoVideo, PromoVideo2 } from "@/components/dashboard/promo-video";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
-import spinWinBanner from "@/assets/spin-and-win.jpeg.asset.json";
 
 const EarningsChart = lazy(() =>
   import("@/components/dashboard/earnings-chart").then((m) => ({ default: m.EarningsChart })),
@@ -138,17 +137,6 @@ function DashboardPage() {
           </Card>
         </Link>
       </div>
-
-      <Link to="/spinner" className="block group" aria-label="Open Spin & Win">
-        <Card className="glass-strong border-border p-0 overflow-hidden hover:-translate-y-0.5 transition-transform">
-          <img
-            src={spinWinBanner.url}
-            alt="Spin & Win — $1, $2 and $5 spins with big prizes up to $50"
-            loading="lazy"
-            className="w-full h-auto block"
-          />
-        </Card>
-      </Link>
 
       <PromoCarousel />
 
