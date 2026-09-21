@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import referralRewardPromo from "@/assets/referral-reward-promo.jpeg.asset.json";
 import accountReferralWarning from "@/assets/account-referral-warning.jpeg.asset.json";
-import { useAuth } from "@/lib/auth";
 
 const slides = [
   { src: referralRewardPromo.url, alt: "Referral Reward: $10 deposit gives $5 reward — valid until September 25, 2026" },
@@ -20,7 +19,6 @@ function formatCountdown(ms: number) {
 }
 
 export function PromoCarousel() {
-  const { user } = useAuth();
   const [i, setI] = useState(0);
   const [now, setNow] = useState(Date.now());
 
