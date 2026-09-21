@@ -8,7 +8,7 @@ const slides = [
   { src: accountReferralWarning.url, alt: "Important account and referral warning", showsCountdown: true },
 ];
 
-const REFERRAL_WINDOW_MS = 15 * 24 * 60 * 60 * 1000;
+const DEADLINE_MS = Date.parse("2026-10-02T00:00:00+05:00");
 
 function formatCountdown(ms: number) {
   const remaining = Math.max(0, ms);
@@ -34,8 +34,7 @@ export function PromoCarousel() {
     return () => window.clearInterval(t);
   }, []);
 
-  const signupTime = user?.created_at ? new Date(user.created_at).getTime() : now;
-  const referralDeadline = Number.isFinite(signupTime) ? signupTime + REFERRAL_WINDOW_MS : now;
+  const referralDeadline = DEADLINE_MS;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border/60 shadow-lg bg-background aspect-[16/10] sm:aspect-[16/9]">

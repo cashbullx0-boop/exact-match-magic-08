@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 
 const SESSION_KEY = "cbx_account_referral_warning_shown_v1";
-const REFERRAL_WINDOW_MS = 15 * 24 * 60 * 60 * 1000;
+// Countdown target: 2 October 2026 at 12:00 AM Pakistan time (Asia/Karachi, UTC+5)
+const DEADLINE_MS = Date.parse("2026-10-02T00:00:00+05:00");
 
 function getRemaining(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -42,8 +43,7 @@ export function AccountWarningPopup() {
 
   if (!open) return null;
 
-  const signupTime = user?.created_at ? new Date(user.created_at).getTime() : now;
-  const deadline = Number.isFinite(signupTime) ? signupTime + REFERRAL_WINDOW_MS : now;
+  const deadline = DEADLINE_MS;
   const remaining = getRemaining(deadline - now);
 
   return (
@@ -115,7 +115,7 @@ export function AccountWarningPopup() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Please complete your referral within 15 days to avoid account suspension.
+          Please complete your referral before 2 October 2026 to avoid account suspension.
         </p>
         <Button className="mt-4 w-full" onClick={() => setOpen(false)}>I understand</Button>
       </Card>
