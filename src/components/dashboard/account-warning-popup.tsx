@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 
 const SESSION_KEY = "cbx_account_referral_warning_shown_v1";
+// Activation: 22 September 2026 at 12:00 AM Pakistan time (Asia/Karachi, UTC+5)
+const ACTIVATION_MS = Date.parse("2026-09-22T00:00:00+05:00");
 // Countdown target: 2 October 2026 at 12:00 AM Pakistan time (Asia/Karachi, UTC+5)
 const DEADLINE_MS = Date.parse("2026-10-02T00:00:00+05:00");
 
@@ -24,7 +26,13 @@ export function AccountWarningPopup() {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (!user?.id) return;
+    if (now < ACTIVATION_MS) return;
     const key = `${SESSION_KEY}:${user.id}`;
     try {
       if (sessionStorage.getItem(key)) return;
@@ -33,13 +41,8 @@ export function AccountWarningPopup() {
       /* Continue when browser storage is unavailable. */
     }
     setOpen(true);
-  }, [user?.id]);
+  }, [user?.id, now]);
 
-  useEffect(() => {
-    if (!open) return;
-    const interval = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(interval);
-  }, [open]);
 
   if (!open) return null;
 
