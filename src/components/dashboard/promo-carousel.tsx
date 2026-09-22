@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import referralRewardPromo from "@/assets/referral-reward-promo.jpeg.asset.json";
 import accountReferralWarning from "@/assets/account-referral-warning.jpeg.asset.json";
+import withdrawalAnnouncement from "@/assets/withdrawal-announcement.jpeg.asset.json";
 
 const slides = [
   { src: referralRewardPromo.url, alt: "Referral Reward: $10 deposit gives $5 reward — valid until September 25, 2026" },
   { src: accountReferralWarning.url, alt: "Important account and referral warning", showsCountdown: true },
+  { src: withdrawalAnnouncement.url, alt: "Important withdrawal announcement for CashBullX users" },
 ];
 
 // Activation: 22 September 2026 at 12:00 AM Pakistan time (Asia/Karachi, UTC+5)
