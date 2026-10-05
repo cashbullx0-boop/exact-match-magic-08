@@ -32,22 +32,22 @@ type Config = {
 
 const DEFAULT_CONFIG: Config = {
   enabled: true,
-  cost_cents: 100,
+  cost_cents: 400,
   daily_limit: 5,
   auto_guard: true,
   max_payout_percent: 60,
   prizes: [
     { cents: 0, weight: 20 },
-    { cents: 50, weight: 25 },
-    { cents: 100, weight: 25 },
-    { cents: 200, weight: 15 },
-    { cents: 300, weight: 8 },
-    { cents: 500, weight: 6 },
-    { cents: 1000, weight: 1 },
+    { cents: 200, weight: 25 },
+    { cents: 400, weight: 25 },
+    { cents: 800, weight: 15 },
+    { cents: 1200, weight: 8 },
+    { cents: 2000, weight: 6 },
+    { cents: 4000, weight: 1 },
   ],
 };
 
-const usd = (cents: number) => (cents / 100).toFixed(2);
+const cbx = (hundredths: number) => (hundredths / 100).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 function AdminSpinnerPage() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -66,7 +66,7 @@ function AdminSpinnerPage() {
       if (v) {
         setCfg({
           enabled: v.enabled !== false,
-          cost_cents: Number(v.cost_cents ?? 100),
+          cost_cents: Number(v.cost_cents ?? 400),
           daily_limit: Number(v.daily_limit ?? 5),
           auto_guard: v.auto_guard !== false,
           max_payout_percent: Number(v.max_payout_percent ?? 60),
@@ -160,7 +160,7 @@ function AdminSpinnerPage() {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label>Cost per spin ($)</Label>
+            <Label>Cost per spin (CBX)</Label>
             <Input
               type="number"
               step="0.5"
@@ -204,7 +204,7 @@ function AdminSpinnerPage() {
               }
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Guaranteed house margin: {(100 - cfg.max_payout_percent).toFixed(0)}% of every dollar spun.
+              Guaranteed house margin: {(100 - cfg.max_payout_percent).toFixed(0)}% of every CBX spun.
             </p>
           </div>
         </div>
@@ -229,7 +229,7 @@ function AdminSpinnerPage() {
 
         <div className="space-y-2">
           <div className="grid grid-cols-[1fr_1fr_90px_40px] gap-2 px-1 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span>Prize ($)</span>
+            <span>Prize (CBX)</span>
             <span>Weight</span>
             <span>Probability</span>
             <span />
@@ -279,7 +279,7 @@ function AdminSpinnerPage() {
           </div>
           <div className="rounded-xl bg-white/5 p-3">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg payout / spin</p>
-            <p className="text-lg font-bold tabular-nums">${usd(expectedPayout)}</p>
+            <p className="text-lg font-bold tabular-nums">{cbx(expectedPayout)} CBX</p>
           </div>
           <div className="rounded-xl bg-white/5 p-3">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">House edge</p>

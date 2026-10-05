@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, TrendingUp, Crown } from "lucide-react";
+import { CbxAmount } from "@/components/cbx-amount";
 
 export const Route = createFileRoute("/_authenticated/levels")({
   head: () => ({ meta: [{ title: "Investment Levels — CashBullX" }] }),
@@ -59,11 +60,11 @@ function LevelsPage() {
     return levels.find((l) => l.level === current.level + 1) ?? null;
   }, [levels, current]);
 
-  const totalUsd = balance / 100;
-  const baseUsd = (current?.min_deposit_cents ?? 0) / 100;
-  const nextUsd = (next?.min_deposit_cents ?? baseUsd) / 100;
+  const totalCbx = balance / 100;
+  const baseCbx = (current?.min_deposit_cents ?? 0) / 100;
+  const nextCbx = (next?.min_deposit_cents ?? baseCbx) / 100;
   const progressToNext = next
-    ? Math.min(100, Math.max(0, ((totalUsd - baseUsd) / (nextUsd - baseUsd)) * 100))
+    ? Math.min(100, Math.max(0, ((totalCbx - baseCbx) / (nextCbx - baseCbx)) * 100))
     : 100;
 
   const colorFor = (l: LevelRow) => TIER_COLORS[l.name] ?? l.color ?? "#CD7F32";
@@ -109,13 +110,13 @@ function LevelsPage() {
           <div className="min-w-0">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-muted-foreground">Current balance</span>
-              <span className="font-semibold">${totalUsd.toLocaleString()}</span>
+              <span className="font-semibold"><CbxAmount value={balance} /></span>
             </div>
             <Progress value={progressToNext} className="h-2.5" />
             <div className="flex items-center justify-between text-xs mt-2 text-muted-foreground">
-              <span>{current ? `${current.name} · $${baseUsd.toLocaleString()}` : "Start at $50"}</span>
+              <span>{current ? <>{current.name} · <CbxAmount value={current.min_deposit_cents} /></> : "Start at 200 CBX"}</span>
               {next ? (
-                <span>Next: {next.name} · ${nextUsd.toLocaleString()}</span>
+                <span>Next: {next.name} · <CbxAmount value={next.min_deposit_cents} /></span>
               ) : (
                 <span>Max level reached 👑</span>
               )}
@@ -126,7 +127,7 @@ function LevelsPage() {
             <Link to="/deposit">
               <Button className="btn-primary-gradient" disabled={!next}>
                 <TrendingUp className="h-4 w-4 mr-2" />
-                {next ? `Add $${Math.max(0, nextUsd - totalUsd).toLocaleString()} balance` : "Maxed out"}
+                {next ? `Add ${Math.max(0, nextCbx - totalCbx).toLocaleString()} CBX balance` : "Maxed out"}
               </Button>
             </Link>
           </div>
@@ -142,7 +143,7 @@ function LevelsPage() {
             const color = colorFor(l);
             const unlocked = balance >= l.min_deposit_cents;
             const isCurrent = current?.level === l.level;
-            const needUsd = Math.max(0, (l.min_deposit_cents - balance) / 100);
+            const needCbx = Math.max(0, (l.min_deposit_cents - balance) / 100);
             return (
               <Card
                 key={l.id}
@@ -180,11 +181,11 @@ function LevelsPage() {
                     </Badge>
                   )}
                   <p className="text-xs text-muted-foreground mt-2">
-                    Min balance: <span className="font-semibold text-foreground">${(l.min_deposit_cents / 100).toLocaleString()}</span>
+                    Min balance: <span className="font-semibold text-foreground"><CbxAmount value={l.min_deposit_cents} /></span>
                   </p>
                   <p className="text-xs text-muted-foreground">
                   Daily profit: <span className="font-semibold" style={{ color }}>
-                    ${((l.min_deposit_cents * 0.02) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <CbxAmount value={l.min_deposit_cents * 0.02} />
                   </span>
                   </p>
                 </div>
@@ -192,7 +193,7 @@ function LevelsPage() {
                 {!unlocked && (
                   <div className="relative mt-4 pt-3 border-t border-border/50">
                     <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Lock className="h-3 w-3" /> Need ${needUsd.toLocaleString()} more balance to unlock
+                      <Lock className="h-3 w-3" /> Need {needCbx.toLocaleString()} CBX more balance to unlock
                     </p>
                   </div>
                 )}

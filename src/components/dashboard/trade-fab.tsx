@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { openRoiTrade, listTrades } from "@/lib/trades.functions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { CbxAmount } from "@/components/cbx-amount";
+import { formatCBXHundredths } from "@/lib/currency";
 
 type Trade = {
   id: string;
@@ -29,7 +31,7 @@ const DURATIONS = [
   { hours: 12, label: "12 Hours", rate: 0.02, rateLabel: "+2% ROI", desc: "Long", icon: TrendingUp },
 ] as const;
 
-const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+const fmt = (cents: number) => `${formatCBXHundredths(cents)} CBX`;
 
 function useExpiryTimer(trade: Trade | null, onElapsed: () => void) {
   const [label, setLabel] = useState("--:--:--");
@@ -77,7 +79,7 @@ function useExpiryTimer(trade: Trade | null, onElapsed: () => void) {
 
 export function TradeFab() {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("10");
+  const [amount, setAmount] = useState("40");
   const [duration, setDuration] = useState<4 | 8 | 12>(4);
   const [placing, setPlacing] = useState(false);
 
@@ -151,10 +153,10 @@ export function TradeFab() {
   const profitPreviewCents = Math.floor(amountCents * selectedDuration.rate);
 
   const amountError =
-    amountCents < 1000
-      ? "Minimum trade amount is $10"
-      : amountCents % 1000 !== 0
-      ? "Amount must be in multiples of $10 (10, 20, 30...)"
+    amountCents < 4000
+      ? "Minimum trade amount is 40 CBX"
+      : amountCents % 4000 !== 0
+      ? "Amount must be in multiples of 40 CBX (40, 80, 120...)"
       : amountCents > balanceCents
       ? "Insufficient wallet balance"
       : null;
@@ -253,7 +255,7 @@ export function TradeFab() {
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Wallet className="h-4 w-4" /> Wallet balance
                 </span>
-                <span className="font-mono font-semibold">{fmt(balanceCents)}</span>
+                <span className="font-mono font-semibold"><CbxAmount value={balanceCents} /></span>
               </div>
 
               {activeTrade ? (
@@ -274,11 +276,11 @@ export function TradeFab() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <div className="text-xs text-muted-foreground">Amount</div>
-                      <div className="font-mono font-semibold">{fmt(activeTrade.amount_cents)}</div>
+                      <div className="font-mono font-semibold"><CbxAmount value={activeTrade.amount_cents} /></div>
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Profit / cycle</div>
-                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.profit_amount_cents)}</div>
+                      <div className="font-mono font-semibold text-emerald-500"><CbxAmount value={activeTrade.profit_amount_cents} sign /></div>
                     </div>
                   </div>
 
@@ -296,11 +298,11 @@ export function TradeFab() {
                   <div className="grid grid-cols-2 gap-3 text-sm pt-2 border-t border-border">
                     <div>
                       <div className="text-xs text-muted-foreground">Expected profit</div>
-                      <div className="font-mono font-semibold text-emerald-500">+{fmt(activeTrade.profit_amount_cents)}</div>
+                      <div className="font-mono font-semibold text-emerald-500"><CbxAmount value={activeTrade.profit_amount_cents} sign /></div>
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Payout on completion</div>
-                      <div className="font-mono font-semibold">{fmt(activeTrade.amount_cents + activeTrade.profit_amount_cents)}</div>
+                      <div className="font-mono font-semibold"><CbxAmount value={activeTrade.amount_cents + activeTrade.profit_amount_cents} /></div>
                     </div>
                   </div>
 
@@ -313,13 +315,13 @@ export function TradeFab() {
                 <>
                   {/* Amount */}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Trade amount (USD)</label>
+                    <label className="text-sm font-medium">Trade amount (CBX)</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cbx">●</span>
                       <Input
                         type="number"
-                        min={10}
-                        step={10}
+                        min={40}
+                        step={40}
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         className="pl-7 font-mono"
@@ -331,7 +333,7 @@ export function TradeFab() {
                         {amountError}
                       </p>
                     )}
-                    <p className="text-[11px] text-muted-foreground">Minimum $10, in multiples of $10.</p>
+                    <p className="text-[11px] text-muted-foreground">Minimum 40 CBX, in multiples of 40 CBX.</p>
                   </div>
 
                   {/* Duration cards */}
