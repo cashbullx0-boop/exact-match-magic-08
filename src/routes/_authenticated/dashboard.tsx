@@ -15,6 +15,7 @@ import { InvestmentLevelWidget } from "@/components/dashboard/investment-level-w
 import { PromoCarousel } from "@/components/dashboard/promo-carousel";
 import { PromoVideo, PromoVideo2 } from "@/components/dashboard/promo-video";
 import { KycAnnouncement } from "@/components/dashboard/kyc-announcement";
+import { CbxAmount } from "@/components/cbx-amount";
 
 const EarningsChart = lazy(() =>
   import("@/components/dashboard/earnings-chart").then((m) => ({ default: m.EarningsChart })),
@@ -24,8 +25,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CashBullX" }] }),
   component: DashboardPage,
 });
-
-const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
 function DashboardPage() {
   const { profile, user, refreshProfile } = useAuth();
@@ -175,7 +174,7 @@ function DashboardPage() {
       <Card className="glass-strong border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold">Earnings · last 7 days</h2>
-          <span className="text-xs text-muted-foreground">USD</span>
+          <span className="text-xs text-muted-foreground">CBX</span>
         </div>
         <div className="h-64">
           <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted/30" />}>
@@ -199,7 +198,7 @@ function DashboardPage() {
                   <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</p>
                 </div>
                 <span className={`text-sm font-semibold ${t.amount_cents >= 0 ? "text-accent" : "text-destructive"}`}>
-                  {t.amount_cents >= 0 ? "+" : ""}{fmt(t.amount_cents)}
+                  <CbxAmount value={t.amount_cents} sign />
                 </span>
               </li>
             ))}
@@ -230,7 +229,7 @@ function AnimatedStatCard({ icon: Icon, label, cents, accent }: { icon: any; lab
         <Icon className={`h-4 w-4 ${accent === "primary" ? "text-primary" : accent === "accent" ? "text-accent" : "text-muted-foreground"}`} />
       </div>
       <p className={`text-2xl font-bold mt-3 ${accent === "accent" ? "brand-text" : ""}`}>
-        <AnimatedNumber value={cents / 100} prefix="$" />
+        <span className="inline-flex items-center gap-1.5"><span className="cbx-coin text-[8px]" aria-hidden>CBX</span><AnimatedNumber value={cents / 100} /></span>
       </p>
     </Card>
   );

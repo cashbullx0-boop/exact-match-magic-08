@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Crown } from "lucide-react";
+import { CbxAmount } from "@/components/cbx-amount";
 
 type UserLevel = {
   level: number;
@@ -40,7 +41,7 @@ export function InvestmentLevelWidget() {
             <span className="text-xs uppercase tracking-wider">Investment level</span>
           </div>
           <p className="text-xl font-bold mt-1">Not unlocked yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Get a $50 balance to unlock Bronze</p>
+          <p className="text-xs text-muted-foreground mt-1">Get a 200 CBX balance to unlock Bronze</p>
         </div>
         <Link to="/levels"><Button variant="outline" size="sm">View levels <ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
       </Card>
@@ -74,16 +75,16 @@ export function InvestmentLevelWidget() {
             </div>
             <p className="text-xl font-bold mt-0.5">{lvl.name}</p>
             <p className="text-xs text-muted-foreground">
-              ${((lvl.min_deposit_cents * 0.02) / 100).toFixed(2)} daily profit
+              <CbxAmount value={lvl.min_deposit_cents * 0.02} /> daily profit
             </p>
           </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between text-xs mb-1.5 text-muted-foreground">
-            <span>${(balance / 100).toLocaleString()} balance</span>
+            <span><CbxAmount value={balance} /> balance</span>
             {isMax
               ? <span>Max level 👑</span>
-              : <span>Next: ${(nextCents / 100).toLocaleString()}</span>}
+              : <span>Next: <CbxAmount value={nextCents} /></span>}
           </div>
           <Progress value={progress} className="h-2" />
         </div>

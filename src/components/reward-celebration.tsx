@@ -13,7 +13,7 @@ export type RewardCelebrationProps = {
   onClose: () => void;
   /** Optional URL of a sound effect to play on open */
   soundUrl?: string;
-  /** Currency symbol, default "$" */
+  /** Currency label, default "CBX " */
   currency?: string;
   /** Show two decimal places (default true) */
   decimals?: boolean;
@@ -27,7 +27,7 @@ const ORBIT_COIN_COUNT = 8;
 function AnimatedCounter({
   value,
   decimals = true,
-  currency = "$",
+  currency = "CBX ",
   duration = 1.8,
 }: {
   value: number;
@@ -97,7 +97,7 @@ export function RewardCelebration({
   achievementTitle,
   onClose,
   soundUrl,
-  currency = "$",
+  currency = "CBX ",
   decimals = true,
 }: RewardCelebrationProps) {
   const [shake, setShake] = useState(false);
@@ -261,7 +261,7 @@ export function RewardCelebration({
                         "0 0 14px rgba(255,193,7,0.7), inset 0 -2px 3px rgba(0,0,0,0.25)",
                     }}
                   >
-                    <span className="text-[10px] font-black text-amber-900">$</span>
+                    <span className="text-[7px] font-black text-amber-900">CBX</span>
                   </div>
                 </motion.div>
               );
@@ -304,7 +304,7 @@ export function RewardCelebration({
                         "0 0 18px rgba(255,193,7,0.65), inset 0 -2px 4px rgba(0,0,0,0.25)",
                     }}
                   >
-                    <span className="text-[12px] font-black text-amber-900">$</span>
+                    <span className="text-[8px] font-black text-amber-900">CBX</span>
                   </div>
                 </motion.div>
               );

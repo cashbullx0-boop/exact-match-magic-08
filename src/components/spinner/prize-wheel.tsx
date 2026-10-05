@@ -33,7 +33,7 @@ function wedgePath(start: number, end: number, r: number) {
   return `M ${C} ${C} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
 }
 
-const usd = (cents: number) => (cents / 100).toFixed(2);
+const cbx = (hundredths: number) => (hundredths / 100).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 /** Photoreal casino-style prize wheel rendered in SVG. */
 export function PrizeWheel({
@@ -190,7 +190,7 @@ export function PrizeWheel({
                       letterSpacing: "0.5px",
                     }}
                   >
-                    {s.cents === 0 ? "TRY AGAIN" : `$${usd(s.cents)}`}
+                    {s.cents === 0 ? "TRY AGAIN" : `${cbx(s.cents)} CBX`}
                   </text>
                 </g>
               </g>
