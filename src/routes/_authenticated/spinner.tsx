@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { useRewardCelebration } from "@/hooks/use-reward-celebration";
 import spinnerPromo from "@/assets/spinner-promo.jpeg.asset.json";
 import { PrizeWheel } from "@/components/spinner/prize-wheel";
+import { CbxAmount } from "@/components/cbx-amount";
 
 export const Route = createFileRoute("/_authenticated/spinner")({
   head: () => ({
@@ -36,20 +37,18 @@ type Config = { enabled: boolean; cost_cents: number; daily_limit: number; prize
 
 const DEFAULT_CONFIG: Config = {
   enabled: true,
-  cost_cents: 100,
+  cost_cents: 400,
   daily_limit: 5,
   prizes: [
     { cents: 0, weight: 20 },
-    { cents: 50, weight: 25 },
-    { cents: 100, weight: 25 },
-    { cents: 200, weight: 15 },
-    { cents: 300, weight: 8 },
-    { cents: 500, weight: 6 },
-    { cents: 1000, weight: 1 },
+    { cents: 200, weight: 25 },
+    { cents: 400, weight: 25 },
+    { cents: 800, weight: 15 },
+    { cents: 1200, weight: 8 },
+    { cents: 2000, weight: 6 },
+    { cents: 4000, weight: 1 },
   ],
 };
-
-const usd = (cents: number) => (cents / 100).toFixed(2);
 
 /** Today's date key in Europe/London — matches the server-side spin_date. */
 function londonToday() {
@@ -76,7 +75,7 @@ function SpinnerPage() {
       if (v) {
         setCfg({
           enabled: v.enabled !== false,
-          cost_cents: Number(v.cost_cents ?? 100),
+          cost_cents: Number(v.cost_cents ?? 400),
           daily_limit: Number(v.daily_limit ?? 5),
           prizes:
             Array.isArray(v.prizes) && v.prizes.length
@@ -154,7 +153,7 @@ function SpinnerPage() {
         </div>
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Lucky Spinner</h1>
         <p className="mt-2 text-muted-foreground">
-          ${usd(cfg.cost_cents)} per spin · instant rewards credited to your wallet
+          <CbxAmount value={cfg.cost_cents} /> per spin · instant rewards credited to your wallet
         </p>
       </header>
 
@@ -183,13 +182,13 @@ function SpinnerPage() {
                 Spinning…
               </>
             ) : (
-              `Spin for $${usd(cfg.cost_cents)}`
+              <>Spin for <CbxAmount value={cfg.cost_cents} /></>
             )}
           </Button>
 
           {balance < cfg.cost_cents && (
             <p className="mt-3 text-xs text-red-400">
-              Insufficient balance — deposit at least ${usd(cfg.cost_cents)} to spin.
+              Insufficient balance — you need <CbxAmount value={cfg.cost_cents} /> to spin.
             </p>
           )}
           {spinsLeft === 0 && (
@@ -209,7 +208,7 @@ function SpinnerPage() {
               {result.won ? (
                 <>
                   <Trophy className="mx-auto mb-1 h-5 w-5" />
-                  <p className="font-bold">You won ${usd(result.cents)}</p>
+                  <p className="font-bold">You won <CbxAmount value={result.cents} /></p>
                 </>
               ) : (
                 <p className="font-medium">No prize this time — better luck on the next spin!</p>
@@ -223,7 +222,7 @@ function SpinnerPage() {
         <Card className="p-4">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Your balance</p>
           <p className="mt-1 flex items-center gap-1.5 text-lg font-bold tabular-nums">
-            <Wallet className="h-4 w-4 text-primary" />${usd(balance)}
+            <Wallet className="h-4 w-4 text-primary" /><CbxAmount value={balance} />
           </p>
         </Card>
         <Card className="p-4">
@@ -235,7 +234,7 @@ function SpinnerPage() {
         <Card className="p-4">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Top prize</p>
           <p className="mt-1 text-lg font-bold tabular-nums">
-            ${usd(Math.max(...segments.map((p) => p.cents), 0))}
+            <CbxAmount value={Math.max(...segments.map((p) => p.cents), 0)} />
           </p>
         </Card>
       </div>
