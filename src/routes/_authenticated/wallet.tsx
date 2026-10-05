@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpFromLine, Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight, FileDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { CbxAmount } from "@/components/cbx-amount";
 
 export const Route = createFileRoute("/_authenticated/wallet")({
   head: () => ({ meta: [{ title: "Wallet — CashBullX" }] }),
   component: WalletPage,
 });
-
-const fmt = (c: number) => `$${(c / 100).toFixed(2)}`;
 
 function WalletPage() {
   const { user, profile } = useAuth();
@@ -28,7 +27,7 @@ function WalletPage() {
 
   function downloadCSV(filename: string, rows: any[]) {
     if (!rows.length) return;
-    const headers = ["Date", "Description", "Type", "Amount (USD)"];
+    const headers = ["Date", "Description", "Type", "Amount (CBX)"];
     const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
     const lines = rows.map((t) => [
       new Date(t.created_at).toLocaleString(),
@@ -57,18 +56,18 @@ function WalletPage() {
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-30" style={{ background: "var(--gradient-primary)" }} />
           <WalletIcon className="h-5 w-5 text-primary" />
           <p className="text-xs uppercase tracking-wider text-muted-foreground mt-3">Available balance</p>
-          <p className="text-4xl font-bold mt-2 brand-text">{fmt(profile?.balance_cents ?? 0)}</p>
+          <p className="text-4xl font-bold mt-2 brand-text"><CbxAmount value={profile?.balance_cents ?? 0} /></p>
         </Card>
         <Card className="glass-strong border-border p-6">
           <TrendingUp className="h-5 w-5 text-accent" />
           <p className="text-xs uppercase tracking-wider text-muted-foreground mt-3">Lifetime earned</p>
-          <p className="text-4xl font-bold mt-2">{fmt(profile?.total_earned_cents ?? 0)}</p>
+          <p className="text-4xl font-bold mt-2"><CbxAmount value={profile?.total_earned_cents ?? 0} /></p>
         </Card>
       </div>
 
       <Card className="glass-strong border-border p-6">
         <h2 className="font-semibold flex items-center gap-2"><ArrowUpFromLine className="h-4 w-4" /> Withdraw USDT</h2>
-        <p className="text-sm text-muted-foreground mt-1">Minimum $10. Choose network (TRC20 / BEP20 / ERC20) and enter your wallet address.</p>
+        <p className="text-sm text-muted-foreground mt-1">Minimum 40 CBX. Your payout is converted at 4 CBX = 1 USDT.</p>
         <Link to="/withdraw">
           <Button className="btn-primary-gradient h-11 mt-4">Go to withdrawal page</Button>
         </Link>
@@ -116,7 +115,7 @@ function WalletPage() {
                         </div>
                         <Badge variant="outline" className="capitalize hidden sm:inline-flex">{t.type.replace("_", " ")}</Badge>
                         <span className={`text-sm font-semibold ${t.amount_cents >= 0 ? "text-accent" : "text-destructive"}`}>
-                          {t.amount_cents >= 0 ? "+" : ""}{fmt(t.amount_cents)}
+                          <CbxAmount value={t.amount_cents} sign />
                         </span>
                       </li>
                     ))}

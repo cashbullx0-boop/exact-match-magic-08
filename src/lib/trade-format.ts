@@ -12,16 +12,16 @@ export type TradeDuration = (typeof TRADE_DURATIONS)[number];
 
 /** Validate a trade amount in cents. Returns an error message, or null when valid. */
 export function validateTradeAmount(amountCents: number, balanceCents: number): string | null {
-  if (!Number.isFinite(amountCents) || amountCents < 1000) return "Minimum trade amount is $10";
-  if (amountCents % 1000 !== 0) return "Amount must be in multiples of $10 (10, 20, 30...)";
+  if (!Number.isFinite(amountCents) || amountCents < 4000) return "Minimum trade amount is 40 CBX";
+  if (amountCents % 4000 !== 0) return "Amount must be in multiples of 40 CBX (40, 80, 120...)";
   if (amountCents > balanceCents) return "Insufficient wallet balance";
   return null;
 }
 
-/** Format USD cents as `$X.XX` — always exactly two decimals. */
+/** Format CBX hundredths with a textual suffix for non-visual contexts. */
 export function formatMoney(cents: number): string {
-  const sign = cents < 0 ? "-" : "";
-  return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
+  const sign = cents < 0 ? "−" : "";
+  return `${sign}${(Math.abs(cents) / 100).toLocaleString(undefined, { maximumFractionDigits: 2 })} CBX`;
 }
 
 /** Format a number of seconds as `HH:MM:SS`. */

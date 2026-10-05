@@ -1,10 +1,10 @@
 export const ALLOWED_HOURS = [4, 8, 12] as const;
 
 export function validateTradeInput(d: { amount_cents: number; duration_hours: number }) {
-  if (!Number.isInteger(d.amount_cents) || d.amount_cents < 1000 || d.amount_cents > 100_000_00) {
-    throw new Error("Minimum trade amount is $10");
+  if (!Number.isInteger(d.amount_cents) || d.amount_cents < 4000 || d.amount_cents > 400_000_00) {
+    throw new Error("Minimum trade amount is 40 CBX");
   }
-  if (d.amount_cents % 1000 !== 0) throw new Error("Amount must be a multiple of $10");
+  if (d.amount_cents % 4000 !== 0) throw new Error("Amount must be a multiple of 40 CBX");
   if (!ALLOWED_HOURS.includes(d.duration_hours as 4 | 8 | 12)) throw new Error("Invalid duration");
   return d;
 }

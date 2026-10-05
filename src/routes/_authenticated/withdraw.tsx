@@ -11,6 +11,8 @@ import { ArrowUpRight, Wallet as WalletIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { WithdrawOtpModal } from "@/components/dashboard/withdraw-otp-modal";
 import { VideoTutorial } from "@/components/dashboard/video-tutorial";
+import { CbxAmount } from "@/components/cbx-amount";
+import { cbxToUsdt, formatUSDT } from "@/lib/currency";
 
 
 export const Route = createFileRoute("/_authenticated/withdraw")({
@@ -20,8 +22,6 @@ export const Route = createFileRoute("/_authenticated/withdraw")({
 
 const NETWORKS = ["TRC20", "BEP20", "ERC20"] as const;
 type Network = (typeof NETWORKS)[number];
-
-const fmt = (c: number) => `$${(c / 100).toFixed(2)}`;
 
 const statusVariant: Record<string, string> = {
   pending: "bg-yellow-500/15 text-yellow-500",
@@ -75,8 +75,8 @@ function WithdrawPage() {
 
   const validate = () => {
     const cents = Math.round(parseFloat(amount) * 100);
-    if (!cents || cents < 1000) {
-      toast.error("Minimum withdrawal is $10");
+    if (!cents || cents < 4000) {
+      toast.error("Minimum withdrawal is 40 CBX");
       return null;
     }
     if (!profile || cents > profile.balance_cents) {
@@ -120,9 +120,9 @@ function WithdrawPage() {
   return (
     <div className="space-y-6 animate-float-up">
       <header>
-        <h1 className="text-2xl md:text-3xl font-bold">Withdraw USDT</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Withdraw CBX</h1>
         <p className="text-muted-foreground mt-1">
-          Minimum $10. Funds are deducted on request and refunded if rejected.
+          Minimum 40 CBX. Every 4 CBX pays out as 1 USDT.
         </p>
       </header>
 
@@ -138,24 +138,25 @@ function WithdrawPage() {
         <p className="text-xs uppercase tracking-wider text-muted-foreground mt-3">
           Available balance
         </p>
-        <p className="text-4xl font-bold mt-2 brand-text">{fmt(profile?.balance_cents ?? 0)}</p>
+        <p className="text-4xl font-bold mt-2 brand-text"><CbxAmount value={profile?.balance_cents ?? 0} /></p>
       </Card>
 
       <Card className="glass-strong border-border p-6 space-y-5">
         <h2 className="font-semibold text-lg">New withdrawal</h2>
 
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (USDT)</Label>
+          <Label htmlFor="amount">Amount (CBX)</Label>
           <Input
             id="amount"
             type="number"
-            min="10"
+            min="40"
             step="0.01"
-            placeholder="10.00"
+            placeholder="40"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="h-11"
           />
+          {Number(amount) > 0 && <p className="text-xs text-muted-foreground">Payout: {formatUSDT(cbxToUsdt(Number(amount)))}</p>}
         </div>
 
         <div className="space-y-2">
@@ -229,7 +230,7 @@ function WithdrawPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">
-                    {fmt(w.amount_cents)} · USDT {w.network}
+                    <CbxAmount value={w.amount_cents} /> · {formatUSDT(w.amount_cents / 400)} · {w.network}
                   </p>
                   <p className="text-xs text-muted-foreground font-mono truncate">
                     {w.wallet_address}
