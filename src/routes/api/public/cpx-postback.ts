@@ -83,7 +83,7 @@ export const Route = createFileRoute("/api/public/cpx-postback")({
         await supabaseAdmin.from("notifications").insert({
           user_id: extUserId,
           title: "Reward credited",
-          body: `You earned $${reward.toFixed(2)} from CPX Research.`,
+          body: `You earned ${(reward * 4).toFixed(2)} CBX from CPX Research.`,
           type: "system",
           link: "/wallet",
         });
